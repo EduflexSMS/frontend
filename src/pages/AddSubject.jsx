@@ -34,7 +34,7 @@ export default function AddSubject() {
     };
 
     return (
-        <Container maxWidth="md" sx={{ mt: 5 }}>
+        <Container maxWidth="md" sx={{ mt: { xs: 2, md: 5 } }}>
             <Card elevation={5} sx={{ p: 3, borderRadius: 3, background: 'linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%)' }}>
                 <CardContent>
                     <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#37474f' }}>

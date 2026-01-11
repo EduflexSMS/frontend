@@ -43,12 +43,12 @@ export default function Dashboard() {
 
     return (
         <Box sx={{ flexGrow: 1 }}>
-            <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, mb: 4, letterSpacing: '-0.5px' }}>
+            <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, mb: { xs: 2, md: 4 }, fontSize: { xs: '1.75rem', md: '2.125rem' }, letterSpacing: '-0.5px' }}>
                 Dashboard Overview
             </Typography>
 
             {/* Top Cards */}
-            <Grid container spacing={{ xs: 2, md: 4 }} sx={{ mb: 4 }}>
+            <Grid container spacing={{ xs: 2, md: 3, lg: 4 }} sx={{ mb: 4 }}>
                 <Grid item xs={12} sm={6} md={4}>
                     <Card sx={{
                         background: 'linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%)',

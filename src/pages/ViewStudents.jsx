@@ -54,15 +54,16 @@ export default function ViewStudents() {
 
     return (
         <Container maxWidth="lg">
-            <Typography variant="h4" gutterBottom>Student Registry</Typography>
+            <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.75rem', md: '2.125rem' }, fontWeight: 600 }}>Student Registry</Typography>
 
-            <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ mb: 3, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
                 <TextField
                     label="Search by Name, Index or Subject"
                     variant="outlined"
+                    fullWidth
                     value={search}
                     onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                    sx={{ width: 300 }}
+                    sx={{ width: { xs: '100%', sm: 300 } }}
                 />
             </Box>
 
