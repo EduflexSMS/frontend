@@ -1,0 +1,17 @@
+# IDE and OS files
+.DS_Store
+*.suo
+*.user
+.vscode/
+
+# Build artifacts
+/build/
+/dist/
+*.class
+*.exe
+
+# Dependencies
+/node_modules/
+
+# Environment variables
+.env
