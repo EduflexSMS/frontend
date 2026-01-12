@@ -150,7 +150,7 @@ export default function ClassReport() {
             <Paper elevation={0} sx={{ p: { xs: 2, md: 4 }, mb: 4, borderRadius: 4, boxShadow: 'var(--card-shadow)', border: '1px solid rgba(0,0,0,0.05)' }}>
                 <Grid container spacing={2} alignItems="center">
                     <Grid item xs={12} sm={6} md={3}>
-                        <FormControl fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}>
+                        <FormControl fullWidth sx={{ minWidth: 120, '& .MuiOutlinedInput-root': { borderRadius: 3 } }}>
                             <InputLabel>Grade</InputLabel>
                             <Select
                                 value={grade}
@@ -166,7 +166,7 @@ export default function ClassReport() {
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={3}>
-                        <FormControl fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}>
+                        <FormControl fullWidth sx={{ minWidth: 120, '& .MuiOutlinedInput-root': { borderRadius: 3 } }}>
                             <InputLabel>Subject</InputLabel>
                             <Select
                                 value={subject}
@@ -183,7 +183,7 @@ export default function ClassReport() {
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={3}>
-                        <FormControl fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}>
+                        <FormControl fullWidth sx={{ minWidth: 120, '& .MuiOutlinedInput-root': { borderRadius: 3 } }}>
                             <InputLabel>Month</InputLabel>
                             <Select
                                 value={month}
