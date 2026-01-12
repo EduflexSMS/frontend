@@ -97,6 +97,9 @@ const SubjectGrid = ({ studentId, studentGrade, enrollments, onUpdate, subjectCo
                                     >
                                         <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', mb: 1 }}>
                                             {months[record.monthIndex]}
+                                            <span style={{ fontWeight: 'normal', marginLeft: '4px', color: '#666' }}>
+                                                ({record.attendance.filter(s => s === 'present' || s === true || s === 'true').length})
+                                            </span>
                                         </Typography>
 
                                         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mb: 1 }}>
