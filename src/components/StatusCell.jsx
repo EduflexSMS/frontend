@@ -1,21 +1,39 @@
 import React, { useState } from 'react';
 import { Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, IconButton } from '@mui/material';
-import { CheckCircle, RadioButtonUnchecked, MonetizationOn, Book } from '@mui/icons-material';
+import { CheckCircle, RadioButtonUnchecked, MonetizationOn, Book, Cancel } from '@mui/icons-material';
 import axios from 'axios';
 import API_BASE_URL from '../config';
 
 const StatusCell = ({ studentId, subject, monthIndex, weekIndex, type, initialStatus, onUpdate, label }) => {
-    const [marked, setMarked] = useState(initialStatus);
+    // initialStatus can be boolean (legacy) or string ('present', 'absent', 'pending')
+    // Normalize to string
+    const getNormalizedStatus = (status) => {
+        if (status === true || status === 'true' || status === 'present') return 'present';
+        if (status === 'absent') return 'absent';
+        return 'pending'; // Default for false, null, undefined, 'pending'
+    };
+
+    const [status, setStatus] = useState(getNormalizedStatus(initialStatus));
     const [open, setOpen] = useState(false);
 
+    // Sync state with props when data updates
+    React.useEffect(() => {
+        setStatus(getNormalizedStatus(initialStatus));
+    }, [initialStatus]);
+
     // Icons based on type
-    const getIcon = (filled) => {
+    const getIcon = (currentStatus) => {
         if (type === 'attendance') {
-            return filled ? <CheckCircle color="success" fontSize="small" /> : <RadioButtonUnchecked fontSize="small" />;
+            if (currentStatus === 'present') return <CheckCircle color="success" fontSize="small" />;
+            if (currentStatus === 'absent') return <Cancel color="error" fontSize="small" />;
+            return <RadioButtonUnchecked color="action" fontSize="small" sx={{ opacity: 0.3 }} />;
         } else if (type === 'fee') {
-            return filled ? <MonetizationOn color="success" fontSize="small" /> : <MonetizationOn color="disabled" fontSize="small" />;
+            // Fee and Tute remain boolean-like for now, but better to check input
+            const isDone = currentStatus === true || currentStatus === 'true' || currentStatus === 'present'; // Fee doesn't have absent usually
+            return isDone ? <MonetizationOn color="success" fontSize="small" /> : <MonetizationOn color="disabled" fontSize="small" />;
         } else if (type === 'tute') {
-            return filled ? <Book color="success" fontSize="small" /> : <Book color="disabled" fontSize="small" />;
+            const isDone = currentStatus === true || currentStatus === 'true' || currentStatus === 'present';
+            return isDone ? <Book color="success" fontSize="small" /> : <Book color="disabled" fontSize="small" />;
         }
     };
 
@@ -26,21 +44,31 @@ const StatusCell = ({ studentId, subject, monthIndex, weekIndex, type, initialSt
     };
 
     const handleClick = () => {
-        // Always open dialog to confirm toggle
         setOpen(true);
     };
 
-    const handleConfirm = async () => {
+    const handleUpdate = async (newStatus) => {
         try {
             let url = '';
+            let body = {};
+
             if (type === 'attendance') {
                 url = `${API_BASE_URL}/api/attendance/${studentId}/${subject}/${monthIndex}/${weekIndex}`;
+                body = { status: newStatus };
+                await axios.patch(url, body);
             } else {
+                // Legacy support for Fee/Tute which are valid/toggle endpoints
+                // Assuming we haven't changed Fee/Tute endpoints to accept body status yet, 
+                // but we should just trigger the toggle if it's legacy or pass status if supported.
+                // The current backend for records is a toggle endpoint: /records/:studentId/:subject/:month/:type
+                // It does NOT accept body. So we stick to toggle for Fee/Tute.
                 url = `${API_BASE_URL}/api/records/${studentId}/${subject}/${monthIndex}/${type}`;
+                await axios.patch(url);
+                // For local state update, just toggle
+                newStatus = (status === true || status === 'true') ? false : true;
             }
 
-            await axios.patch(url);
-            setMarked(!marked);
+            setStatus(getNormalizedStatus(newStatus)); // Re-normalize to be safe
             setOpen(false);
             if (onUpdate) onUpdate();
         } catch (error) {
@@ -50,61 +78,93 @@ const StatusCell = ({ studentId, subject, monthIndex, weekIndex, type, initialSt
         }
     };
 
-    // Add import for Box if not present, but better to just use what we have or add to imports
-    const content = label ? (
-        <div style={{
-            width: 32,
-            height: 32,
-            borderRadius: '50%',
-            backgroundColor: marked ? '#2e7d32' : 'transparent',
-            border: marked ? 'none' : '1px solid #757575',
-            color: marked ? 'white' : '#757575',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '0.75rem',
-            fontWeight: 'bold',
-            transition: 'all 0.2s ease-in-out'
-        }}>
-            {label}
-        </div>
-    ) : getIcon(marked);
+    // Render Logic for Dialog Content
+    const renderDialogContent = () => {
+        if (type === 'attendance') {
+            return (
+                <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '10px' }}>
+                    <Button
+                        variant={status === 'present' ? "contained" : "outlined"}
+                        color="success"
+                        onClick={() => handleUpdate('present')}
+                        startIcon={<CheckCircle />}
+                    >
+                        Present
+                    </Button>
+                    <Button
+                        variant={status === 'absent' ? "contained" : "outlined"}
+                        color="error"
+                        onClick={() => handleUpdate('absent')}
+                        startIcon={<Cancel />}
+                    >
+                        Absent
+                    </Button>
+                    <Button
+                        variant={status === 'pending' ? "contained" : "outlined"}
+                        color="inherit"
+                        onClick={() => handleUpdate('pending')}
+                        startIcon={<RadioButtonUnchecked />}
+                    >
+                        Clear
+                    </Button>
+                </div>
+            );
+        } else {
+            // Fee and Tute - Simple Toggle Confirmation
+            const isDone = status === true || status === 'true' || status === 'present';
+            return (
+                <Typography>
+                    Are you sure you want to <strong>{isDone ? 'unmark' : 'mark'}</strong> <strong>{getLabel()}</strong>?
+                    <br /><br />
+                    <Button
+                        variant="contained"
+                        color={isDone ? "warning" : "primary"}
+                        onClick={() => handleUpdate(null)} // Argument ignored for toggle logic in handleUpdate
+                        fullWidth
+                    >
+                        {isDone ? "Unmark" : "Confirm"}
+                    </Button>
+                </Typography>
+            );
+        }
+    };
 
     return (
         <>
-            <Tooltip title={marked ? `${getLabel()} - Completed` : `Mark ${getLabel()}`}>
+            <Tooltip title={status} arrow>
                 <IconButton
                     size="small"
                     onClick={handleClick}
-                    // disabled={marked} // Allow clicking even if marked
                     sx={{
                         p: 0.5,
-                        opacity: (marked && !label) ? 1 : (label ? 1 : 0.6), // Adjust opacity rule for dates
-                        '&:hover': { opacity: 1, color: 'primary.main', transform: label ? 'scale(1.1)' : 'none' }
+                        opacity: (status === 'pending' && !label) ? 0.6 : 1,
+                        '&:hover': { opacity: 1, color: 'primary.main', transform: 'scale(1.1)' }
                     }}
                 >
-                    {content}
+                    {label ? (
+                        <div style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: '50%',
+                            backgroundColor: status === 'present' ? '#2e7d32' : 'transparent', // Only highlight present dates? Or fee paid?
+                            // Wait, Label is usually for Month Name block or something? 
+                            // Ah, checking StatusCell usage... seemingly not used with Label for attendance.
+                            // The Label logic was specific to previous implementation. Let's keep it simple.
+                            border: '1px solid #757575',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '0.75rem'
+                        }}>{label}</div>
+                    ) : getIcon(status)}
                 </IconButton>
             </Tooltip>
 
             <Dialog open={open} onClose={() => setOpen(false)}>
-                <DialogTitle>Confirm Action</DialogTitle>
+                <DialogTitle>Update {getLabel()}</DialogTitle>
                 <DialogContent>
-                    <Typography>
-                        Are you sure you want to <strong>{marked ? 'unmark' : 'mark'}</strong> <strong>{getLabel()}</strong>?
-                        <br />
-                        <br />
-                        {marked ?
-                            <span style={{ color: 'orange' }}>This will revert the status to pending/absent.</span> :
-                            <span style={{ color: 'green' }}>This will mark it as completed/present.</span>
-                        }
-                    </Typography>
+                    {renderDialogContent()}
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setOpen(false)}>Cancel</Button>
-                    <Button onClick={handleConfirm} variant="contained" color={marked ? "warning" : "primary"}>
-                        {marked ? "Unmark" : "Confirm"}
-                    </Button>
                 </DialogActions>
             </Dialog>
         </>
