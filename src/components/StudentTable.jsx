@@ -1,52 +1,93 @@
 import React, { useState } from 'react';
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Collapse, Box, Typography,
-    useTheme, useMediaQuery, Card, CardContent, Button, Divider, Grid, Chip
+    useTheme, useMediaQuery, Card, CardContent, Button, Divider, Grid, Chip, Avatar
 } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp, Edit, Phone, School, Person, Numbers, Class } from '@mui/icons-material';
 import SubjectGrid from './SubjectGrid';
 import EditStudentDialog from '../components/EditStudentDialog';
+import { motion, AnimatePresence } from 'framer-motion';
 
-function Row({ row, onUpdate, onEdit, subjectColorMap }) {
+function Row({ row, onUpdate, onEdit, subjectColorMap, index }) {
     const [open, setOpen] = useState(false);
 
     return (
         <React.Fragment>
-            <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
+            <TableRow
+                component={motion.tr}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                sx={{
+                    '& > *': { borderBottom: 'unset' },
+                    bgcolor: open ? 'rgba(59, 130, 246, 0.05)' : 'transparent',
+                    transition: 'background-color 0.3s'
+                }}
+            >
                 <TableCell>
                     <IconButton
                         aria-label="expand row"
                         size="small"
                         onClick={() => setOpen(!open)}
+                        sx={{
+                            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+                            transition: 'transform 0.3s'
+                        }}
                     >
-                        {open ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+                        <KeyboardArrowDown />
                     </IconButton>
                 </TableCell>
-                <TableCell component="th" scope="row">{row.name}</TableCell>
-                <TableCell>{row.indexNumber}</TableCell>
-                <TableCell>{row.grade}</TableCell>
-                <TableCell>{row.mobile}</TableCell>
-                <TableCell>{row.enrollments.map(e => e.subject).join(', ')}</TableCell>
+                <TableCell component="th" scope="row">
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Avatar sx={{ width: 32, height: 32, bgcolor: 'var(--secondary-color)', fontSize: '0.85rem' }}>
+                            {row.name.charAt(0)}
+                        </Avatar>
+                        <Typography variant="body2" fontWeight="500">{row.name}</Typography>
+                    </Box>
+                </TableCell>
                 <TableCell>
-                    <IconButton onClick={() => onEdit(row)} color="primary">
-                        <Edit />
+                    <Chip label={row.indexNumber} size="small" variant="outlined" sx={{ borderRadius: 1 }} />
+                </TableCell>
+                <TableCell>{row.grade}</TableCell>
+                <TableCell sx={{ fontFamily: 'monospace' }}>{row.mobile}</TableCell>
+                <TableCell>
+                    {row.enrollments.length > 0 ? (
+                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                            {row.enrollments.slice(0, 2).map(e => (
+                                <Chip key={e.subject} label={e.subject} size="small" sx={{ height: 20, fontSize: '0.7rem' }} />
+                            ))}
+                            {row.enrollments.length > 2 && <Chip label={`+${row.enrollments.length - 2}`} size="small" sx={{ height: 20, fontSize: '0.7rem' }} />}
+                        </Box>
+                    ) : (
+                        <Typography variant="caption" color="text.secondary">None</Typography>
+                    )}
+                </TableCell>
+                <TableCell>
+                    <IconButton
+                        onClick={() => onEdit(row)}
+                        color="primary"
+                        sx={{ bgcolor: 'rgba(37, 99, 235, 0.1)', '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.2)' } }}
+                    >
+                        <Edit fontSize="small" />
                     </IconButton>
                 </TableCell>
             </TableRow>
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
-                        <Box sx={{ margin: 1 }}>
-                            <Typography variant="h6" gutterBottom component="div">
-                                Subjects & Attendance
+                        <Box sx={{ m: 2, ml: 8, p: 2, bgcolor: 'rgba(255,255,255,0.5)', borderRadius: 4, border: '1px solid rgba(0,0,0,0.05)' }}>
+                            <Typography variant="subtitle2" gutterBottom component="div" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                                Progress & Attendance Details
                             </Typography>
-                            <SubjectGrid
-                                studentId={row._id}
-                                studentGrade={row.grade}
-                                enrollments={row.enrollments}
-                                onUpdate={onUpdate}
-                                subjectColorMap={subjectColorMap}
-                            />
+                            <Box sx={{ mt: 2 }}>
+                                <SubjectGrid
+                                    studentId={row._id}
+                                    studentGrade={row.grade}
+                                    enrollments={row.enrollments}
+                                    onUpdate={onUpdate}
+                                    subjectColorMap={subjectColorMap}
+                                />
+                            </Box>
                         </Box>
                     </Collapse>
                 </TableCell>
@@ -55,44 +96,48 @@ function Row({ row, onUpdate, onEdit, subjectColorMap }) {
     );
 }
 
-function StudentCard({ row, onUpdate, onEdit, subjectColorMap }) {
+function StudentCard({ row, onUpdate, onEdit, subjectColorMap, index }) {
     const [expanded, setExpanded] = useState(false);
 
     return (
-        <Card sx={{ mb: 2, borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+        <Card
+            component={motion.div}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            sx={{ mb: 2, borderRadius: 4, boxShadow: 'var(--card-shadow)', border: '1px solid rgba(0,0,0,0.05)' }}
+        >
             <CardContent sx={{ pb: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <Box>
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>{row.name}</Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
-                            <Numbers fontSize="small" /> {row.indexNumber}
-                        </Typography>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                        <Avatar sx={{ bgcolor: 'var(--primary-color)' }}>{row.name.charAt(0)}</Avatar>
+                        <Box>
+                            <Typography variant="h6" sx={{ fontWeight: 600 }}>{row.name}</Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                                <Chip label={`#${row.indexNumber}`} size="small" sx={{ borderRadius: 1.5, height: 24 }} />
+                                <Typography variant="caption" color="text.secondary">{row.grade}</Typography>
+                            </Box>
+                        </Box>
                     </Box>
-                    <IconButton onClick={() => onEdit(row)} size="small" sx={{ bgcolor: 'rgba(33, 150, 243, 0.1)', color: 'primary.main' }}>
+                    <IconButton onClick={() => onEdit(row)} size="small" sx={{ bgcolor: 'rgba(37, 99, 235, 0.1)', color: 'primary.main' }}>
                         <Edit fontSize="small" />
                     </IconButton>
                 </Box>
 
-                <Grid container spacing={1} sx={{ mt: 2 }}>
-                    <Grid item xs={6}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
-                            <School fontSize="small" />
-                            <Typography variant="body2">{row.grade}</Typography>
-                        </Box>
-                    </Grid>
-                    <Grid item xs={6}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
+                <Grid container spacing={1} sx={{ mt: 2, mb: 2 }}>
+                    <Grid item xs={12}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', bgcolor: '#f8fafc', p: 1, borderRadius: 2 }}>
                             <Phone fontSize="small" />
                             <Typography variant="body2">{row.mobile}</Typography>
                         </Box>
                     </Grid>
                 </Grid>
 
-                <Box sx={{ mt: 2, mb: 1 }}>
+                <Box sx={{ mb: 1 }}>
                     {row.enrollments.length > 0 ? (
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                             {row.enrollments.map(e => (
-                                <Chip key={e.subject} label={e.subject} size="small" variant="outlined" />
+                                <Chip key={e.subject} label={e.subject} size="small" variant="outlined" sx={{ bgcolor: 'white' }} />
                             ))}
                         </Box>
                     ) : (
@@ -101,21 +146,20 @@ function StudentCard({ row, onUpdate, onEdit, subjectColorMap }) {
                 </Box>
             </CardContent>
 
-            <Box sx={{ px: 2, pb: 2 }}>
+            <Box sx={{ borderTop: '1px solid rgba(0,0,0,0.05)' }}>
                 <Button
                     fullWidth
                     variant="text"
                     endIcon={expanded ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
                     onClick={() => setExpanded(!expanded)}
-                    sx={{ textTransform: 'none', color: 'text.secondary', fontSize: '0.85rem' }}
+                    sx={{ textTransform: 'none', color: 'text.secondary', py: 1.5 }}
                 >
-                    {expanded ? 'Hide Details' : 'View Attendance'}
+                    {expanded ? 'Hide Details' : 'View Participation'}
                 </Button>
             </Box>
 
             <Collapse in={expanded} timeout="auto" unmountOnExit>
-                <Divider />
-                <Box sx={{ p: 2, bgcolor: '#fafafa' }}>
+                <Box sx={{ p: 2, bgcolor: '#f8fafc' }}>
                     <SubjectGrid
                         studentId={row._id}
                         studentGrade={row.grade}
@@ -139,38 +183,52 @@ export default function StudentTable({ students, onUpdate, subjectColorMap }) {
         <>
             {isMobile ? (
                 <Box>
-                    {students.map((student) => (
-                        <StudentCard
-                            key={student._id}
-                            row={student}
-                            onUpdate={onUpdate}
-                            onEdit={setEditingStudent}
-                            subjectColorMap={subjectColorMap}
-                        />
-                    ))}
+                    <AnimatePresence>
+                        {students.map((student, index) => (
+                            <StudentCard
+                                key={student._id}
+                                row={student}
+                                onUpdate={onUpdate}
+                                onEdit={setEditingStudent}
+                                subjectColorMap={subjectColorMap}
+                                index={index}
+                            />
+                        ))}
+                    </AnimatePresence>
                 </Box>
             ) : (
-                <TableContainer component={Paper} sx={{ borderRadius: 4, boxShadow: 'var(--card-shadow)', overflowX: 'auto' }}>
+                <TableContainer
+                    component={Paper}
+                    elevation={0}
+                    sx={{
+                        borderRadius: 4,
+                        boxShadow: 'var(--card-shadow)',
+                        border: '1px solid rgba(0,0,0,0.05)',
+                        background: 'rgba(255,255,255,0.8)',
+                        backdropFilter: 'blur(20px)'
+                    }}
+                >
                     <Table aria-label="collapsible table" sx={{ minWidth: 650 }}>
-                        <TableHead sx={{ bgcolor: '#1e88e5' }}>
-                            <TableRow>
+                        <TableHead>
+                            <TableRow sx={{ bgcolor: 'rgba(37, 99, 235, 0.05)' }}>
                                 <TableCell />
-                                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Name</TableCell>
-                                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Index Number</TableCell>
-                                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Grade</TableCell>
-                                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Mobile</TableCell>
-                                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Subjects</TableCell>
-                                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
+                                <TableCell sx={{ color: 'text.primary', fontWeight: 'bold' }}>Name</TableCell>
+                                <TableCell sx={{ color: 'text.primary', fontWeight: 'bold' }}>Index Number</TableCell>
+                                <TableCell sx={{ color: 'text.primary', fontWeight: 'bold' }}>Grade</TableCell>
+                                <TableCell sx={{ color: 'text.primary', fontWeight: 'bold' }}>Mobile</TableCell>
+                                <TableCell sx={{ color: 'text.primary', fontWeight: 'bold' }}>Subjects</TableCell>
+                                <TableCell sx={{ color: 'text.primary', fontWeight: 'bold' }}>Actions</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {students.map((student) => (
+                            {students.map((student, index) => (
                                 <Row
                                     key={student._id}
                                     row={student}
                                     onUpdate={onUpdate}
                                     onEdit={setEditingStudent}
                                     subjectColorMap={subjectColorMap}
+                                    index={index}
                                 />
                             ))}
                         </TableBody>
