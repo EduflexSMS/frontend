@@ -227,7 +227,7 @@ export default function ClassReport() {
                             </Typography>
                         </Grid>
                         <Grid item xs={12} sm={6} md={3}>
-                            <FormControl fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'white' } }}>
+                            <FormControl fullWidth sx={{ minWidth: 120, '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'white' } }}>
                                 <InputLabel>Grade</InputLabel>
                                 <Select
                                     value={grade}
@@ -243,7 +243,7 @@ export default function ClassReport() {
                         </Grid>
 
                         <Grid item xs={12} sm={6} md={3}>
-                            <FormControl fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'white' } }}>
+                            <FormControl fullWidth sx={{ minWidth: 120, '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'white' } }}>
                                 <InputLabel>Subject</InputLabel>
                                 <Select
                                     value={subject}
@@ -260,7 +260,7 @@ export default function ClassReport() {
                         </Grid>
 
                         <Grid item xs={12} sm={6} md={3}>
-                            <FormControl fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'white' } }}>
+                            <FormControl fullWidth sx={{ minWidth: 120, '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'white' } }}>
                                 <InputLabel>Month</InputLabel>
                                 <Select
                                     value={month}
