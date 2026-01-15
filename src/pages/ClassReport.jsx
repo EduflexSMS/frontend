@@ -202,8 +202,8 @@ export default function ClassReport() {
                         <Assessment color="primary" fontSize="large" />
                     </Box>
                     <Box>
-                        <Typography variant="h4" sx={{ fontWeight: 800 }}>Class Reports</Typography>
-                        <Typography variant="body2" color="text.secondary">Generate and view detailed class performance reports.</Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 800, fontSize: { xs: '1.5rem', md: '2.125rem' } }}>Class Reports</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', md: '0.875rem' } }}>Generate and view detailed class performance reports.</Typography>
                     </Box>
                 </Box>
 
@@ -222,12 +222,12 @@ export default function ClassReport() {
                 >
                     <Grid container spacing={2} alignItems="center">
                         <Grid item xs={12}>
-                            <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1, fontSize: { xs: '1rem', md: '1.25rem' } }}>
                                 <FilterList /> Filter Criteria
                             </Typography>
                         </Grid>
-                        <Grid item xs={12} sm={6} md={3}>
-                            <FormControl fullWidth sx={{ minWidth: 120, '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'white' } }}>
+                        <Grid item xs={6} md={3}>
+                            <FormControl fullWidth size="small" sx={{ minWidth: 100, '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'white' } }}>
                                 <InputLabel>Grade</InputLabel>
                                 <Select
                                     value={grade}
@@ -242,8 +242,8 @@ export default function ClassReport() {
                             </FormControl>
                         </Grid>
 
-                        <Grid item xs={12} sm={6} md={3}>
-                            <FormControl fullWidth sx={{ minWidth: 120, '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'white' } }}>
+                        <Grid item xs={6} md={3}>
+                            <FormControl fullWidth size="small" sx={{ minWidth: 100, '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'white' } }}>
                                 <InputLabel>Subject</InputLabel>
                                 <Select
                                     value={subject}
@@ -259,8 +259,8 @@ export default function ClassReport() {
                             </FormControl>
                         </Grid>
 
-                        <Grid item xs={12} sm={6} md={3}>
-                            <FormControl fullWidth sx={{ minWidth: 120, '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'white' } }}>
+                        <Grid item xs={6} md={3}>
+                            <FormControl fullWidth size="small" sx={{ minWidth: 100, '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'white' } }}>
                                 <InputLabel>Month</InputLabel>
                                 <Select
                                     value={month}
@@ -274,7 +274,7 @@ export default function ClassReport() {
                             </FormControl>
                         </Grid>
 
-                        <Grid item xs={12} sm={6} md={3}>
+                        <Grid item xs={6} md={3}>
                             <Button
                                 component={motion.button}
                                 whileHover={{ scale: 1.02 }}
@@ -286,16 +286,16 @@ export default function ClassReport() {
                                 fullWidth
                                 startIcon={!loading && <Search />}
                                 sx={{
-                                    height: '56px',
+                                    height: '40px', // Matches default small input height roughly
                                     borderRadius: 3,
                                     fontWeight: 'bold',
                                     textTransform: 'none',
-                                    fontSize: '1rem',
+                                    fontSize: '0.9rem',
                                     background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
                                     boxShadow: '0 8px 16px rgba(37, 99, 235, 0.24)'
                                 }}
                             >
-                                {loading ? <CircularProgress size={24} color="inherit" /> : "Generate Report"}
+                                {loading ? <CircularProgress size={20} color="inherit" /> : "Generate"}
                             </Button>
                         </Grid>
                     </Grid>
