@@ -159,7 +159,7 @@ function StudentCard({ row, onUpdate, onEdit, subjectColorMap, index }) {
             </Box>
 
             <Collapse in={expanded} timeout="auto" unmountOnExit>
-                <Box sx={{ p: 2, bgcolor: '#f8fafc' }}>
+                <Box sx={{ p: 1, bgcolor: '#f8fafc' }}>
                     <SubjectGrid
                         studentId={row._id}
                         studentGrade={row.grade}

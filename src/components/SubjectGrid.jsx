@@ -38,71 +38,60 @@ const getDaysInMonth = (monthIndex, year, dayInfo) => {
     return dates;
 };
 
-const SubjectGrid = ({ studentId, studentGrade, enrollments, onUpdate, subjectColorMap }) => {
-    const currentYear = new Date().getFullYear(); // Or make this selectable
+const SubjectGrid = ({ studentId, studentGrade, enrollments, onUpdate, subjectColorMap, isMobile }) => {
+    const currentYear = new Date().getFullYear();
 
     return (
-        <Box sx={{ p: 2 }}>
+        <Box sx={{ p: isMobile ? 0 : 2 }}>
             {enrollments.map((enrollment) => {
                 const subjectData = subjectColorMap ? subjectColorMap[enrollment.subject] : null;
                 const color = subjectData ? subjectData.color : '#f5f5f5';
-
-                // Need to get student grade. In SubjectGrid we only have studentId.
-                // However, the student object is what contains the enrollments. 
-                // We are iterating enrollments of *a* student. 
-                // But we don't have the student's grade passed into SubjectGrid explicitly, or do we?
-                // Let's check props. currently: ({ studentId, enrollments, onUpdate, subjectColorMap })
-                // We likely need to pass the student's grade from the parent component.
-
-                // Assuming we update the parent to pass 'studentGrade'.
-                // If not available yet, we need to add it.
-                // For now, let's look at how we can get it.
-                // Wait, ViewStudents passes props. Let's check ViewStudents.jsx.
-
-                // I will add 'studentGrade' prop to SubjectGrid.
-
-                const { day: classDay, startDate } = getClassDayInfo(subjectData, studentGrade);
 
                 return (
                     <Paper
                         key={enrollment.subject}
                         sx={{
                             mb: 2,
-                            p: 2,
-                            backgroundColor: color || '#f5f5f5'
+                            p: isMobile ? 1.5 : 2,
+                            backgroundColor: color || '#f5f5f5',
+                            borderRadius: 3
                         }}
                         elevation={1}
                     >
-                        <Typography variant="h6" gutterBottom>
+                        <Typography variant="h6" gutterBottom sx={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: 600 }}>
                             {enrollment.subject}
-                            {/* {classDay && <Typography component="span" variant="caption" sx={{ ml: 2, bgcolor: 'rgba(0,0,0,0.1)', px: 1, borderRadius: 1 }}>{classDay}</Typography>} */}
                         </Typography>
-                        <Box sx={{ display: 'flex', overflowX: 'auto' }}>
+                        <Box sx={{
+                            display: 'flex',
+                            overflowX: 'auto',
+                            pb: 1, // Padding for scrollbar
+                            gap: 1,
+                            scrollbarWidth: 'thin', /* Firefox */
+                            '&::-webkit-scrollbar': { height: '6px' },
+                            '&::-webkit-scrollbar-track': { background: 'transparent' },
+                            '&::-webkit-scrollbar-thumb': { backgroundColor: 'rgba(0,0,0,0.1)', borderRadius: '3px' }
+                        }}>
                             {enrollment.monthlyRecords.map((record) => {
-                                // User requested 5 simple circles without dates.
                                 const slots = Array.from({ length: 5 });
 
                                 return (
                                     <Box
                                         key={record.monthIndex}
                                         sx={{
-                                            border: '1px solid #ccc',
-                                            minWidth: 140,
-                                            p: 1,
+                                            border: '1px solid rgba(0,0,0,0.1)',
+                                            minWidth: 160, // Increased slightly to fit 5 icons comfortably
+                                            p: 1.5,
                                             textAlign: 'center',
-                                            mr: 1,
                                             bgcolor: 'white',
-                                            borderRadius: 1
+                                            borderRadius: 2,
+                                            flexShrink: 0 // Prevent shrinking
                                         }}
                                     >
-                                        <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', mb: 1 }}>
+                                        <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', mb: 1, textTransform: 'uppercase', letterSpacing: 0.5, color: '#475569' }}>
                                             {months[record.monthIndex]}
-                                            <span style={{ fontWeight: 'normal', marginLeft: '4px', color: '#666' }}>
-                                                ({record.attendance.filter(s => s === 'present' || s === true || s === 'true').length})
-                                            </span>
                                         </Typography>
 
-                                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mb: 1 }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mb: 1.5 }}>
                                             <StatusCell
                                                 studentId={studentId}
                                                 subject={enrollment.subject}
@@ -121,7 +110,7 @@ const SubjectGrid = ({ studentId, studentGrade, enrollments, onUpdate, subjectCo
                                             />
                                         </Box>
 
-                                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5 }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.25 }}>
                                             {slots.map((_, idx) => {
                                                 return (
                                                     <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
