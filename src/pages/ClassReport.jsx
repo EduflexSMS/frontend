@@ -28,7 +28,7 @@ import {
     Avatar
 } from '@mui/material';
 import axios from 'axios';
-import { Person, Phone, EventAvailable, Book, Assessment, FilterList, Search } from '@mui/icons-material';
+import { Phone, EventAvailable, Book, Assessment, FilterList, Search } from '@mui/icons-material';
 import API_BASE_URL from '../config';
 import { motion, AnimatePresence } from 'framer-motion';
 

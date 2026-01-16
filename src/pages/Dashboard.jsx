@@ -182,7 +182,7 @@ export default function Dashboard() {
                 </Typography>
 
                 <Grid container spacing={3}>
-                    {(stats.subjectStats || []).map((sub, index) => (
+                    {(stats.subjectStats || []).map((sub) => (
                         <Grid item xs={12} md={6} lg={4} key={sub.subject} component={motion.div} variants={itemVariants}>
                             <Paper
                                 component={motion.div}
