@@ -12,8 +12,8 @@ export default function ViewStudents() {
     const [loading, setLoading] = useState(false);
     const [subjectColors, setSubjectColors] = useState({});
 
-    const fetchStudents = async () => {
-        setLoading(true);
+    const fetchStudents = async (background = false) => {
+        if (!background) setLoading(true);
         try {
             const response = await axios.get(`${API_BASE_URL}/api/students`, {
                 params: { page, search }
@@ -23,7 +23,7 @@ export default function ViewStudents() {
         } catch (error) {
             console.error("Error fetching students:", error);
         } finally {
-            setLoading(false);
+            if (!background) setLoading(false);
         }
     };
 
@@ -72,7 +72,7 @@ export default function ViewStudents() {
                     <CircularProgress />
                 </Box>
             ) : (
-                <StudentTable students={students} onUpdate={fetchStudents} subjectColorMap={subjectColors} />
+                <StudentTable students={students} onUpdate={() => fetchStudents(true)} subjectColorMap={subjectColors} />
             )}
 
             <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
