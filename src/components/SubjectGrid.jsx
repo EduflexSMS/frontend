@@ -4,42 +4,12 @@ import StatusCell from './StatusCell';
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-// Helper to get class day based on student grade
-const getClassDayInfo = (subject, studentGrade) => {
-    if (subject && subject.gradeSchedules && subject.gradeSchedules.length > 0) {
-        const schedule = subject.gradeSchedules.find(s => s.grade === studentGrade);
-        if (schedule) return { day: schedule.day, startDate: schedule.startDate };
-    }
-    return { day: subject ? (subject.classDay || 'Monday') : 'Monday', startDate: null };
-};
 
-const getDaysInMonth = (monthIndex, year, dayInfo) => {
-    const { day: dayName, startDate } = dayInfo || { day: 'Monday', startDate: null };
-    const dates = [];
-    const date = new Date(year, monthIndex, 1);
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-    // Normalize Start Date (ignore time)
-    const start = startDate ? new Date(startDate) : null;
-    if (start) start.setHours(0, 0, 0, 0);
 
-    while (date.getMonth() === monthIndex) {
-        if (days[date.getDay()] === dayName) {
-            // Check if date is on or after start date
-            const currentDate = new Date(date);
-            currentDate.setHours(0, 0, 0, 0);
-
-            if (!start || currentDate >= start) {
-                dates.push(new Date(date));
-            }
-        }
-        date.setDate(date.getDate() + 1);
-    }
-    return dates;
-};
 
 const SubjectGrid = ({ studentId, studentGrade, enrollments, onUpdate, subjectColorMap, isMobile }) => {
-    const currentYear = new Date().getFullYear();
+
 
     return (
         <Box sx={{ p: isMobile ? 0 : 2 }}>

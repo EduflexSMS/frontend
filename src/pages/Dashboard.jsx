@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Grid, Card, CardContent, Typography, CircularProgress, Paper, LinearProgress, Button, Container, alpha } from '@mui/material';
-import { School, MenuBook, AttachMoney, Assessment, TrendingUp, PeopleOutline } from '@mui/icons-material';
+import { MenuBook, AttachMoney, Assessment, TrendingUp, PeopleOutline } from '@mui/icons-material';
 import axios from 'axios';
 import API_BASE_URL from '../config';
 import ReportDialog from '../components/ReportDialog';

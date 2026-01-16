@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Box, TextField, Pagination, Typography, Container, CircularProgress } from '@mui/material';
 import axios from 'axios';
 import StudentTable from '../components/StudentTable';
@@ -12,7 +12,7 @@ export default function ViewStudents() {
     const [loading, setLoading] = useState(false);
     const [subjectColors, setSubjectColors] = useState({});
 
-    const fetchStudents = async (background = false) => {
+    const fetchStudents = useCallback(async (background = false) => {
         if (!background) setLoading(true);
         try {
             const response = await axios.get(`${API_BASE_URL}/api/students`, {
@@ -25,7 +25,7 @@ export default function ViewStudents() {
         } finally {
             if (!background) setLoading(false);
         }
-    };
+    }, [page, search]);
 
     const fetchSubjects = async () => {
         try {
@@ -50,7 +50,7 @@ export default function ViewStudents() {
         }, 500);
 
         return () => clearTimeout(delayDebounceFn);
-    }, [page, search]);
+    }, [page, search, fetchStudents]);
 
     return (
         <Container maxWidth="lg">

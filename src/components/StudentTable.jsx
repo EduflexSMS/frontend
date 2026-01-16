@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Collapse, Box, Typography,
-    useTheme, useMediaQuery, Card, CardContent, Button, Divider, Grid, Chip, Avatar
+    useTheme, useMediaQuery, Card, CardContent, Button, Grid, Chip, Avatar
 } from '@mui/material';
-import { KeyboardArrowDown, KeyboardArrowUp, Edit, Phone, School, Person, Numbers, Class } from '@mui/icons-material';
+import { KeyboardArrowDown, KeyboardArrowUp, Edit, Phone } from '@mui/icons-material';
 import SubjectGrid from './SubjectGrid';
 import EditStudentDialog from '../components/EditStudentDialog';
 import { motion, AnimatePresence } from 'framer-motion';
