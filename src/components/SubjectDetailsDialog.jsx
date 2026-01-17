@@ -6,14 +6,38 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import API_BASE_URL from '../config';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
     const [details, setDetails] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    const handleDownloadPDF = () => {
+        const doc = new jsPDF();
+
+        // Title
+        doc.setFontSize(18);
+        doc.text(`${subjectName} - Grade Breakdown`, 14, 20);
+
+        // Date
+        doc.setFontSize(10);
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 28);
+
+        // Table
+        doc.autoTable({
+            startY: 35,
+            head: [['Grade', 'Total Students', 'Paid (This Month)']],
+            body: details.map(row => [row.grade, row.totalStudents, row.paidStudents]),
+            theme: 'striped',
+            headStyles: { fillColor: [66, 133, 244] } // Google Blue
+        });
+
+        doc.save(`${subjectName}_Report.pdf`);
+    };
+
     useEffect(() => {
-        console.log("Dialog Open State:", open, "Subject:", subjectName);
         if (open && subjectName) {
             const fetchDetails = async () => {
                 setLoading(true);
@@ -79,6 +103,9 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                 )}
             </DialogContent>
             <DialogActions>
+                <Button onClick={handleDownloadPDF} variant="contained" color="primary" disabled={details.length === 0}>
+                    Download PDF
+                </Button>
                 <Button onClick={onClose}>Close</Button>
             </DialogActions>
         </Dialog>
