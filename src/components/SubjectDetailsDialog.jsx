@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import API_BASE_URL from '../config';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 
 export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
@@ -15,26 +15,31 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
     const [error, setError] = useState(null);
 
     const handleDownloadPDF = () => {
-        const doc = new jsPDF();
+        try {
+            const doc = new jsPDF();
 
-        // Title
-        doc.setFontSize(18);
-        doc.text(`${subjectName} - Grade Breakdown`, 14, 20);
+            // Title
+            doc.setFontSize(18);
+            doc.text(`${subjectName} - Grade Breakdown`, 14, 20);
 
-        // Date
-        doc.setFontSize(10);
-        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 28);
+            // Date
+            doc.setFontSize(10);
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 28);
 
-        // Table
-        doc.autoTable({
-            startY: 35,
-            head: [['Grade', 'Total Students', 'Paid (This Month)']],
-            body: details.map(row => [row.grade, row.totalStudents, row.paidStudents]),
-            theme: 'striped',
-            headStyles: { fillColor: [66, 133, 244] } // Google Blue
-        });
+            // Table
+            doc.autoTable({
+                startY: 35,
+                head: [['Grade', 'Total Students', 'Paid (This Month)']],
+                body: details.map(row => [row.grade, row.totalStudents, row.paidStudents]),
+                theme: 'striped',
+                headStyles: { fillColor: [66, 133, 244] } // Google Blue
+            });
 
-        doc.save(`${subjectName}_Report.pdf`);
+            doc.save(`${subjectName}_Report.pdf`);
+        } catch (err) {
+            console.error("PDF Generation Error:", err);
+            alert("Failed to generate PDF. Check console for details.");
+        }
     };
 
     useEffect(() => {
