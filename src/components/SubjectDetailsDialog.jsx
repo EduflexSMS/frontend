@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import API_BASE_URL from '../config';
-import { jsPDF } from 'jspdf';
+import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
 export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
@@ -17,6 +17,11 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
     const handleDownloadPDF = () => {
         try {
             const doc = new jsPDF();
+
+            // Check if autoTable is available
+            if (typeof doc.autoTable !== 'function') {
+                throw new Error("AutoTable plugin not loaded");
+            }
 
             // Title
             doc.setFontSize(18);
@@ -38,7 +43,7 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
             doc.save(`${subjectName}_Report.pdf`);
         } catch (err) {
             console.error("PDF Generation Error:", err);
-            alert("Failed to generate PDF. Check console for details.");
+            alert(`Failed to generate PDF: ${err.message}`);
         }
     };
 
