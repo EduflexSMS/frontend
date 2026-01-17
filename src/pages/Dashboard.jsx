@@ -4,6 +4,7 @@ import { MenuBook, AttachMoney, Assessment, TrendingUp, PeopleOutline } from '@m
 import axios from 'axios';
 import API_BASE_URL from '../config';
 import ReportDialog from '../components/ReportDialog';
+import SubjectDetailsDialog from '../components/SubjectDetailsDialog';
 import { motion } from 'framer-motion';
 
 const containerVariants = {
@@ -32,6 +33,13 @@ export default function Dashboard() {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [reportOpen, setReportOpen] = useState(false);
+    const [detailsOpen, setDetailsOpen] = useState(false);
+    const [selectedSubject, setSelectedSubject] = useState(null);
+
+    const handleSubjectClick = (subjectName) => {
+        setSelectedSubject(subjectName);
+        setDetailsOpen(true);
+    };
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -196,8 +204,10 @@ export default function Dashboard() {
                                     background: 'rgba(255,255,255,0.7)',
                                     backdropFilter: 'blur(10px)',
                                     boxShadow: 'var(--card-shadow)',
-                                    transition: 'all 0.3s ease'
+                                    transition: 'all 0.3s ease',
+                                    cursor: 'pointer'
                                 }}
+                                onClick={() => handleSubjectClick(sub.subject)}
                             >
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                                     <Box>
@@ -256,6 +266,11 @@ export default function Dashboard() {
                 </Grid>
             </motion.div>
             <ReportDialog open={reportOpen} onClose={() => setReportOpen(false)} />
+            <SubjectDetailsDialog
+                open={detailsOpen}
+                onClose={() => setDetailsOpen(false)}
+                subjectName={selectedSubject}
+            />
         </Container>
     );
 }
