@@ -13,6 +13,7 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        console.log("Dialog Open State:", open, "Subject:", subjectName);
         if (open && subjectName) {
             const fetchDetails = async () => {
                 setLoading(true);

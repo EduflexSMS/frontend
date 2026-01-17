@@ -37,6 +37,7 @@ export default function Dashboard() {
     const [selectedSubject, setSelectedSubject] = useState(null);
 
     const handleSubjectClick = (subjectName) => {
+        console.log("Card clicked:", subjectName);
         setSelectedSubject(subjectName);
         setDetailsOpen(true);
     };
