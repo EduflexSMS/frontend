@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions, Button,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-    CircularProgress, Typography, Box, Chip
+    CircularProgress, Typography, Box, Chip, FormControl, InputLabel, Select, MenuItem
 } from '@mui/material';
 import axios from 'axios';
 import API_BASE_URL from '../config';
@@ -13,6 +13,12 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
     const [details, setDetails] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+
+    const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
 
     const handleDownloadPDF = () => {
         try {
@@ -25,16 +31,22 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
 
             // Title
             doc.setFontSize(18);
+            // Title
+            doc.setFontSize(18);
             doc.text(`${subjectName} - Grade Breakdown`, 14, 20);
+
+            // Month text
+            doc.setFontSize(12);
+            doc.text(`Month: ${months[selectedMonth]}`, 14, 28);
 
             // Date
             doc.setFontSize(10);
-            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 28);
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 34);
 
             // Table
             doc.autoTable({
-                startY: 35,
-                head: [['Grade', 'Total Students', 'Paid (This Month)']],
+                startY: 40,
+                head: [['Grade', 'Total Students', `Paid (${months[selectedMonth]})`]],
                 body: details.map(row => [row.grade, row.totalStudents, row.paidStudents]),
                 theme: 'striped',
                 headStyles: { fillColor: [66, 133, 244] } // Google Blue
@@ -53,18 +65,23 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                 setLoading(true);
                 setError(null);
                 try {
-                    const response = await axios.get(`${API_BASE_URL}/api/dashboard/subject/${encodeURIComponent(subjectName)}`);
-                    setDetails(response.data);
-                } catch (err) {
-                    console.error("Error fetching subject details:", err);
-                    setError("Failed to load details");
-                } finally {
-                    setLoading(false);
-                }
-            };
+                    try {
+                        const response = await axios.get(`${API_BASE_URL}/api/dashboard/subject/${encodeURIComponent(subjectName)}`, {
+                            params: { month: selectedMonth }
+                        });
+                        setDetails(response.data);
+                    } catch (err) {
+                        console.error("Error fetching subject details:", err);
+                        setError("Failed to load details");
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                fetchDetails();
+            }
             fetchDetails();
         }
-    }, [open, subjectName]);
+    }, [open, subjectName, selectedMonth]);
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -72,6 +89,20 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                 {subjectName} - Grade Breakdown
             </DialogTitle>
             <DialogContent dividers>
+                <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                    <FormControl size="small" sx={{ minWidth: 120 }}>
+                        <InputLabel>Month</InputLabel>
+                        <Select
+                            value={selectedMonth}
+                            label="Month"
+                            onChange={(e) => setSelectedMonth(e.target.value)}
+                        >
+                            {months.map((month, index) => (
+                                <MenuItem key={index} value={index}>{month}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </Box>
                 {loading ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
                         <CircularProgress />
@@ -87,7 +118,7 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                                 <TableRow sx={{ bgcolor: 'action.hover' }}>
                                     <TableCell sx={{ fontWeight: 'bold' }}>Grade</TableCell>
                                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Total Students</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Paid (This Month)</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Paid ({months[selectedMonth]})</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
