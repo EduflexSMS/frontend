@@ -65,20 +65,17 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                 setLoading(true);
                 setError(null);
                 try {
-                    try {
-                        const response = await axios.get(`${API_BASE_URL}/api/dashboard/subject/${encodeURIComponent(subjectName)}`, {
-                            params: { month: selectedMonth }
-                        });
-                        setDetails(response.data);
-                    } catch (err) {
-                        console.error("Error fetching subject details:", err);
-                        setError("Failed to load details");
-                    } finally {
-                        setLoading(false);
-                    }
-                };
-                fetchDetails();
-            }
+                    const response = await axios.get(`${API_BASE_URL}/api/dashboard/subject/${encodeURIComponent(subjectName)}`, {
+                        params: { month: selectedMonth }
+                    });
+                    setDetails(response.data);
+                } catch (err) {
+                    console.error("Error fetching subject details:", err);
+                    setError("Failed to load details");
+                } finally {
+                    setLoading(false);
+                }
+            };
             fetchDetails();
         }
     }, [open, subjectName, selectedMonth]);
