@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import API_BASE_URL from '../config';
 
+import logo from '../assets/logo.jpg';
+
 export default function LoginPage() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -55,6 +57,14 @@ export default function LoginPage() {
                     bgcolor: 'rgba(255, 255, 255, 0.8)',
                     border: '1px solid rgba(255, 255, 255, 0.3)'
                 }}>
+                    <motion.img
+                        src={logo}
+                        alt="Eduflex Logo"
+                        initial={{ y: -20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.2, type: 'spring', stiffness: 120 }}
+                        style={{ width: 100, height: 100, marginBottom: 16, borderRadius: '50%', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}
+                    />
                     <Typography component="h1" variant="h4" fontWeight="bold" sx={{ mb: 3, background: 'linear-gradient(45deg, #2196F3, #21CBF3)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                         Welcome Back
                     </Typography>
