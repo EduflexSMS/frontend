@@ -47,19 +47,30 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+import LoginPage from './pages/LoginPage';
+import PrivateRoute from './components/PrivateRoute';
+
+// ... (ErrorBoundary remains same)
+
 function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="students" element={<ViewStudents />} />
-            <Route path="add-student" element={<AddStudent />} />
-            <Route path="add-subject" element={<AddSubject />} />
-            <Route path="reports" element={<ClassReport />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* Protected Routes */}
+          <Route element={<PrivateRoute />}>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="students" element={<ViewStudents />} />
+              <Route path="add-student" element={<AddStudent />} />
+              <Route path="add-subject" element={<AddSubject />} />
+              <Route path="reports" element={<ClassReport />} />
+            </Route>
           </Route>
+
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </ErrorBoundary>
