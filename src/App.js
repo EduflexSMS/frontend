@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import ViewStudents from './pages/ViewStudents';
+import LoginPage from './pages/LoginPage';
+import PrivateRoute from './components/PrivateRoute';
 
 
 // Placeholder components for other routes
@@ -47,8 +49,7 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-import LoginPage from './pages/LoginPage';
-import PrivateRoute from './components/PrivateRoute';
+// Imports moved to top
 
 // ... (ErrorBoundary remains same)
 
