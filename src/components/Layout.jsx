@@ -3,6 +3,7 @@ import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, AppBar, Toolba
 import { Dashboard, People, Class, AddBox, Assessment, Menu as MenuIcon, NotificationsOutlined, Search as SearchIcon, SettingsOutlined, Logout as LogoutIcon } from '@mui/icons-material';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import logo from '../assets/logo.jpg';
 
 const drawerWidth = 280;
 
@@ -25,119 +26,118 @@ export default function Layout() {
         setMobileOpen(!mobileOpen);
     };
 
-    import logo from '../assets/logo.jpg';
-    // ... inside component ...
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', color: 'white' }}>
-        <Box sx={{ p: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Avatar src={logo} sx={{ width: 40, height: 40, border: '2px solid rgba(255,255,255,0.2)' }}>E</Avatar>
-            <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: 1, background: 'linear-gradient(45deg, #fff, #a5b4fc)', backgroundClip: 'text', textFillColor: 'transparent', color: 'white' }}>
-                EDUFLEX
-            </Typography>
-        </Box>
+    const drawerContent = (
+        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', color: 'white' }}>
+            <Box sx={{ p: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Avatar src={logo} sx={{ width: 40, height: 40, border: '2px solid rgba(255,255,255,0.2)' }}>E</Avatar>
+                <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: 1, background: 'linear-gradient(45deg, #fff, #a5b4fc)', backgroundClip: 'text', textFillColor: 'transparent', color: 'white' }}>
+                    EDUFLEX
+                </Typography>
+            </Box>
 
-        <List sx={{ px: 2, flex: 1 }}>
-            {menuItems.map((item) => {
-                const active = location.pathname === item.path;
-                return (
-                    <ListItem
-                        key={item.text}
-                        disablePadding
-                        sx={{ mb: 1, display: 'block' }}
-                    >
-                        <Box
-                            component={motion.div}
-                            whileHover={{ scale: 1.02, x: 5 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => {
-                                navigate(item.path);
-                                if (isMobile) setMobileOpen(false);
-                            }}
-                            sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                p: '12px 16px',
-                                borderRadius: '16px',
-                                cursor: 'pointer',
-                                backgroundColor: active ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                                backdropFilter: active ? 'blur(10px)' : 'none',
-                                boxShadow: active ? '0 4px 30px rgba(0, 0, 0, 0.1)' : 'none',
-                                border: active ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid transparent',
-                                transition: 'all 0.3s ease',
-                                '&:hover': {
-                                    backgroundColor: active ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-                                }
-                            }}
+            <List sx={{ px: 2, flex: 1 }}>
+                {menuItems.map((item) => {
+                    const active = location.pathname === item.path;
+                    return (
+                        <ListItem
+                            key={item.text}
+                            disablePadding
+                            sx={{ mb: 1, display: 'block' }}
                         >
-                            <ListItemIcon sx={{ color: active ? '#fbbf24' : 'rgba(255,255,255,0.7)', minWidth: 45 }}>
-                                {item.icon}
-                            </ListItemIcon>
-                            <ListItemText
-                                primary={item.text}
-                                primaryTypographyProps={{
-                                    fontWeight: active ? 600 : 400,
-                                    fontSize: '0.95rem',
-                                    color: active ? 'white' : 'rgba(255,255,255,0.8)'
+                            <Box
+                                component={motion.div}
+                                whileHover={{ scale: 1.02, x: 5 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => {
+                                    navigate(item.path);
+                                    if (isMobile) setMobileOpen(false);
                                 }}
-                            />
-                            {active && (
-                                <Box
-                                    component={motion.div}
-                                    layoutId="activeIndicator"
-                                    sx={{
-                                        width: 6,
-                                        height: 6,
-                                        borderRadius: '50%',
-                                        bgcolor: '#fbbf24',
-                                        ml: 'auto'
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    p: '12px 16px',
+                                    borderRadius: '16px',
+                                    cursor: 'pointer',
+                                    backgroundColor: active ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                                    backdropFilter: active ? 'blur(10px)' : 'none',
+                                    boxShadow: active ? '0 4px 30px rgba(0, 0, 0, 0.1)' : 'none',
+                                    border: active ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid transparent',
+                                    transition: 'all 0.3s ease',
+                                    '&:hover': {
+                                        backgroundColor: active ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                                    }
+                                }}
+                            >
+                                <ListItemIcon sx={{ color: active ? '#fbbf24' : 'rgba(255,255,255,0.7)', minWidth: 45 }}>
+                                    {item.icon}
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary={item.text}
+                                    primaryTypographyProps={{
+                                        fontWeight: active ? 600 : 400,
+                                        fontSize: '0.95rem',
+                                        color: active ? 'white' : 'rgba(255,255,255,0.8)'
                                     }}
                                 />
-                            )}
-                        </Box>
-                    </ListItem>
-                );
-            })}
-        </List>
+                                {active && (
+                                    <Box
+                                        component={motion.div}
+                                        layoutId="activeIndicator"
+                                        sx={{
+                                            width: 6,
+                                            height: 6,
+                                            borderRadius: '50%',
+                                            bgcolor: '#fbbf24',
+                                            ml: 'auto'
+                                        }}
+                                    />
+                                )}
+                            </Box>
+                        </ListItem>
+                    );
+                })}
+            </List>
 
-        <Box sx={{ p: 2 }}>
-            <Box
-                component={motion.div}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                    localStorage.removeItem('userInfo');
-                    navigate('/login');
-                }}
-                sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    p: '12px 16px',
-                    borderRadius: '16px',
-                    cursor: 'pointer',
-                    color: '#ff5252',
-                    backgroundColor: 'rgba(255, 82, 82, 0.1)',
-                    border: '1px solid rgba(255, 82, 82, 0.2)',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                        backgroundColor: 'rgba(255, 82, 82, 0.2)',
-                    }
-                }}
-            >
-                <ListItemIcon sx={{ color: '#ff5252', minWidth: 45 }}>
-                    <LogoutIcon />
-                </ListItemIcon>
-                <ListItemText
-                    primary="Logout"
-                    primaryTypographyProps={{ fontWeight: 600 }}
-                />
+            <Box sx={{ p: 2 }}>
+                <Box
+                    component={motion.div}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                        localStorage.removeItem('userInfo');
+                        navigate('/login');
+                    }}
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        p: '12px 16px',
+                        borderRadius: '16px',
+                        cursor: 'pointer',
+                        color: '#ff5252',
+                        backgroundColor: 'rgba(255, 82, 82, 0.1)',
+                        border: '1px solid rgba(255, 82, 82, 0.2)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                            backgroundColor: 'rgba(255, 82, 82, 0.2)',
+                        }
+                    }}
+                >
+                    <ListItemIcon sx={{ color: '#ff5252', minWidth: 45 }}>
+                        <LogoutIcon />
+                    </ListItemIcon>
+                    <ListItemText
+                        primary="Logout"
+                        primaryTypographyProps={{ fontWeight: 600 }}
+                    />
+                </Box>
             </Box>
-        </Box>
 
-        <Box sx={{ p: 3, opacity: 0.6 }}>
-            <Typography variant="caption" sx={{ color: 'white', display: 'block', textAlign: 'center' }}>
-                © 2026 Eduflex v2.0
-            </Typography>
-        </Box>
-    </Box >
+            <Box sx={{ p: 3, opacity: 0.6 }}>
+                <Typography variant="caption" sx={{ color: 'white', display: 'block', textAlign: 'center' }}>
+                    © 2026 Eduflex v2.0
+                </Typography>
+            </Box>
+        </Box >
     );
 
     return (
