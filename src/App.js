@@ -53,6 +53,7 @@ import PrivateRoute from './components/PrivateRoute';
 // ... (ErrorBoundary remains same)
 
 function App() {
+  console.log("🔥 APP VERSION 3.0 - AUTH ENABLED 🔥");
   return (
     <ErrorBoundary>
       <BrowserRouter>
