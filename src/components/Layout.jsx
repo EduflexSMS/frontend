@@ -97,8 +97,6 @@ export default function Layout() {
                 })}
             </List>
 
-            </List>
-
             <Box sx={{ p: 2 }}>
                 <Box
                     component={motion.div}
