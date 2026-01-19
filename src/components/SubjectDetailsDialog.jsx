@@ -7,30 +7,15 @@ import {
 import axios from 'axios';
 import API_BASE_URL from '../config';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
-    const [details, setDetails] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-
-    const months = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
-    ];
+    // ... (state remains same)
 
     const handleDownloadPDF = () => {
         try {
             const doc = new jsPDF();
 
-            // Check if autoTable is available
-            if (typeof doc.autoTable !== 'function') {
-                throw new Error("AutoTable plugin not loaded");
-            }
-
-            // Title
-            doc.setFontSize(18);
             // Title
             doc.setFontSize(18);
             doc.text(`${subjectName} - Grade Breakdown`, 14, 20);
@@ -44,7 +29,7 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
             doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 34);
 
             // Table
-            doc.autoTable({
+            autoTable(doc, {
                 startY: 40,
                 head: [['Grade', 'Total Students', `Paid (${months[selectedMonth]})`]],
                 body: details.map(row => [row.grade, row.totalStudents, row.paidStudents]),
