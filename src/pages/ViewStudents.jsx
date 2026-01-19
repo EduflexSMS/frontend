@@ -158,19 +158,22 @@ export default function ViewStudents() {
             {viewMode === 'grades' && (
                 <Grid container spacing={3} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
                     {grades.map((grade) => (
-                        <Grid item xs={12} sm={6} md={4} key={grade} component={motion.div} variants={itemVariants}>
+                        <Grid item xs={6} sm={4} md={3} key={grade} component={motion.div} variants={itemVariants} sx={{ display: 'flex' }}>
                             <Card
                                 component={motion.div}
                                 whileHover={{ scale: 1.05, translateY: -5 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => handleGradeClick(grade)}
                                 sx={{
-                                    p: 4, cursor: 'pointer', textAlign: 'center',
+                                    width: '100%',
+                                    minHeight: 180,
+                                    p: { xs: 2, md: 3 },
+                                    cursor: 'pointer', textAlign: 'center',
                                     borderRadius: '24px',
                                     background: 'linear-gradient(135deg, #ffffff 0%, #f5f7fa 100%)',
                                     boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
                                     border: '1px solid rgba(255, 255, 255, 0.18)',
-                                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2
                                 }}
                             >
                                 <Box sx={{
@@ -178,9 +181,9 @@ export default function ViewStudents() {
                                     bgcolor: 'rgba(33, 150, 243, 0.1)', color: '#2196f3',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center'
                                 }}>
-                                    <SchoolIcon sx={{ fontSize: 40 }} />
+                                    <SchoolIcon sx={{ fontSize: { xs: 30, md: 40 } }} />
                                 </Box>
-                                <Typography variant="h5" fontWeight="bold" color="text.primary">{grade}</Typography>
+                                <Typography variant="h6" fontWeight="bold" color="text.primary">{grade}</Typography>
                             </Card>
                         </Grid>
                     ))}
@@ -198,23 +201,27 @@ export default function ViewStudents() {
                         if (!hasSchedule && subject.gradeSchedules.length > 0) return null;
 
                         return (
-                            <Grid item xs={12} sm={6} md={4} key={subject._id} component={motion.div} variants={itemVariants}>
+                            <Grid item xs={6} sm={4} md={3} key={subject._id} component={motion.div} variants={itemVariants} sx={{ display: 'flex' }}>
                                 <Card
                                     component={motion.div}
                                     whileHover={{ scale: 1.05, translateY: -5 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => handleSubjectClick(subject.name)}
                                     sx={{
-                                        p: 3, cursor: 'pointer', textAlign: 'center',
+                                        width: '100%',
+                                        minHeight: 180,
+                                        p: { xs: 2, md: 3 },
+                                        cursor: 'pointer', textAlign: 'center',
                                         borderRadius: '24px',
                                         // Dynamic gradient based on subject color or default blue
                                         background: `linear-gradient(135deg, ${subject.color || '#2196f3'}15 0%, #ffffff 100%)`,
                                         border: `1px solid ${subject.color || '#2196f3'}40`,
                                         boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
                                     }}
                                 >
-                                    <MenuBookIcon sx={{ fontSize: 40, color: subject.color || '#2196f3', mb: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
-                                    <Typography variant="h6" fontWeight="bold" color="text.primary">{subject.name}</Typography>
+                                    <MenuBookIcon sx={{ fontSize: { xs: 30, md: 40 }, color: subject.color || '#2196f3', mb: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
+                                    <Typography variant="subtitle1" fontWeight="bold" color="text.primary" sx={{ lineHeight: 1.3 }}>{subject.name}</Typography>
                                 </Card>
                             </Grid>
                         );
