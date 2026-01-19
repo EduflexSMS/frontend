@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, AppBar, Toolbar, Typography, CssBaseline, IconButton, Avatar, useTheme, useMediaQuery, InputBase } from '@mui/material';
-import { Dashboard, People, Class, AddBox, Assessment, Menu as MenuIcon, NotificationsOutlined, Search as SearchIcon, SettingsOutlined } from '@mui/icons-material';
+import { Dashboard, People, Class, AddBox, Assessment, Menu as MenuIcon, NotificationsOutlined, Search as SearchIcon, SettingsOutlined, Logout as LogoutIcon } from '@mui/icons-material';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
@@ -97,12 +97,48 @@ export default function Layout() {
                 })}
             </List>
 
+            </List>
+
+            <Box sx={{ p: 2 }}>
+                <Box
+                    component={motion.div}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                        localStorage.removeItem('userInfo');
+                        navigate('/login');
+                    }}
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        p: '12px 16px',
+                        borderRadius: '16px',
+                        cursor: 'pointer',
+                        color: '#ff5252',
+                        backgroundColor: 'rgba(255, 82, 82, 0.1)',
+                        border: '1px solid rgba(255, 82, 82, 0.2)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                            backgroundColor: 'rgba(255, 82, 82, 0.2)',
+                        }
+                    }}
+                >
+                    <ListItemIcon sx={{ color: '#ff5252', minWidth: 45 }}>
+                        <LogoutIcon />
+                    </ListItemIcon>
+                    <ListItemText
+                        primary="Logout"
+                        primaryTypographyProps={{ fontWeight: 600 }}
+                    />
+                </Box>
+            </Box>
+
             <Box sx={{ p: 3, opacity: 0.6 }}>
                 <Typography variant="caption" sx={{ color: 'white', display: 'block', textAlign: 'center' }}>
                     © 2026 Eduflex v2.0
                 </Typography>
             </Box>
-        </Box>
+        </Box >
     );
 
     return (
