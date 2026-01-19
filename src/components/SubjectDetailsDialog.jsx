@@ -7,7 +7,7 @@ import {
 import axios from 'axios';
 import API_BASE_URL from '../config';
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import 'jspdf-autotable';
 
 export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
     // ... (state remains same)
@@ -29,7 +29,7 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
             doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 34);
 
             // Table
-            autoTable(doc, {
+            doc.autoTable({
                 startY: 40,
                 head: [['Grade', 'Total Students', `Paid (${months[selectedMonth]})`]],
                 body: details.map(row => [row.grade, row.totalStudents, row.paidStudents]),
