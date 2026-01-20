@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, TextField, Pagination, Typography, Container, CircularProgress, Grid, Card, Button, Paper } from '@mui/material';
-import { ArrowBack as ArrowBackIcon, MenuBook as MenuBookIcon, School as SchoolIcon } from '@mui/icons-material';
+import { Box, TextField, Pagination, Typography, Container, CircularProgress, Grid, Card, Button, Paper, useTheme, useMediaQuery, IconButton, InputAdornment } from '@mui/material';
+import { ArrowBack as ArrowBackIcon, MenuBook as MenuBookIcon, School as SchoolIcon, PeopleAlt as PeopleAltIcon, Search as SearchIcon, FilterList as FilterListIcon } from '@mui/icons-material';
 import axios from 'axios';
 import StudentTable from '../components/StudentTable';
 import API_BASE_URL from '../config';
@@ -120,16 +120,29 @@ export default function ViewStudents() {
         setPage(1);
     };
 
+    const handleAllStudentsClick = () => {
+        setSelectedGrade(null);
+        setSelectedSubject(null);
+        setViewMode('students');
+        setPage(1);
+    };
+
     const handleBack = () => {
-        if (viewMode === 'students') setViewMode('subjects');
-        else if (viewMode === 'subjects') {
+        if (viewMode === 'students') {
+            // If we came from "All Students" (no grade/subject), go back to grades
+            if (!selectedGrade) {
+                setViewMode('grades');
+            } else {
+                setViewMode('subjects');
+            }
+        } else if (viewMode === 'subjects') {
             setViewMode('grades');
             setSelectedGrade(null);
         }
     };
 
     return (
-        <Container maxWidth="lg" sx={{ minHeight: '80vh', py: 4 }}>
+        <Container maxWidth="lg" sx={{ minHeight: '80vh', py: { xs: 2, md: 4 } }}>
             <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
                 {viewMode !== 'grades' && (
                     <Button
@@ -146,10 +159,17 @@ export default function ViewStudents() {
                     animate={{ opacity: 1, x: 0 }}
                     key={viewMode} // Re-animate on change
                 >
-                    <Typography variant="h4" sx={{ fontWeight: 700, background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                        {viewMode === 'grades' && 'Select Grade'}
+                    <Typography variant="h4" sx={{
+                        fontWeight: 800,
+                        background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        letterSpacing: '-1px',
+                        fontSize: { xs: '1.5rem', md: '2.125rem' }
+                    }}>
+                        {viewMode === 'grades' && 'Select Grade Directory'}
                         {viewMode === 'subjects' && `${selectedGrade} - Select Subject`}
-                        {viewMode === 'students' && `${selectedGrade} - ${selectedSubject}`}
+                        {viewMode === 'students' && (selectedGrade ? `${selectedGrade} - ${selectedSubject}` : 'All Students Directory')}
                     </Typography>
                 </motion.div>
             </Box>
@@ -157,33 +177,74 @@ export default function ViewStudents() {
             {/* GRADES VIEW */}
             {viewMode === 'grades' && (
                 <Grid container spacing={{ xs: 2, md: 3 }} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
+                    {/* All Students Card */}
+                    <Grid item xs={6} sm={4} md={3} component={motion.div} variants={itemVariants} sx={{ display: 'flex' }}>
+                        <Card
+                            component={motion.div}
+                            whileHover={{ y: -8, scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={handleAllStudentsClick}
+                            sx={{
+                                width: '100%',
+                                minHeight: { xs: 160, md: 220 },
+                                p: 3,
+                                cursor: 'pointer',
+                                borderRadius: '24px',
+                                background: 'linear-gradient(145deg, #2196f3 0%, #1976d2 100%)',
+                                boxShadow: '0 10px 40px rgba(33, 150, 243, 0.3)',
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
+                                position: 'relative', overflow: 'hidden', border: 'none'
+                            }}
+                        >
+                            <Box sx={{
+                                position: 'absolute', top: -50, right: -50, width: 150, height: 150,
+                                borderRadius: '50%', background: 'rgba(255,255,255,0.1)'
+                            }} />
+                            <Box sx={{
+                                p: 2, borderRadius: '50%',
+                                background: 'rgba(255,255,255,0.2)',
+                                backdropFilter: 'blur(10px)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            }}>
+                                <PeopleAltIcon sx={{ fontSize: { xs: 32, md: 48 }, color: 'white' }} />
+                            </Box>
+                            <Typography variant="h6" fontWeight="800" sx={{ color: 'white', zIndex: 1, letterSpacing: -0.5 }}>
+                                All Students
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', zIndex: 1, mt: -1 }}>
+                                View Full List
+                            </Typography>
+                        </Card>
+                    </Grid>
+
                     {grades.map((grade) => (
                         <Grid item xs={6} sm={4} md={3} key={grade} component={motion.div} variants={itemVariants} sx={{ display: 'flex' }}>
                             <Card
                                 component={motion.div}
                                 whileHover={{
-                                    scale: 1.05,
+                                    scale: 1.02,
                                     y: -8,
-                                    boxShadow: '0 20px 40px rgba(33, 150, 243, 0.15)'
+                                    boxShadow: '0 20px 40px rgba(33, 150, 243, 0.1)'
                                 }}
-                                whileTap={{ scale: 0.95 }}
+                                whileTap={{ scale: 0.98 }}
                                 onClick={() => handleGradeClick(grade)}
                                 sx={{
                                     width: '100%',
-                                    minHeight: { xs: 160, md: 200 },
+                                    minHeight: { xs: 160, md: 220 },
                                     p: { xs: 2, md: 3 },
                                     cursor: 'pointer', textAlign: 'center',
                                     borderRadius: '24px',
                                     background: 'rgba(255, 255, 255, 0.8)',
                                     backdropFilter: 'blur(20px)',
-                                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                                    boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+                                    border: '1px solid rgba(255, 255, 255, 0.5)',
+                                    boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
                                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
                                     overflow: 'hidden',
                                     position: 'relative',
-                                    transition: 'border-color 0.3s ease',
+                                    transition: 'all 0.3s ease',
                                     '&:hover': {
-                                        borderColor: '#2196f3'
+                                        borderColor: '#2196f3',
+                                        background: 'rgba(255, 255, 255, 0.95)'
                                     }
                                 }}
                             >
@@ -192,21 +253,24 @@ export default function ViewStudents() {
                                     top: -20, right: -20,
                                     width: 100, height: 100,
                                     borderRadius: '50%',
-                                    background: 'radial-gradient(circle, rgba(33,150,243,0.1) 0%, rgba(255,255,255,0) 70%)',
+                                    background: 'radial-gradient(circle, rgba(33,150,243,0.08) 0%, rgba(255,255,255,0) 70%)',
                                     zIndex: 0
                                 }} />
 
                                 <Box sx={{
                                     p: 2.5, borderRadius: '24px',
-                                    background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(33, 203, 243, 0.1) 100%)',
+                                    background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.05) 0%, rgba(33, 203, 243, 0.1) 100%)',
                                     color: '#2196f3',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     zIndex: 1,
-                                    boxShadow: 'inset 0 0 10px rgba(255,255,255,0.5)'
+                                    transition: 'transform 0.3s ease',
+                                    '.MuiCard-root:hover &': {
+                                        transform: 'scale(1.1) rotate(-5deg)'
+                                    }
                                 }}>
-                                    <SchoolIcon sx={{ fontSize: { xs: 32, md: 48 }, filter: 'drop-shadow(0 4px 6px rgba(33, 150, 243, 0.3))' }} />
+                                    <SchoolIcon sx={{ fontSize: { xs: 32, md: 48 }, filter: 'drop-shadow(0 4px 6px rgba(33, 150, 243, 0.2))' }} />
                                 </Box>
-                                <Typography variant="h6" fontWeight="800" color="text.primary" sx={{ zIndex: 1, letterSpacing: -0.5 }}>
+                                <Typography variant="h6" fontWeight="700" color="text.primary" sx={{ zIndex: 1, letterSpacing: -0.5 }}>
                                     {grade}
                                 </Typography>
                             </Card>
@@ -232,28 +296,29 @@ export default function ViewStudents() {
                                 <Card
                                     component={motion.div}
                                     whileHover={{
-                                        scale: 1.05,
+                                        scale: 1.02,
                                         y: -8,
-                                        boxShadow: `0 20px 40px ${subject.color || '#2196f3'}40`
+                                        boxShadow: `0 20px 40px ${subject.color || '#2196f3'}25`
                                     }}
-                                    whileTap={{ scale: 0.95 }}
+                                    whileTap={{ scale: 0.98 }}
                                     onClick={() => handleSubjectClick(subject.name)}
                                     sx={{
                                         width: '100%',
-                                        minHeight: { xs: 160, md: 200 },
+                                        minHeight: { xs: 160, md: 220 },
                                         p: { xs: 2, md: 3 },
                                         cursor: 'pointer', textAlign: 'center',
                                         borderRadius: '24px',
                                         background: 'rgba(255, 255, 255, 0.8)',
                                         backdropFilter: 'blur(20px)',
-                                        border: '1px solid rgba(255, 255, 255, 0.3)',
-                                        boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
-                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1.5,
+                                        border: '1px solid rgba(255, 255, 255, 0.5)',
+                                        boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
                                         overflow: 'hidden',
                                         position: 'relative',
                                         transition: 'all 0.3s ease',
                                         '&:hover': {
-                                            borderColor: subject.color || '#2196f3'
+                                            borderColor: subject.color || '#2196f3',
+                                            background: 'rgba(255, 255, 255, 0.95)'
                                         }
                                     }}
                                 >
@@ -272,11 +337,16 @@ export default function ViewStudents() {
                                         color: subject.color || '#2196f3',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         zIndex: 1,
-                                        boxShadow: 'inset 0 0 10px rgba(255,255,255,0.5)'
+                                        transition: 'transform 0.3s ease',
+                                        '.MuiCard-root:hover &': {
+                                            transform: 'scale(1.1) rotate(-5deg)'
+                                        }
                                     }}>
                                         <MenuBookIcon sx={{ fontSize: { xs: 32, md: 48 }, filter: `drop-shadow(0 4px 6px ${subject.color || '#2196f3'}40)` }} />
                                     </Box>
-                                    <Typography variant="subtitle1" fontWeight="800" color="text.primary" sx={{ lineHeight: 1.3, zIndex: 1 }}>{subject.name}</Typography>
+                                    <Typography variant="subtitle1" fontWeight="800" color="text.primary" sx={{ lineHeight: 1.3, zIndex: 1, letterSpacing: -0.5 }}>
+                                        {subject.name}
+                                    </Typography>
                                 </Card>
                             </Grid>
                         );
