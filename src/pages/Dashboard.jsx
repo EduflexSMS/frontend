@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Grid, Card, CardContent, Typography, CircularProgress, Paper, LinearProgress, Button, Container, alpha } from '@mui/material';
-import { MenuBook, AttachMoney, Assessment, TrendingUp, PeopleOutline } from '@mui/icons-material';
+import { MenuBook, AttachMoney, Assessment, TrendingUp, PeopleOutline, SupervisedUserCircle } from '@mui/icons-material';
 import axios from 'axios';
 import API_BASE_URL from '../config';
 import ReportDialog from '../components/ReportDialog';
 import SubjectDetailsDialog from '../components/SubjectDetailsDialog';
+import TeacherProfilesDialog from '../components/TeacherProfilesDialog';
 import { motion } from 'framer-motion';
 
 const containerVariants = {
@@ -34,6 +35,7 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [reportOpen, setReportOpen] = useState(false);
     const [detailsOpen, setDetailsOpen] = useState(false);
+    const [teachersOpen, setTeachersOpen] = useState(false);
     const [selectedSubject, setSelectedSubject] = useState(null);
 
     const handleSubjectClick = (subjectName) => {
@@ -177,12 +179,23 @@ export default function Dashboard() {
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemVariants}>
-                        <StatCard
-                            title="Revenue (Est.)"
-                            value="$12.5k" // Placeholder as there's no revenue stats yet
-                            icon={<AttachMoney sx={{ fontSize: 100 }} />}
-                            gradient="linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)"
-                        />
+                        <Box onClick={() => setTeachersOpen(true)} sx={{ height: '100%', cursor: 'pointer' }}>
+                            <StatCard
+                                title="Teachers Profiles"
+                                value={
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Typography variant="h3" sx={{ fontWeight: 800, letterSpacing: -1 }}>
+                                            6
+                                        </Typography>
+                                        <Typography variant="h6" sx={{ opacity: 0.8, fontWeight: 500, pt: 1 }}>
+                                            Teachers
+                                        </Typography>
+                                    </Box>
+                                }
+                                icon={<SupervisedUserCircle sx={{ fontSize: 100 }} />}
+                                gradient="linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)"
+                            />
+                        </Box>
                     </Grid>
                 </Grid>
 
@@ -271,6 +284,10 @@ export default function Dashboard() {
                 open={detailsOpen}
                 onClose={() => setDetailsOpen(false)}
                 subjectName={selectedSubject}
+            />
+            <TeacherProfilesDialog
+                open={teachersOpen}
+                onClose={() => setTeachersOpen(false)}
             />
         </Container>
     );
