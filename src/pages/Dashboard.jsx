@@ -33,6 +33,7 @@ const itemVariants = {
 export default function Dashboard() {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
+    // State for dialogs
     const [reportOpen, setReportOpen] = useState(false);
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [teachersOpen, setTeachersOpen] = useState(false);
