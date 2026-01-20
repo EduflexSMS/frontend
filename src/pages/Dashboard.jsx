@@ -8,6 +8,9 @@ import SubjectDetailsDialog from '../components/SubjectDetailsDialog';
 import TeacherProfilesDialog from '../components/TeacherProfilesDialog';
 import { motion } from 'framer-motion';
 
+// Force redeploy - Update Teachers Profile Card
+
+
 const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
