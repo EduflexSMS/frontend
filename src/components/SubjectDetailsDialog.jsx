@@ -10,7 +10,15 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
-    // ... (state remains same)
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+    const [details, setDetails] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
 
     const handleDownloadPDF = () => {
         try {
