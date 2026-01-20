@@ -156,46 +156,73 @@ export default function ViewStudents() {
 
             {/* GRADES VIEW */}
             {viewMode === 'grades' && (
-                <Grid container spacing={3} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
+                <Grid container spacing={{ xs: 2, md: 3 }} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
                     {grades.map((grade) => (
                         <Grid item xs={6} sm={4} md={3} key={grade} component={motion.div} variants={itemVariants} sx={{ display: 'flex' }}>
                             <Card
                                 component={motion.div}
-                                whileHover={{ scale: 1.05, translateY: -5 }}
+                                whileHover={{
+                                    scale: 1.05,
+                                    y: -8,
+                                    boxShadow: '0 20px 40px rgba(33, 150, 243, 0.15)'
+                                }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => handleGradeClick(grade)}
                                 sx={{
                                     width: '100%',
-                                    minHeight: 180,
+                                    minHeight: { xs: 160, md: 200 },
                                     p: { xs: 2, md: 3 },
                                     cursor: 'pointer', textAlign: 'center',
                                     borderRadius: '24px',
-                                    background: 'linear-gradient(135deg, #ffffff 0%, #f5f7fa 100%)',
-                                    boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
-                                    border: '1px solid rgba(255, 255, 255, 0.18)',
-                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2
+                                    background: 'rgba(255, 255, 255, 0.8)',
+                                    backdropFilter: 'blur(20px)',
+                                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                                    boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
+                                    overflow: 'hidden',
+                                    position: 'relative',
+                                    transition: 'border-color 0.3s ease',
+                                    '&:hover': {
+                                        borderColor: '#2196f3'
+                                    }
                                 }}
                             >
                                 <Box sx={{
-                                    p: 2, borderRadius: '50%',
-                                    bgcolor: 'rgba(33, 150, 243, 0.1)', color: '#2196f3',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                    position: 'absolute',
+                                    top: -20, right: -20,
+                                    width: 100, height: 100,
+                                    borderRadius: '50%',
+                                    background: 'radial-gradient(circle, rgba(33,150,243,0.1) 0%, rgba(255,255,255,0) 70%)',
+                                    zIndex: 0
+                                }} />
+
+                                <Box sx={{
+                                    p: 2.5, borderRadius: '24px',
+                                    background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(33, 203, 243, 0.1) 100%)',
+                                    color: '#2196f3',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    zIndex: 1,
+                                    boxShadow: 'inset 0 0 10px rgba(255,255,255,0.5)'
                                 }}>
-                                    <SchoolIcon sx={{ fontSize: { xs: 30, md: 40 } }} />
+                                    <SchoolIcon sx={{ fontSize: { xs: 32, md: 48 }, filter: 'drop-shadow(0 4px 6px rgba(33, 150, 243, 0.3))' }} />
                                 </Box>
-                                <Typography variant="h6" fontWeight="bold" color="text.primary">{grade}</Typography>
+                                <Typography variant="h6" fontWeight="800" color="text.primary" sx={{ zIndex: 1, letterSpacing: -0.5 }}>
+                                    {grade}
+                                </Typography>
                             </Card>
                         </Grid>
                     ))}
                     {grades.length === 0 && !loading && (
-                        <Typography variant="body1" sx={{ mt: 2, ml: 2 }}>No grades found.</Typography>
+                        <Typography variant="body1" sx={{ mt: 2, ml: 2, width: '100%', textAlign: 'center', color: 'text.secondary' }}>
+                            No grades found. Please add students first.
+                        </Typography>
                     )}
                 </Grid>
             )}
 
             {/* SUBJECTS VIEW */}
             {viewMode === 'subjects' && (
-                <Grid container spacing={3} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
+                <Grid container spacing={{ xs: 2, md: 3 }} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
                     {subjects.map((subject) => {
                         const hasSchedule = subject.gradeSchedules && subject.gradeSchedules.some(s => s.grade === selectedGrade);
                         if (!hasSchedule) return null;
@@ -204,24 +231,52 @@ export default function ViewStudents() {
                             <Grid item xs={6} sm={4} md={3} key={subject._id} component={motion.div} variants={itemVariants} sx={{ display: 'flex' }}>
                                 <Card
                                     component={motion.div}
-                                    whileHover={{ scale: 1.05, translateY: -5 }}
+                                    whileHover={{
+                                        scale: 1.05,
+                                        y: -8,
+                                        boxShadow: `0 20px 40px ${subject.color || '#2196f3'}40`
+                                    }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => handleSubjectClick(subject.name)}
                                     sx={{
                                         width: '100%',
-                                        minHeight: 180,
+                                        minHeight: { xs: 160, md: 200 },
                                         p: { xs: 2, md: 3 },
                                         cursor: 'pointer', textAlign: 'center',
                                         borderRadius: '24px',
-                                        // Dynamic gradient based on subject color or default blue
-                                        background: `linear-gradient(135deg, ${subject.color || '#2196f3'}15 0%, #ffffff 100%)`,
-                                        border: `1px solid ${subject.color || '#2196f3'}40`,
-                                        boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+                                        background: 'rgba(255, 255, 255, 0.8)',
+                                        backdropFilter: 'blur(20px)',
+                                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                                        boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1.5,
+                                        overflow: 'hidden',
+                                        position: 'relative',
+                                        transition: 'all 0.3s ease',
+                                        '&:hover': {
+                                            borderColor: subject.color || '#2196f3'
+                                        }
                                     }}
                                 >
-                                    <MenuBookIcon sx={{ fontSize: { xs: 30, md: 40 }, color: subject.color || '#2196f3', mb: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
-                                    <Typography variant="subtitle1" fontWeight="bold" color="text.primary" sx={{ lineHeight: 1.3 }}>{subject.name}</Typography>
+                                    <Box sx={{
+                                        position: 'absolute',
+                                        top: -20, right: -20,
+                                        width: 100, height: 100,
+                                        borderRadius: '50%',
+                                        background: `radial-gradient(circle, ${subject.color || '#2196f3'}15 0%, rgba(255,255,255,0) 70%)`,
+                                        zIndex: 0
+                                    }} />
+
+                                    <Box sx={{
+                                        p: 2.5, borderRadius: '24px',
+                                        background: `linear-gradient(135deg, ${subject.color || '#2196f3'}10 0%, ${subject.color || '#2196f3'}20 100%)`,
+                                        color: subject.color || '#2196f3',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        zIndex: 1,
+                                        boxShadow: 'inset 0 0 10px rgba(255,255,255,0.5)'
+                                    }}>
+                                        <MenuBookIcon sx={{ fontSize: { xs: 32, md: 48 }, filter: `drop-shadow(0 4px 6px ${subject.color || '#2196f3'}40)` }} />
+                                    </Box>
+                                    <Typography variant="subtitle1" fontWeight="800" color="text.primary" sx={{ lineHeight: 1.3, zIndex: 1 }}>{subject.name}</Typography>
                                 </Card>
                             </Grid>
                         );
