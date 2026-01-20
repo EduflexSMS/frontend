@@ -179,7 +179,24 @@ export default function Dashboard() {
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemVariants}>
-                        <Box onClick={() => setTeachersOpen(true)} sx={{ height: '100%', cursor: 'pointer' }}>
+                        <Box
+                            component={motion.div}
+                            animate={{
+                                y: [0, -5, 0],
+                                boxShadow: [
+                                    "0 10px 15px -3px rgba(139, 92, 246, 0.1)",
+                                    "0 20px 25px -5px rgba(139, 92, 246, 0.3)",
+                                    "0 10px 15px -3px rgba(139, 92, 246, 0.1)"
+                                ]
+                            }}
+                            transition={{
+                                duration: 4,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            }}
+                            onClick={() => setTeachersOpen(true)}
+                            sx={{ height: '100%', cursor: 'pointer' }}
+                        >
                             <StatCard
                                 title="Teachers Profiles"
                                 value={
