@@ -58,20 +58,21 @@ const TeacherProfilesDialog = ({ open, onClose }) => {
             component={motion.div}
             variants={itemVariants}
             whileHover={{
-                y: -12,
+                y: -10,
+                scale: 1.02,
                 transition: { type: "spring", stiffness: 300, damping: 20 }
             }}
             elevation={0}
             sx={{
                 p: 3,
-                height: '100%',
+                height: 420, // Fixed height for perfect uniformity
                 width: '100%',
                 borderRadius: 5,
                 position: 'relative',
                 overflow: 'hidden',
-                background: 'rgba(255, 255, 255, 0.7)',
+                background: 'rgba(255, 255, 255, 0.8)', // Slightly more opaque
                 backdropFilter: 'blur(40px)',
-                border: '1px solid rgba(255, 255, 255, 0.8)',
+                border: '1px solid rgba(255, 255, 255, 0.9)',
                 boxShadow: '0 10px 30px -10px rgba(0,0,0,0.05)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -79,9 +80,8 @@ const TeacherProfilesDialog = ({ open, onClose }) => {
                 textAlign: 'center',
                 transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                 '&:hover': {
-                    boxShadow: '0 20px 40px -10px rgba(37, 99, 235, 0.2)',
-                    borderColor: 'rgba(37, 99, 235, 0.4)',
-                    background: 'rgba(255, 255, 255, 0.9)',
+                    boxShadow: '0 25px 50px -12px rgba(6, 182, 212, 0.25)', // Cyan/Blue glow
+                    borderColor: 'rgba(6, 182, 212, 0.4)',
                 }
             }}
         >
@@ -91,21 +91,21 @@ const TeacherProfilesDialog = ({ open, onClose }) => {
                 top: 0,
                 left: 0,
                 right: 0,
-                height: 120,
-                background: `linear-gradient(135deg, ${theme.palette.primary.light}20 0%, ${theme.palette.secondary.light}20 100%)`,
+                height: 140,
+                background: `linear-gradient(135deg, ${theme.palette.primary.light}25 0%, ${theme.palette.secondary.light}25 100%)`,
                 zIndex: 0,
-                transition: 'opacity 0.3s ease',
+                clipPath: 'ellipse(150% 100% at 50% 0%)', // Curved bottom
             }} />
 
             <Box
                 sx={{
                     position: 'absolute',
-                    top: -20,
-                    right: -20,
-                    width: 100,
-                    height: 100,
+                    top: -30,
+                    right: -30,
+                    width: 120,
+                    height: 120,
                     borderRadius: '50%',
-                    background: 'radial-gradient(circle, rgba(37,99,235,0.1) 0%, rgba(255,255,255,0) 70%)',
+                    background: 'radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, rgba(255,255,255,0) 70%)',
                     zIndex: 0
                 }}
             />
@@ -114,20 +114,20 @@ const TeacherProfilesDialog = ({ open, onClose }) => {
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: index * 0.1 + 0.3 }}
-                style={{ position: 'relative', zIndex: 1, marginBottom: 20, marginTop: 10 }}
+                style={{ position: 'relative', zIndex: 1, marginBottom: 16, marginTop: 8 }}
             >
-                <Box sx={{ p: 0.5, bgcolor: 'white', borderRadius: '50%', boxShadow: '0 8px 20px rgba(0,0,0,0.08)' }}>
+                <Box sx={{ p: 0.6, bgcolor: 'white', borderRadius: '50%', boxShadow: '0 8px 25px rgba(0,0,0,0.1)' }}>
                     <Avatar
                         src={teacher.image}
                         alt={teacher.name}
                         imgProps={{ style: { objectPosition: 'top' } }}
                         sx={{
-                            width: 110,
-                            height: 110,
+                            width: 120,
+                            height: 120,
                             border: `4px solid ${theme.palette.background.paper}`,
                             bgcolor: `hsl(${210 + index * 40}, 80%, 96%)`,
                             color: `hsl(${210 + index * 40}, 90%, 60%)`,
-                            fontSize: '2.5rem',
+                            fontSize: '3rem',
                             fontWeight: 700
                         }}
                     >
@@ -136,26 +136,26 @@ const TeacherProfilesDialog = ({ open, onClose }) => {
                 </Box>
                 <Box sx={{
                     position: 'absolute',
-                    bottom: 5,
-                    right: 5,
+                    bottom: 8,
+                    right: 8,
                     bgcolor: 'white',
                     borderRadius: '50%',
                     p: 0.5,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
                 }}>
-                    <VerifiedIcon sx={{ fontSize: 22, color: '#0ea5e9' }} />
+                    <VerifiedIcon sx={{ fontSize: 24, color: '#0ea5e9' }} />
                 </Box>
             </motion.div>
 
             <Box sx={{ position: 'relative', zIndex: 1, flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
                 <Typography variant="h6" fontWeight="800" align="center" sx={{
                     mb: 1,
-                    minHeight: '3.6rem', // Fixed height for 2 lines of text
+                    minHeight: '3.6rem',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '1.1rem',
-                    lineHeight: 1.3,
+                    fontSize: '1.2rem',
+                    lineHeight: 1.2,
                     background: 'linear-gradient(90deg, #0f172a 0%, #334155 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
@@ -168,32 +168,34 @@ const TeacherProfilesDialog = ({ open, onClose }) => {
                     label={teacher.subject}
                     size="small"
                     sx={{
-                        mb: 2.5,
+                        mb: 'auto',
                         fontWeight: 700,
                         color: 'primary.700',
-                        bgcolor: 'primary.50',
+                        bgcolor: 'white',
                         border: '1px solid',
                         borderColor: 'primary.100',
-                        height: 28,
-                        '& .MuiChip-label': { px: 1.5 }
+                        height: 32,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                        '& .MuiChip-label': { px: 2 }
                     }}
                 />
 
                 <Box sx={{
-                    mt: 'auto',
+                    mt: 2,
                     p: 2,
                     width: '100%',
-                    bgcolor: 'rgba(255, 255, 255, 0.5)',
+                    bgcolor: 'rgba(255, 255, 255, 0.6)',
                     borderRadius: 3,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 1.5,
                     minHeight: '72px',
-                    border: '1px solid rgba(255,255,255,0.6)'
+                    border: '1px solid rgba(255,255,255,0.8)',
+                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.01)'
                 }}>
-                    <SchoolIcon sx={{ color: '#64748b', fontSize: 20 }} />
-                    <Typography variant="caption" color="text.secondary" fontWeight={600} align="center" sx={{ lineHeight: 1.4, fontSize: '0.75rem' }}>
+                    <SchoolIcon sx={{ color: '#64748b', fontSize: 22 }} />
+                    <Typography variant="caption" color="text.secondary" fontWeight={600} align="center" sx={{ lineHeight: 1.4, fontSize: '0.8rem' }}>
                         {teacher.qual}
                     </Typography>
                 </Box>
