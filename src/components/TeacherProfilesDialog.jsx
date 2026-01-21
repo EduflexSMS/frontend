@@ -104,6 +104,7 @@ const TeacherProfilesDialog = ({ open, onClose }) => {
                     <Avatar
                         src={teacher.image}
                         alt={teacher.name}
+                        imgProps={{ style: { objectPosition: 'top' } }}
                         sx={{
                             width: 100,
                             height: 100,
@@ -130,9 +131,12 @@ const TeacherProfilesDialog = ({ open, onClose }) => {
                 </Box>
             </motion.div>
 
-            <Box sx={{ position: 'relative', zIndex: 1, flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Typography variant="h6" fontWeight="800" sx={{
+            <Box sx={{ position: 'relative', zIndex: 1, flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                <Typography variant="h6" fontWeight="800" align="center" sx={{
                     mb: 0.5,
+                    minHeight: '3rem', // Balance height for names (2 lines)
+                    display: 'flex',
+                    alignItems: 'center',
                     background: 'linear-gradient(90deg, #1e293b 0%, #334155 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
@@ -163,10 +167,11 @@ const TeacherProfilesDialog = ({ open, onClose }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 1
+                    gap: 1,
+                    minHeight: '64px' // Balance height for qualifications
                 }}>
                     <SchoolIcon color="action" fontSize="small" sx={{ opacity: 0.7 }} />
-                    <Typography variant="caption" color="text.secondary" fontWeight={500} sx={{ lineHeight: 1.3 }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={500} align="center" sx={{ lineHeight: 1.3 }}>
                         {teacher.qual}
                     </Typography>
                 </Box>
@@ -238,9 +243,9 @@ const TeacherProfilesDialog = ({ open, onClose }) => {
                             initial="hidden"
                             animate="visible"
                         >
-                            <Grid container spacing={3}>
+                            <Grid container spacing={3} alignItems="stretch">
                                 {teachers.map((teacher, index) => (
-                                    <Grid item xs={12} sm={6} md={4} key={index}>
+                                    <Grid item xs={12} sm={6} md={4} key={index} sx={{ display: 'flex' }}>
                                         <TeacherCard teacher={teacher} index={index} />
                                     </Grid>
                                 ))}
