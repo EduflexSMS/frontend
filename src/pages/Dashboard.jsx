@@ -268,15 +268,16 @@ export default function Dashboard() {
                                     p: 4,
                                     height: '100%',
                                     borderRadius: 5,
-                                    border: '1px solid rgba(255,255,255,0.6)',
-                                    background: 'rgba(255,255,255,0.7)',
+                                    border: '1px solid',
+                                    borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.6)',
+                                    background: theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255,255,255,0.7)',
                                     backdropFilter: 'blur(20px)',
                                     boxShadow: '0 10px 30px -10px rgba(0,0,0,0.05)',
                                     cursor: 'pointer',
                                     transition: 'all 0.3s ease',
                                     '&:hover': {
                                         boxShadow: '0 25px 50px -12px rgba(59, 130, 246, 0.15)',
-                                        borderColor: 'rgba(59, 130, 246, 0.4)',
+                                        borderColor: theme.palette.primary.main,
                                     }
                                 }}
                             >

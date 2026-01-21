@@ -143,7 +143,7 @@ export default function Layout() {
     );
 
     return (
-        <Box sx={{ display: 'flex', minHeight: '100vh', background: 'var(--background-color)' }}>
+        <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
             <CssBaseline />
 
             <AppBar
@@ -151,10 +151,11 @@ export default function Layout() {
                 sx={{
                     width: { sm: `calc(100% - ${drawerWidth}px)` },
                     ml: { sm: `${drawerWidth}px` },
-                    bgcolor: 'rgba(255, 255, 255, 0.8)',
+                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.8)',
                     backdropFilter: 'blur(12px)',
                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-                    borderBottom: '1px solid rgba(255,255,255,0.3)',
+                    borderBottom: '1px solid',
+                    borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)',
                     color: 'text.primary',
                 }}
             >
