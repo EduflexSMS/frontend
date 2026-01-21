@@ -18,12 +18,12 @@ import { Close as CloseIcon, School as SchoolIcon, Verified as VerifiedIcon } fr
 import { motion, AnimatePresence } from 'framer-motion';
 
 const teachers = [
-    { subject: 'Mathematics', name: 'Keshara Rathnayaka', qual: 'Software Engineering(Hons)' },
-    { subject: 'Science', name: 'Yasiru Hasaranga', qual: 'National Diploma in Teaching(Science)' },
-    { subject: 'English', name: 'Malith Jayawardhana', qual: 'Diploma in English' },
-    { subject: 'ICT', name: 'Nilushka Purnima', qual: 'Software Engineering(Hons)' },
-    { subject: 'Business and Accounting Studies', name: 'Danushpa C Rajapaksha', qual: 'Bsc Business Managemenet SP' },
-    { subject: 'Scholarships Grade 03-05', name: 'Rawindra Sirimanne', qual: 'Government National School Teacher' },
+    { subject: 'Mathematics', name: 'Keshara Rathnayaka', qual: 'Software Engineering(Hons)', image: '/assets/teachers/keshara.jpg' },
+    { subject: 'Science', name: 'Yasiru Hasaranga', qual: 'National Diploma in Teaching(Science)', image: '/assets/teachers/yasiru.jpg' },
+    { subject: 'English', name: 'Malith Jayawardhana', qual: 'Diploma in English', image: '/assets/teachers/malith.jpg' },
+    { subject: 'ICT', name: 'Nilushka Purnima', qual: 'Software Engineering(Hons)', image: '/assets/teachers/nilushka.jpg' },
+    { subject: 'Business and Accounting Studies', name: 'Danushpa C Rajapaksha', qual: 'Bsc Business Managemenet SP', image: '/assets/teachers/danushpa.png' },
+    { subject: 'Scholarships Grade 03-05', name: 'Rawindra Sirimanne', qual: 'Government National School Teacher', image: null },
 ];
 
 const containerVariants = {
@@ -141,17 +141,21 @@ const TeacherProfilesDialog = ({ open, onClose }) => {
                                     }}
                                 >
                                     <ListItemAvatar>
-                                        <Avatar sx={{
-                                            width: 56,
-                                            height: 56,
-                                            bgcolor: `hsl(${210 + index * 30}, 80%, 96%)`,
-                                            color: `hsl(${210 + index * 30}, 90%, 60%)`,
-                                            fontWeight: 'bold',
-                                            fontSize: '1.5rem',
-                                            transition: 'transform 0.3s ease',
-                                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                                        }}>
-                                            {teacher.name.charAt(0)}
+                                        <Avatar
+                                            src={teacher.image}
+                                            alt={teacher.name}
+                                            sx={{
+                                                width: 56,
+                                                height: 56,
+                                                bgcolor: `hsl(${210 + index * 30}, 80%, 96%)`,
+                                                color: `hsl(${210 + index * 30}, 90%, 60%)`,
+                                                fontWeight: 'bold',
+                                                fontSize: '1.5rem',
+                                                transition: 'transform 0.3s ease',
+                                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                                            }}
+                                        >
+                                            {!teacher.image && teacher.name.charAt(0)}
                                         </Avatar>
                                     </ListItemAvatar>
                                     <ListItemText
