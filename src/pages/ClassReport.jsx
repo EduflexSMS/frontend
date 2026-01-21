@@ -122,7 +122,7 @@ export default function ClassReport() {
 
     const countAttendance = (attendanceArray) => {
         if (!attendanceArray) return 0;
-        return attendanceArray.filter(Boolean).length;
+        return attendanceArray.filter(status => status === 'present' || status === true || status === 'true').length;
     };
 
     const handleDownloadPDF = () => {
