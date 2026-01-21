@@ -28,7 +28,9 @@ import {
     Avatar
 } from '@mui/material';
 import axios from 'axios';
-import { Phone, EventAvailable, Book, Assessment, FilterList, Search } from '@mui/icons-material';
+import { Phone, EventAvailable, Book, Assessment, FilterList, Search, Download } from '@mui/icons-material';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import API_BASE_URL from '../config';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -103,6 +105,70 @@ export default function ClassReport() {
     const countAttendance = (attendanceArray) => {
         if (!attendanceArray) return 0;
         return attendanceArray.filter(Boolean).length;
+    };
+
+    const handleDownloadPDF = () => {
+        if (!reportData || reportData.length === 0) return;
+
+        const doc = new jsPDF();
+        const monthName = months[month];
+
+        // Header
+        doc.setFontSize(22);
+        doc.setTextColor(33, 150, 243); // Primary Blue
+        doc.text("Eduflex Institute", 14, 20);
+
+        doc.setFontSize(16);
+        doc.setTextColor(40, 40, 40);
+        doc.text("Class Performance Report", 14, 30);
+
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Grade: ${grade}`, 14, 40);
+        doc.text(`Subject: ${subject}`, 14, 45);
+        doc.text(`Month: ${monthName}`, 14, 50);
+        doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 55);
+
+        // Table
+        const tableColumn = ["Index", "Name", "Mobile", "Attendance", "Fee Status", "Tutes"];
+        const tableRows = [];
+
+        reportData.forEach(student => {
+            const attendanceCount = countAttendance(student.attendance);
+            const studentData = [
+                student.indexNumber,
+                student.name,
+                student.mobile,
+                `${attendanceCount}/5`,
+                student.feePaid ? "Paid" : "Unpaid",
+                student.tutesGiven ? "Given" : "Pending"
+            ];
+            tableRows.push(studentData);
+        });
+
+        autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 65,
+            theme: 'striped',
+            headStyles: {
+                fillColor: [33, 150, 243],
+                textColor: 255,
+                halign: 'center'
+            },
+            columnStyles: {
+                0: { cellWidth: 30 }, // Index
+                1: { cellWidth: 'auto' }, // Name
+                2: { cellWidth: 30 }, // Mobile
+                3: { halign: 'center' }, // Attendance
+                4: { halign: 'center' }, // Fee
+                5: { halign: 'center' } // Tutes
+            },
+            alternateRowStyles: { fillColor: [245, 247, 250] },
+            margin: { top: 60 }
+        });
+
+        doc.save(`Eduflex_Report_${grade}_${subject}_${monthName}.pdf`);
     };
 
     const ReportCard = ({ row }) => {
@@ -204,6 +270,26 @@ export default function ClassReport() {
                     <Box>
                         <Typography variant="h4" sx={{ fontWeight: 800, fontSize: { xs: '1.5rem', md: '2.125rem' } }}>Class Reports</Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', md: '0.875rem' } }}>Generate and view detailed class performance reports.</Typography>
+                    </Box>
+                    <Box sx={{ ml: 'auto' }}>
+                        <Button
+                            variant="contained"
+                            color="success"
+                            startIcon={<Download />}
+                            onClick={handleDownloadPDF}
+                            disabled={!reportData || reportData.length === 0}
+                            component={motion.button}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            sx={{
+                                borderRadius: 3,
+                                textTransform: 'none',
+                                fontWeight: 'bold',
+                                boxShadow: '0 4px 10px rgba(46, 125, 50, 0.2)'
+                            }}
+                        >
+                            Download PDF
+                        </Button>
                     </Box>
                 </Box>
 
