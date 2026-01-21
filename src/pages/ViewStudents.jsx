@@ -247,7 +247,7 @@ export default function ViewStudents() {
                         </Grid>
 
                         {grades.map((grade) => (
-                            <Grid item xs={6} sm={4} md={3} key={grade} component={motion.div} variants={itemVariants}>
+                            <Grid item xs={12} sm={6} md={3} key={grade} component={motion.div} variants={itemVariants}>
                                 <Card
                                     component={motion.div}
                                     whileHover={{ y: -10, scale: 1.02, boxShadow: '0 20px 40px -10px rgba(0,0,0,0.1)' }}
@@ -255,7 +255,7 @@ export default function ViewStudents() {
                                     onClick={() => handleGradeClick(grade)}
                                     sx={{
                                         height: '100%', minHeight: 240,
-                                        p: 0, borderRadius: '32px',
+                                        p: 4, borderRadius: '32px',
                                         cursor: 'pointer',
                                         bgcolor: 'white',
                                         boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)',
@@ -313,15 +313,15 @@ export default function ViewStudents() {
                             const isActiveColor = getSubjectColor(subject.name);
 
                             return (
-                                <Grid item xs={6} sm={6} md={3} key={subject._id} component={motion.div} variants={itemVariants}>
+                                <Grid item xs={12} sm={6} md={3} key={subject._id} component={motion.div} variants={itemVariants}>
                                     <Card
                                         component={motion.div}
                                         whileHover={{ y: -8, scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => handleSubjectClick(subject.name)}
                                         sx={{
-                                            height: '100%', minHeight: 220,
-                                            borderRadius: '32px', p: 3,
+                                            height: '100%', minHeight: 240,
+                                            borderRadius: '32px', p: 4,
                                             cursor: 'pointer',
                                             bgcolor: 'white',
                                             boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 10px 15px -3px rgba(0,0,0,0.05)',
