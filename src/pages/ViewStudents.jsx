@@ -288,6 +288,23 @@ export default function ViewStudents() {
             {viewMode === 'subjects' && (
                 <Grid container spacing={{ xs: 2, md: 3 }} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
                     {subjects.map((subject) => {
+                        // Grade-Specific Subject Filtering
+                        let shouldShow = true;
+                        if (selectedGrade) {
+                            const gradeNum = parseInt(selectedGrade.replace(/\D/g, ''));
+                            const sName = subject.name;
+
+                            if (gradeNum >= 6 && gradeNum <= 9) {
+                                shouldShow = ['Mathematics', 'Science', 'English', 'ICT'].includes(sName);
+                            } else if (gradeNum === 10 || gradeNum === 11) {
+                                shouldShow = ['Mathematics', 'Science', 'English', 'ICT', 'Business and Accounting Studies'].includes(sName);
+                            } else if (gradeNum >= 3 && gradeNum <= 5) {
+                                shouldShow = sName.toLowerCase().includes('scholarship');
+                            }
+                        }
+
+                        if (!shouldShow) return null;
+
                         return (
                             <Grid item xs={6} sm={4} md={3} key={subject._id} component={motion.div} variants={itemVariants} sx={{ display: 'flex' }}>
                                 <Card
