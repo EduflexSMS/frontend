@@ -221,116 +221,124 @@ export default function Layout() {
         <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
             <CssBaseline />
 
-            <AppBar
-                position="fixed"
-                sx={{
-                    width: { md: `calc(100% - ${drawerWidth + 32}px)` }, // Adjusted for floating margin
-                    ml: { md: `${drawerWidth + 32}px` },
-                    mr: { md: 2 }, // Right margin
-                    mt: { md: 2 }, // Top margin
-                    borderRadius: { md: '20px' }, // Rounded AppBar
-                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-                    backdropFilter: 'blur(12px)',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-                    border: '1px solid',
-                    borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)',
-                    color: 'text.primary',
-                    top: 0,
-                    right: 0,
-                    left: 'auto', // Important for right aligning with margins
-                }}
-            >
-                <Toolbar sx={{ justifyContent: 'space-between' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <IconButton
-                            color="inherit"
-                            aria-label="open drawer"
-                            edge="start"
-                            onClick={handleDrawerToggle}
-                            sx={{ mr: 2, display: { md: 'none' }, color: 'primary.main' }}
-                        >
-                            <MenuIcon />
-                        </IconButton>
-                        <Box sx={{ display: { xs: 'none', lg: 'flex' }, alignItems: 'center', bgcolor: alpha(theme.palette.text.primary, 0.05), borderRadius: '12px', px: 2, py: 0.5 }}>
-                            <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
-                            <InputBase placeholder="Search..." sx={{ fontSize: '0.9rem', color: 'text.primary' }} />
-                        </Box>
-                    </Box>
-
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <IconButton onClick={colorMode.toggleColorMode} sx={{ color: 'text.primary' }}>
-                            {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
-                        </IconButton>
-
-                        <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'inline-flex' } }}>
-                            <NotificationsOutlined />
-                        </IconButton>
-                        <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'inline-flex' } }}>
-                            <SettingsOutlined />
-                        </IconButton>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 1, p: 0.5, pr: 1.5, borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
-                            <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.9rem' }}>A</Avatar>
-                            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                                <Typography variant="subtitle2" sx={{ lineHeight: 1.2, color: 'text.primary' }}>Admin User</Typography>
-                                <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1 }}>Administrator</Typography>
-                            </Box>
-                        </Box>
-                    </Box>
-                </Toolbar>
-            </AppBar>
-
+            {/* Sidebar Navigation - Fixed/Permanent on Desktop */}
             <Box
                 component="nav"
-                sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
+                sx={{
+                    width: { md: drawerWidth },
+                    flexShrink: { md: 0 },
+                    display: { xs: 'none', md: 'block' }
+                }}
             >
                 <Drawer
-                    variant="temporary"
-                    open={mobileOpen}
-                    onClose={handleDrawerToggle}
-                    ModalProps={{ keepMounted: true }}
-                    sx={{
-                        display: { xs: 'block', md: 'none' },
-                        '& .MuiDrawer-paper': {
-                            boxSizing: 'border-box',
-                            width: drawerWidth,
-                            background: 'transparent',
-                            border: 'none',
-                        },
-                    }}
-                >
-                    {drawerContent}
-                </Drawer>
-                <Drawer
                     variant="permanent"
-                    sx={{
-                        display: { xs: 'none', md: 'block' },
-                        '& .MuiDrawer-paper': {
+                    open
+                    PaperProps={{
+                        sx: {
                             boxSizing: 'border-box',
                             width: drawerWidth,
-                            height: 'calc(100vh - 32px)', // Floating height
-                            margin: '16px', // Floating margin
-                            borderRadius: '24px', // Rounded corners
                             background: 'transparent',
                             border: 'none',
-                            boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
-                        },
+                            position: 'fixed',
+                            height: '100vh',
+                            padding: '16px',
+                            zIndex: 1200
+                        }
                     }}
-                    open
                 >
                     {drawerContent}
                 </Drawer>
             </Box>
 
+            {/* Mobile Drawer */}
+            <Drawer
+                variant="temporary"
+                open={mobileOpen}
+                onClose={handleDrawerToggle}
+                ModalProps={{ keepMounted: true }}
+                sx={{
+                    display: { xs: 'block', md: 'none' },
+                    '& .MuiDrawer-paper': {
+                        boxSizing: 'border-box',
+                        width: drawerWidth,
+                        background: 'transparent',
+                        border: 'none',
+                    },
+                }}
+            >
+                {drawerContent}
+            </Drawer>
+
+            {/* Main Content Area */}
             <Box
                 component="main"
                 sx={{
                     flexGrow: 1,
                     p: { xs: 2, sm: 3 },
-                    width: { md: `calc(100% - ${drawerWidth}px)` },
-                    mt: { xs: 8, md: 10 }, // Adjusted for floating header
+                    width: { xs: '100%', md: `calc(100% - ${drawerWidth}px)` },
+                    minHeight: '100vh',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    // Improve overflow handling
                     overflowX: 'hidden'
                 }}
             >
+                {/* Header / AppBar - Now strictly inside the main content flow or sticky */}
+                <AppBar
+                    position="sticky"
+                    elevation={0}
+                    sx={{
+                        borderRadius: { md: '20px' },
+                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                        backdropFilter: 'blur(12px)',
+                        border: '1px solid',
+                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)',
+                        color: 'text.primary',
+                        top: { xs: 0, md: 16 }, // Add spacing from top on desktop
+                        mb: { xs: 2, md: 4 },
+                        width: '100%',
+                        zIndex: 1100
+                    }}
+                >
+                    <Toolbar sx={{ justifyContent: 'space-between' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <IconButton
+                                color="inherit"
+                                aria-label="open drawer"
+                                edge="start"
+                                onClick={handleDrawerToggle}
+                                sx={{ mr: 2, display: { md: 'none' }, color: 'primary.main' }}
+                            >
+                                <MenuIcon />
+                            </IconButton>
+                            <Box sx={{ display: { xs: 'none', lg: 'flex' }, alignItems: 'center', bgcolor: alpha(theme.palette.text.primary, 0.05), borderRadius: '12px', px: 2, py: 0.5 }}>
+                                <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
+                                <InputBase placeholder="Search..." sx={{ fontSize: '0.9rem', color: 'text.primary' }} />
+                            </Box>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <IconButton onClick={colorMode.toggleColorMode} sx={{ color: 'text.primary' }}>
+                                {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+                            </IconButton>
+
+                            <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'inline-flex' } }}>
+                                <NotificationsOutlined />
+                            </IconButton>
+                            <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'inline-flex' } }}>
+                                <SettingsOutlined />
+                            </IconButton>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 1, p: 0.5, pr: 1.5, borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
+                                <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.9rem' }}>A</Avatar>
+                                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                                    <Typography variant="subtitle2" sx={{ lineHeight: 1.2, color: 'text.primary' }}>Admin User</Typography>
+                                    <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1 }}>Administrator</Typography>
+                                </Box>
+                            </Box>
+                        </Box>
+                    </Toolbar>
+                </AppBar>
+
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}

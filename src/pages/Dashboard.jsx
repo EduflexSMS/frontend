@@ -269,14 +269,18 @@ export default function Dashboard() {
                                     height: '100%',
                                     borderRadius: 5,
                                     border: '1px solid',
-                                    borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.6)',
-                                    background: theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255,255,255,0.7)',
+                                    borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                                    background: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.6) : 'rgba(255,255,255,0.7)',
                                     backdropFilter: 'blur(20px)',
-                                    boxShadow: '0 10px 30px -10px rgba(0,0,0,0.05)',
+                                    boxShadow: theme.palette.mode === 'dark'
+                                        ? '0 10px 30px -10px rgba(0,0,0,0.3)'
+                                        : '0 10px 30px -10px rgba(0,0,0,0.05)',
                                     cursor: 'pointer',
                                     transition: 'all 0.3s ease',
                                     '&:hover': {
-                                        boxShadow: '0 25px 50px -12px rgba(59, 130, 246, 0.15)',
+                                        boxShadow: theme.palette.mode === 'dark'
+                                            ? '0 25px 50px -12px rgba(0,0,0,0.5)'
+                                            : '0 25px 50px -12px rgba(59, 130, 246, 0.15)',
                                         borderColor: theme.palette.primary.main,
                                     }
                                 }}
@@ -333,7 +337,7 @@ export default function Dashboard() {
                                     justifyContent: 'space-between',
                                     pt: 3,
                                     borderTop: '1px solid',
-                                    borderColor: 'rgba(0,0,0,0.05)'
+                                    borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
                                 }}>
                                     <Box>
                                         <Typography variant="caption" display="block" color="text.secondary" fontWeight="600" sx={{ mb: 0.5 }}>STUDENTS</Typography>
