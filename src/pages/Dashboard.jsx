@@ -176,7 +176,7 @@ export default function Dashboard() {
                 }}>
                     <Box>
                         <Typography variant="h3" fontWeight="800" sx={{
-                            color: '#1e293b',
+                            color: 'text.primary',
                             letterSpacing: '-0.03em',
                             mb: 1
                         }}>
@@ -248,7 +248,7 @@ export default function Dashboard() {
                     <Box sx={{ p: 1.5, bgcolor: alpha(theme.palette.primary.main, 0.1), borderRadius: '12px' }}>
                         <TrendingUp sx={{ color: theme.palette.primary.main, fontSize: 28 }} />
                     </Box>
-                    <Typography variant="h4" fontWeight="800" color="#1e293b">
+                    <Typography variant="h4" fontWeight="800" color="text.primary">
                         Performance Analytics
                     </Typography>
                 </Box>
@@ -282,7 +282,7 @@ export default function Dashboard() {
                             >
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
                                     <Box>
-                                        <Typography variant="h5" fontWeight="700" sx={{ mb: 0.5, color: '#0f172a' }}>
+                                        <Typography variant="h5" fontWeight="700" sx={{ mb: 0.5, color: 'text.primary' }}>
                                             {sub.subject}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary" fontWeight="500">
@@ -338,7 +338,7 @@ export default function Dashboard() {
                                         <Typography variant="caption" display="block" color="text.secondary" fontWeight="600" sx={{ mb: 0.5 }}>STUDENTS</Typography>
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                             <PeopleOutline sx={{ fontSize: 20, color: 'text.secondary', opacity: 0.6 }} />
-                                            <Typography variant="h6" fontWeight="800" color="#334155">{sub.studentCount}</Typography>
+                                            <Typography variant="h6" fontWeight="800" color="text.primary">{sub.studentCount}</Typography>
                                         </Box>
                                     </Box>
                                     <Box sx={{ textAlign: 'right' }}>

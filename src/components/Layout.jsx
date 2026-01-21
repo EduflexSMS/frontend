@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, AppBar, Toolbar, Typography, CssBaseline, IconButton, Avatar, useTheme, useMediaQuery, InputBase } from '@mui/material';
-import { Dashboard, People, Class, AddBox, Assessment, Menu as MenuIcon, NotificationsOutlined, Search as SearchIcon, SettingsOutlined, Logout as LogoutIcon } from '@mui/icons-material';
+import React, { useState, useContext } from 'react';
+import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, AppBar, Toolbar, Typography, CssBaseline, IconButton, Avatar, useTheme, useMediaQuery, InputBase, alpha } from '@mui/material';
+import { Dashboard, People, Class, AddBox, Assessment, Menu as MenuIcon, NotificationsOutlined, Search as SearchIcon, SettingsOutlined, Logout as LogoutIcon, Brightness4, Brightness7 } from '@mui/icons-material';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import logo from '../assets/logo.jpg';
+import { ColorModeContext } from '../App';
 
 const drawerWidth = 280;
 
@@ -13,6 +14,7 @@ export default function Layout() {
     const location = useLocation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const colorMode = useContext(ColorModeContext);
 
     const menuItems = [
         { text: 'Dashboard', icon: <Dashboard />, path: '/' },
@@ -163,27 +165,31 @@ export default function Layout() {
                             aria-label="open drawer"
                             edge="start"
                             onClick={handleDrawerToggle}
-                            sx={{ mr: 2, display: { sm: 'none' }, color: 'var(--primary-color)' }}
+                            sx={{ mr: 2, display: { sm: 'none' }, color: 'primary.main' }}
                         >
                             <MenuIcon />
                         </IconButton>
-                        <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', bgcolor: 'rgba(0,0,0,0.04)', borderRadius: '12px', px: 2, py: 0.5 }}>
+                        <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', bgcolor: alpha(theme.palette.text.primary, 0.05), borderRadius: '12px', px: 2, py: 0.5 }}>
                             <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
-                            <InputBase placeholder="Search..." sx={{ fontSize: '0.9rem' }} />
+                            <InputBase placeholder="Search..." sx={{ fontSize: '0.9rem', color: 'text.primary' }} />
                         </Box>
                     </Box>
 
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <IconButton onClick={colorMode.toggleColorMode} sx={{ color: 'text.primary' }}>
+                            {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+                        </IconButton>
+
                         <IconButton size="small" sx={{ color: 'text.secondary' }}>
                             <NotificationsOutlined />
                         </IconButton>
                         <IconButton size="small" sx={{ color: 'text.secondary' }}>
                             <SettingsOutlined />
                         </IconButton>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 1, p: 0.5, pr: 1.5, borderRadius: '20px', border: '1px solid rgba(0,0,0,0.05)' }}>
-                            <Avatar sx={{ width: 32, height: 32, bgcolor: 'var(--primary-color)', fontSize: '0.9rem' }}>A</Avatar>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 1, p: 0.5, pr: 1.5, borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
+                            <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.9rem' }}>A</Avatar>
                             <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                                <Typography variant="subtitle2" sx={{ lineHeight: 1.2 }}>Admin User</Typography>
+                                <Typography variant="subtitle2" sx={{ lineHeight: 1.2, color: 'text.primary' }}>Admin User</Typography>
                                 <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1 }}>Administrator</Typography>
                             </Box>
                         </Box>
