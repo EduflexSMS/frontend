@@ -23,7 +23,7 @@ const teachers = [
     { subject: 'English', name: 'Malith Jayawardhana', qual: 'Diploma in English', image: '/assets/teachers/malith.jpg' },
     { subject: 'ICT', name: 'Nilushka Purnima', qual: 'Software Engineering(Hons)', image: '/assets/teachers/nilushka.jpg' },
     { subject: 'Business and Accounting Studies', name: 'Danushpa C Rajapaksha', qual: 'Bsc Business Managemenet SP', image: '/assets/teachers/danushpa.png' },
-    { subject: 'Scholarships Grade 03-05', name: 'Rawindra Sirimanne', qual: 'Government National School Teacher', image: null },
+    { subject: 'Scholarships Grade 03-05', name: 'Rawindra Sirimanne', qual: 'Government National School Teacher', image: '/assets/teachers/rawindra.jpg' },
 ];
 
 const containerVariants = {
