@@ -141,237 +141,231 @@ export default function ViewStudents() {
         }
     };
 
-    return (
-        <Container maxWidth="lg" sx={{ minHeight: '80vh', py: { xs: 2, md: 4 } }}>
-            <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-                {viewMode !== 'grades' && (
-                    <Button
-                        onClick={handleBack}
-                        variant="outlined"
-                        startIcon={<ArrowBackIcon />}
-                        sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
-                    >
-                        Back
-                    </Button>
-                )}
-                <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    key={viewMode} // Re-animate on change
-                >
-                    <Typography variant="h4" sx={{
-                        fontWeight: 800,
-                        background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        letterSpacing: '-1px',
-                        fontSize: { xs: '1.5rem', md: '2.125rem' }
-                    }}>
-                        {viewMode === 'grades' && 'Select Grade Directory'}
-                        {viewMode === 'subjects' && `${selectedGrade} - Select Subject`}
-                        {viewMode === 'students' && (selectedGrade ? `${selectedGrade} - ${selectedSubject}` : 'All Students Directory')}
-                    </Typography>
-                </motion.div>
-            </Box>
+    // Dynamic Subject Colors for Visual Vibrancy
+    const getSubjectColor = (name) => {
+        if (name.includes('Mathematics')) return '#FF4B2B'; // Red/Orange
+        if (name.includes('Science')) return '#2196F3'; // Blue
+        if (name.includes('English')) return '#00E676'; // Green
+        if (name.includes('ICT')) return '#651FFF'; // Purple
+        if (name.includes('Business')) return '#F50057'; // Pink
+        if (name.includes('Scholarship')) return '#FFD600'; // Gold
+        return '#2196F3'; // Default
+    };
 
-            {/* GRADES VIEW */}
-            {viewMode === 'grades' && (
-                <Grid container spacing={{ xs: 2, md: 3 }} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
-                    {/* All Students Card */}
-                    <Grid item xs={6} sm={4} md={3} component={motion.div} variants={itemVariants} sx={{ display: 'flex' }}>
-                        <Card
-                            component={motion.div}
-                            whileHover={{ y: -8, scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={handleAllStudentsClick}
+    return (
+        <Box sx={{
+            minHeight: '100vh',
+            background: '#f0f4f8',
+            backgroundImage: `
+                radial-gradient(at 0% 0%, hsla(210,100%,96%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(210,100%,94%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(210,100%,96%,1) 0, transparent 50%)
+            `,
+            pt: 4, pb: 8
+        }}>
+            <Container maxWidth="xl">
+                {/* Header Section */}
+                <Box sx={{ mb: 6, display: 'flex', alignItems: 'center', gap: 3 }}>
+                    {viewMode !== 'grades' && (
+                        <IconButton
+                            onClick={handleBack}
                             sx={{
-                                width: '100%',
-                                minHeight: { xs: 160, md: 220 },
-                                p: 3,
-                                cursor: 'pointer',
-                                borderRadius: '24px',
-                                background: 'linear-gradient(145deg, #2196f3 0%, #1976d2 100%)',
-                                boxShadow: '0 10px 40px rgba(33, 150, 243, 0.3)',
-                                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
-                                position: 'relative', overflow: 'hidden', border: 'none'
+                                bgcolor: 'white',
+                                boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+                                '&:hover': { bgcolor: '#f5f5f5', transform: 'scale(1.1)' },
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                             }}
                         >
-                            <Box sx={{
-                                position: 'absolute', top: -50, right: -50, width: 150, height: 150,
-                                borderRadius: '50%', background: 'rgba(255,255,255,0.1)'
-                            }} />
-                            <Box sx={{
-                                p: 2, borderRadius: '50%',
-                                background: 'rgba(255,255,255,0.2)',
-                                backdropFilter: 'blur(10px)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center'
-                            }}>
-                                <PeopleAltIcon sx={{ fontSize: { xs: 32, md: 48 }, color: 'white' }} />
-                            </Box>
-                            <Typography variant="h6" fontWeight="800" sx={{ color: 'white', zIndex: 1, letterSpacing: -0.5 }}>
-                                All Students
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', zIndex: 1, mt: -1 }}>
-                                View Full List
-                            </Typography>
-                        </Card>
-                    </Grid>
+                            <ArrowBackIcon sx={{ color: '#1a1a1a' }} />
+                        </IconButton>
+                    )}
 
-                    {grades.map((grade) => (
-                        <Grid item xs={6} sm={4} md={3} key={grade} component={motion.div} variants={itemVariants} sx={{ display: 'flex' }}>
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        key={viewMode}
+                    >
+                        <Typography variant="h3" sx={{
+                            fontWeight: 900,
+                            color: '#1a202c',
+                            letterSpacing: '-1.5px',
+                            display: 'flex', alignItems: 'center', gap: 2,
+                            fontSize: { xs: '1.75rem', md: '2.5rem' }
+                        }}>
+                            {/* Breadcrumb-style Header */}
+                            {viewMode === 'grades' && 'Select Grade'}
+                            {viewMode === 'subjects' && (
+                                <>
+                                    <span style={{ opacity: 0.4 }}>{selectedGrade}</span>
+                                    <span style={{ opacity: 0.2 }}>/</span>
+                                    <span style={{ color: '#2196f3' }}>Select Subject</span>
+                                </>
+                            )}
+                            {viewMode === 'students' && (
+                                <>
+                                    <span style={{ opacity: 0.4 }}>Students</span>
+                                    {selectedGrade && (
+                                        <>
+                                            <span style={{ opacity: 0.2 }}>/</span>
+                                            <span style={{ color: '#2196f3' }}>{selectedSubject || 'All'}</span>
+                                        </>
+                                    )}
+                                </>
+                            )}
+                        </Typography>
+                    </motion.div>
+                </Box>
+
+                {/* GRADES VIEW */}
+                {viewMode === 'grades' && (
+                    <Grid container spacing={3} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
+                        {/* All Students Card - Hero Style */}
+                        <Grid item xs={12} sm={6} md={3} component={motion.div} variants={itemVariants}>
                             <Card
                                 component={motion.div}
-                                whileHover={{
-                                    scale: 1.02,
-                                    y: -8,
-                                    boxShadow: '0 20px 40px rgba(33, 150, 243, 0.1)'
-                                }}
+                                whileHover={{ y: -10, boxShadow: '0 25px 50px -12px rgba(33, 150, 243, 0.5)' }}
                                 whileTap={{ scale: 0.98 }}
-                                onClick={() => handleGradeClick(grade)}
+                                onClick={handleAllStudentsClick}
                                 sx={{
-                                    width: '100%',
-                                    minHeight: { xs: 160, md: 220 },
-                                    p: { xs: 2, md: 3 },
-                                    cursor: 'pointer', textAlign: 'center',
-                                    borderRadius: '24px',
-                                    background: 'rgba(255, 255, 255, 0.8)',
-                                    backdropFilter: 'blur(20px)',
-                                    border: '1px solid rgba(255, 255, 255, 0.5)',
-                                    boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
-                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
-                                    overflow: 'hidden',
-                                    position: 'relative',
-                                    transition: 'all 0.3s ease',
-                                    '&:hover': {
-                                        borderColor: '#2196f3',
-                                        background: 'rgba(255, 255, 255, 0.95)'
-                                    }
+                                    height: '100%', minHeight: 240,
+                                    cursor: 'pointer', borderRadius: '32px',
+                                    background: 'linear-gradient(135deg, #0D47A1 0%, #2196F3 100%)',
+                                    padding: 4, position: 'relative', overflow: 'hidden',
+                                    boxShadow: '0 20px 25px -5px rgba(33, 150, 243, 0.3)',
+                                    display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'
                                 }}
                             >
-                                <Box sx={{
-                                    position: 'absolute',
-                                    top: -20, right: -20,
-                                    width: 100, height: 100,
-                                    borderRadius: '50%',
-                                    background: 'radial-gradient(circle, rgba(33,150,243,0.08) 0%, rgba(255,255,255,0) 70%)',
-                                    zIndex: 0
-                                }} />
-
-                                <Box sx={{
-                                    p: 2.5, borderRadius: '24px',
-                                    background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.05) 0%, rgba(33, 203, 243, 0.1) 100%)',
-                                    color: '#2196f3',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    zIndex: 1,
-                                    transition: 'transform 0.3s ease',
-                                    '.MuiCard-root:hover &': {
-                                        transform: 'scale(1.1) rotate(-5deg)'
-                                    }
-                                }}>
-                                    <SchoolIcon sx={{ fontSize: { xs: 32, md: 48 }, filter: 'drop-shadow(0 4px 6px rgba(33, 150, 243, 0.2))' }} />
-                                </Box>
-                                <Typography variant="h6" fontWeight="700" color="text.primary" sx={{ zIndex: 1, letterSpacing: -0.5 }}>
-                                    {grade}
+                                <Box sx={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
+                                <PeopleAltIcon sx={{ fontSize: 64, color: 'white', mb: 2, zIndex: 1 }} />
+                                <Typography variant="h5" fontWeight="800" color="white" align="center" sx={{ zIndex: 1 }}>
+                                    View All Students
                                 </Typography>
+                                <Paper sx={{ mt: 2, px: 2, py: 0.5, borderRadius: '20px', bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}>
+                                    <Typography variant="caption" fontWeight="bold">Total Records</Typography>
+                                </Paper>
                             </Card>
                         </Grid>
-                    ))}
-                    {grades.length === 0 && !loading && (
-                        <Typography variant="body1" sx={{ mt: 2, ml: 2, width: '100%', textAlign: 'center', color: 'text.secondary' }}>
-                            No grades found. Please add students first.
-                        </Typography>
-                    )}
-                </Grid>
-            )}
 
-            {/* SUBJECTS VIEW */}
-            {viewMode === 'subjects' && (
-                <Grid container spacing={{ xs: 2, md: 3 }} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
-                    {subjects.map((subject) => {
-                        // Grade-Specific Subject Filtering
-                        let shouldShow = true;
-                        if (selectedGrade) {
-                            const gradeNum = parseInt(selectedGrade.replace(/\D/g, ''));
-                            const sName = subject.name;
-
-                            if (gradeNum >= 6 && gradeNum <= 9) {
-                                shouldShow = ['Mathematics', 'Science', 'English', 'ICT'].includes(sName);
-                            } else if (gradeNum === 10 || gradeNum === 11) {
-                                shouldShow = ['Mathematics', 'Science', 'English', 'ICT', 'Business and Accounting Studies'].includes(sName);
-                            } else if (gradeNum >= 3 && gradeNum <= 5) {
-                                shouldShow = sName.toLowerCase().includes('scholarship');
-                            }
-                        }
-
-                        if (!shouldShow) return null;
-
-                        return (
-                            <Grid item xs={6} sm={4} md={3} key={subject._id} component={motion.div} variants={itemVariants} sx={{ display: 'flex' }}>
+                        {grades.map((grade) => (
+                            <Grid item xs={6} sm={4} md={3} key={grade} component={motion.div} variants={itemVariants}>
                                 <Card
                                     component={motion.div}
-                                    whileHover={{
-                                        scale: 1.02,
-                                        y: -8,
-                                        boxShadow: `0 20px 40px ${subject.color || '#2196f3'}25`
-                                    }}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={() => handleSubjectClick(subject.name)}
+                                    whileHover={{ y: -10, scale: 1.02, boxShadow: '0 20px 40px -10px rgba(0,0,0,0.1)' }}
+                                    whileTap={{ scale: 0.97 }}
+                                    onClick={() => handleGradeClick(grade)}
                                     sx={{
-                                        width: '100%',
-                                        minHeight: { xs: 160, md: 220 },
-                                        p: { xs: 2, md: 3 },
-                                        cursor: 'pointer', textAlign: 'center',
-                                        borderRadius: '24px',
-                                        background: 'rgba(255, 255, 255, 0.8)',
-                                        backdropFilter: 'blur(20px)',
-                                        border: '1px solid rgba(255, 255, 255, 0.5)',
-                                        boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
-                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
-                                        overflow: 'hidden',
-                                        position: 'relative',
-                                        transition: 'all 0.3s ease',
-                                        '&:hover': {
-                                            borderColor: subject.color || '#2196f3',
-                                            background: 'rgba(255, 255, 255, 0.95)'
-                                        }
+                                        height: '100%', minHeight: 240,
+                                        p: 0, borderRadius: '32px',
+                                        cursor: 'pointer',
+                                        bgcolor: 'white',
+                                        boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)',
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                        position: 'relative', overflow: 'hidden'
                                     }}
                                 >
                                     <Box sx={{
-                                        position: 'absolute',
-                                        top: -20, right: -20,
-                                        width: 100, height: 100,
-                                        borderRadius: '50%',
-                                        background: `radial-gradient(circle, ${subject.color || '#2196f3'}15 0%, rgba(255,255,255,0) 70%)`,
-                                        zIndex: 0
+                                        position: 'absolute', top: 0, left: 0, width: '100%', height: '8px',
+                                        background: 'linear-gradient(90deg, #2196f3, #00BCD4)'
                                     }} />
 
                                     <Box sx={{
-                                        p: 2.5, borderRadius: '24px',
-                                        background: `linear-gradient(135deg, ${subject.color || '#2196f3'}10 0%, ${subject.color || '#2196f3'}20 100%)`,
-                                        color: subject.color || '#2196f3',
+                                        width: 100, height: 100, borderRadius: '50%',
+                                        background: 'linear-gradient(135deg, rgba(33,150,243,0.1), rgba(0,188,212,0.1))',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        zIndex: 1,
-                                        transition: 'transform 0.3s ease',
-                                        '.MuiCard-root:hover &': {
-                                            transform: 'scale(1.1) rotate(-5deg)'
-                                        }
+                                        mb: 3
                                     }}>
-                                        <MenuBookIcon sx={{ fontSize: { xs: 32, md: 48 }, filter: `drop-shadow(0 4px 6px ${subject.color || '#2196f3'}40)` }} />
+                                        <SchoolIcon sx={{ fontSize: 48, color: '#2196f3' }} />
                                     </Box>
-                                    <Typography variant="subtitle1" fontWeight="800" color="text.primary" sx={{ lineHeight: 1.3, zIndex: 1, letterSpacing: -0.5 }}>
-                                        {subject.name}
+
+                                    <Typography variant="h5" fontWeight="800" color="#1a202c">
+                                        {grade}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                        Click to view subjects
                                     </Typography>
                                 </Card>
                             </Grid>
-                        );
-                    })}
-                </Grid>
-            )}
+                        ))}
+                    </Grid>
+                )}
 
-            {/* STUDENTS VIEW */}
-            {viewMode === 'students' && (
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                    <Box sx={{ mb: 3 }}>
+                {/* SUBJECTS VIEW */}
+                {viewMode === 'subjects' && (
+                    <Grid container spacing={3} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
+                        {subjects.map((subject) => {
+                            // Grade-Specific Subject Filtering
+                            let shouldShow = true;
+                            if (selectedGrade) {
+                                const gradeNum = parseInt(selectedGrade.replace(/\D/g, ''));
+                                const sName = subject.name;
+
+                                if (gradeNum >= 6 && gradeNum <= 9) {
+                                    shouldShow = ['Mathematics', 'Science', 'English', 'ICT'].includes(sName);
+                                } else if (gradeNum === 10 || gradeNum === 11) {
+                                    shouldShow = ['Mathematics', 'Science', 'English', 'ICT', 'Business and Accounting Studies'].includes(sName);
+                                } else if (gradeNum >= 3 && gradeNum <= 5) {
+                                    shouldShow = sName.toLowerCase().includes('scholarship');
+                                }
+                            }
+
+                            if (!shouldShow) return null;
+
+                            const isActiveColor = getSubjectColor(subject.name);
+
+                            return (
+                                <Grid item xs={6} sm={6} md={3} key={subject._id} component={motion.div} variants={itemVariants}>
+                                    <Card
+                                        component={motion.div}
+                                        whileHover={{ y: -8, scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={() => handleSubjectClick(subject.name)}
+                                        sx={{
+                                            height: '100%', minHeight: 220,
+                                            borderRadius: '32px', p: 3,
+                                            cursor: 'pointer',
+                                            bgcolor: 'white',
+                                            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 10px 15px -3px rgba(0,0,0,0.05)',
+                                            border: '1px solid rgba(255,255,255,0.8)',
+                                            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
+                                            position: 'relative', overflow: 'hidden'
+                                        }}
+                                    >
+                                        <Box sx={{
+                                            position: 'absolute', inset: 0, opacity: 0,
+                                            background: `linear-gradient(135deg, ${isActiveColor}22 0%, transparent 100%)`,
+                                            transition: 'opacity 0.3s ease',
+                                            '.MuiCard-root:hover &': { opacity: 1 }
+                                        }} />
+
+                                        <Box sx={{
+                                            p: 2.5, borderRadius: '24px',
+                                            bgcolor: `${isActiveColor}15`,
+                                            color: isActiveColor,
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                            zIndex: 1,
+                                            '.MuiCard-root:hover &': { transform: 'scale(1.1) rotate(-5deg)' }
+                                        }}>
+                                            <MenuBookIcon sx={{ fontSize: 40 }} />
+                                        </Box>
+
+                                        <Typography variant="h6" fontWeight="bold" align="center" sx={{
+                                            color: '#2d3748',
+                                            lineHeight: 1.2,
+                                            zIndex: 1
+                                        }}>
+                                            {subject.name}
+                                        </Typography>
+                                    </Card>
+                                </Grid>
+                            );
+                        })}
+                    </Grid>
+                )}
+
+                {/* STUDENTS VIEW */}
+                {viewMode === 'students' && (
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                         <TextField
                             label="Search Student"
                             variant="outlined"
@@ -379,36 +373,53 @@ export default function ViewStudents() {
                             value={search}
                             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                             sx={{
-                                '& .MuiOutlinedInput-root': { borderRadius: '12px' }
+                                mb: 4,
+                                bgcolor: 'white',
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: '16px',
+                                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)'
+                                }
+                            }}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <SearchIcon sx={{ color: 'text.secondary' }} />
+                                    </InputAdornment>
+                                ),
                             }}
                         />
-                    </Box>
 
-                    {loading ? (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
-                            <CircularProgress />
-                        </Box>
-                    ) : (
-                        <Paper elevation={0} sx={{ borderRadius: '16px', overflow: 'hidden', border: '1px solid #e0e0e0' }}>
-                            <StudentTable
-                                students={students}
-                                onUpdate={() => fetchStudents(true)}
-                                subjectColorMap={subjectColors}
+                        {loading ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}>
+                                <CircularProgress size={60} thickness={4} />
+                            </Box>
+                        ) : (
+                            <Paper elevation={0} sx={{
+                                borderRadius: '24px', overflow: 'hidden',
+                                border: '1px solid rgba(0,0,0,0.06)',
+                                boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)'
+                            }}>
+                                <StudentTable
+                                    students={students}
+                                    onUpdate={() => fetchStudents(true)}
+                                    subjectColorMap={subjectColors}
+                                />
+                            </Paper>
+                        )}
+
+                        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+                            <Pagination
+                                count={totalPages}
+                                page={page}
+                                onChange={(e, value) => setPage(value)}
+                                color="primary"
+                                shape="circular"
+                                size="large"
                             />
-                        </Paper>
-                    )}
-
-                    <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
-                        <Pagination
-                            count={totalPages}
-                            page={page}
-                            onChange={(e, value) => setPage(value)}
-                            color="primary"
-                            shape="rounded"
-                        />
-                    </Box>
-                </motion.div>
-            )}
-        </Container>
+                        </Box>
+                    </motion.div>
+                )}
+            </Container>
+        </Box>
     );
 }
