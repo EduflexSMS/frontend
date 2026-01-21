@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, AppBar, Toolbar, Typography, CssBaseline, IconButton, Avatar, useTheme, useMediaQuery, InputBase, alpha } from '@mui/material';
 import { Dashboard, People, Class, AddBox, Assessment, Menu as MenuIcon, NotificationsOutlined, Search as SearchIcon, SettingsOutlined, Logout as LogoutIcon, Brightness4, Brightness7 } from '@mui/icons-material';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../assets/logo.jpg';
 import { ColorModeContext } from '../App';
 
@@ -28,20 +28,90 @@ export default function Layout() {
         setMobileOpen(!mobileOpen);
     };
 
+    const sidebarVariants = {
+        hidden: { opacity: 0, x: -20 },
+        visible: {
+            opacity: 1,
+            x: 0,
+            transition: {
+                staggerChildren: 0.1,
+                delayChildren: 0.2
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, x: -20 },
+        visible: { opacity: 1, x: 0 }
+    };
+
     const drawerContent = (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', color: 'white' }}>
-            <Box sx={{ p: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar src={logo} sx={{ width: 40, height: 40, border: '2px solid rgba(255,255,255,0.2)' }}>E</Avatar>
-                <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: 1, background: 'linear-gradient(45deg, #fff, #a5b4fc)', backgroundClip: 'text', textFillColor: 'transparent', color: 'white' }}>
-                    EDUFLEX
-                </Typography>
+        <Box
+            component={motion.div}
+            initial="hidden"
+            animate="visible"
+            variants={sidebarVariants}
+            sx={{
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                color: 'white',
+                background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
+                boxShadow: 'inset -1px 0 0 rgba(255, 255, 255, 0.1)',
+                position: 'relative',
+                overflow: 'hidden'
+            }}
+        >
+            {/* Decorative blurs */}
+            <Box sx={{
+                position: 'absolute',
+                top: -100,
+                left: -100,
+                width: 200,
+                height: 200,
+                background: 'radial-gradient(circle, rgba(37,99,235,0.3) 0%, rgba(37,99,235,0) 70%)',
+                filter: 'blur(40px)',
+                zIndex: 0
+            }} />
+
+            <Box sx={{ p: 4, display: 'flex', alignItems: 'center', gap: 2, position: 'relative', zIndex: 1, mb: 2 }}>
+                <motion.div
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    whileTap={{ scale: 0.9 }}
+                >
+                    <Avatar
+                        src={logo}
+                        sx={{
+                            width: 48,
+                            height: 48,
+                            border: '2px solid rgba(255,255,255,0.2)',
+                            boxShadow: '0 0 20px rgba(37, 99, 235, 0.5)'
+                        }}
+                    >E</Avatar>
+                </motion.div>
+                <Box>
+                    <Typography variant="h5" sx={{
+                        fontWeight: 900,
+                        letterSpacing: 1,
+                        background: 'linear-gradient(45deg, #fff, #60a5fa)',
+                        backgroundClip: 'text',
+                        textFillColor: 'transparent',
+                    }}>
+                        EDUFLEX
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', letterSpacing: 2, fontSize: '0.65rem' }}>
+                        INSTITUTE
+                    </Typography>
+                </Box>
             </Box>
 
-            <List sx={{ px: 2, flex: 1 }}>
+            <List sx={{ px: 2, flex: 1, position: 'relative', zIndex: 1 }}>
                 {menuItems.map((item) => {
                     const active = location.pathname === item.path;
                     return (
                         <ListItem
+                            component={motion.div}
+                            variants={itemVariants}
                             key={item.text}
                             disablePadding
                             sx={{ mb: 1, display: 'block' }}
@@ -57,53 +127,61 @@ export default function Layout() {
                                 sx={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    p: '12px 16px',
+                                    p: '14px 20px',
                                     borderRadius: '16px',
                                     cursor: 'pointer',
-                                    backgroundColor: active ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                                    backdropFilter: active ? 'blur(10px)' : 'none',
-                                    boxShadow: active ? '0 4px 30px rgba(0, 0, 0, 0.1)' : 'none',
-                                    border: active ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid transparent',
-                                    transition: 'all 0.3s ease',
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    color: active ? 'white' : 'rgba(255,255,255,0.7)',
+                                    transition: 'color 0.3s ease',
                                     '&:hover': {
-                                        backgroundColor: active ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                                        color: 'white'
                                     }
                                 }}
                             >
-                                <ListItemIcon sx={{ color: active ? '#fbbf24' : 'rgba(255,255,255,0.7)', minWidth: 45 }}>
+                                {active && (
+                                    <Box
+                                        component={motion.div}
+                                        layoutId="activeTab"
+                                        sx={{
+                                            position: 'absolute',
+                                            inset: 0,
+                                            borderRadius: '16px',
+                                            background: 'linear-gradient(90deg, rgba(37, 99, 235, 0.9) 0%, rgba(29, 78, 216, 0.8) 100%)',
+                                            boxShadow: '0 4px 15px rgba(37, 99, 235, 0.4)',
+                                            zIndex: 0
+                                        }}
+                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                    />
+                                )}
+
+                                <ListItemIcon sx={{
+                                    color: 'inherit',
+                                    minWidth: 45,
+                                    zIndex: 1,
+                                    filter: active ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' : 'none'
+                                }}>
                                     {item.icon}
                                 </ListItemIcon>
                                 <ListItemText
                                     primary={item.text}
+                                    sx={{ zIndex: 1 }}
                                     primaryTypographyProps={{
-                                        fontWeight: active ? 600 : 400,
+                                        fontWeight: active ? 700 : 500,
                                         fontSize: '0.95rem',
-                                        color: active ? 'white' : 'rgba(255,255,255,0.8)'
                                     }}
                                 />
-                                {active && (
-                                    <Box
-                                        component={motion.div}
-                                        layoutId="activeIndicator"
-                                        sx={{
-                                            width: 6,
-                                            height: 6,
-                                            borderRadius: '50%',
-                                            bgcolor: '#fbbf24',
-                                            ml: 'auto'
-                                        }}
-                                    />
-                                )}
                             </Box>
                         </ListItem>
                     );
                 })}
             </List>
 
-            <Box sx={{ p: 2 }}>
+            <Box sx={{ p: 2, position: 'relative', zIndex: 1 }}>
                 <Box
                     component={motion.div}
-                    whileHover={{ scale: 1.02 }}
+                    variants={itemVariants}
+                    whileHover={{ scale: 1.02, backgroundColor: 'rgba(239, 68, 68, 0.15)' }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {
                         localStorage.removeItem('userInfo');
@@ -112,31 +190,28 @@ export default function Layout() {
                     sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        p: '12px 16px',
+                        p: '14px 20px',
                         borderRadius: '16px',
                         cursor: 'pointer',
-                        color: '#ff5252',
-                        backgroundColor: 'rgba(255, 82, 82, 0.1)',
-                        border: '1px solid rgba(255, 82, 82, 0.2)',
+                        color: '#f87171',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.1)',
                         transition: 'all 0.3s ease',
-                        '&:hover': {
-                            backgroundColor: 'rgba(255, 82, 82, 0.2)',
-                        }
                     }}
                 >
-                    <ListItemIcon sx={{ color: '#ff5252', minWidth: 45 }}>
+                    <ListItemIcon sx={{ color: 'inherit', minWidth: 45 }}>
                         <LogoutIcon />
                     </ListItemIcon>
                     <ListItemText
                         primary="Logout"
-                        primaryTypographyProps={{ fontWeight: 600 }}
+                        primaryTypographyProps={{ fontWeight: 600, fontSize: '0.95rem' }}
                     />
                 </Box>
             </Box>
 
-            <Box sx={{ p: 3, opacity: 0.6 }}>
-                <Typography variant="caption" sx={{ color: 'white', display: 'block', textAlign: 'center' }}>
-                    © 2026 Eduflex v2.0
+            <Box sx={{ p: 3, opacity: 0.4, textAlign: 'center' }}>
+                <Typography variant="caption" sx={{ color: 'white', letterSpacing: 1 }}>
+                    v2.0 • 2026
                 </Typography>
             </Box>
         </Box >
@@ -149,14 +224,20 @@ export default function Layout() {
             <AppBar
                 position="fixed"
                 sx={{
-                    width: { sm: `calc(100% - ${drawerWidth}px)` },
-                    ml: { sm: `${drawerWidth}px` },
+                    width: { md: `calc(100% - ${drawerWidth + 32}px)` }, // Adjusted for floating margin
+                    ml: { md: `${drawerWidth + 32}px` },
+                    mr: { md: 2 }, // Right margin
+                    mt: { md: 2 }, // Top margin
+                    borderRadius: { md: '20px' }, // Rounded AppBar
                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.8)',
                     backdropFilter: 'blur(12px)',
                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-                    borderBottom: '1px solid',
+                    border: '1px solid',
                     borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)',
                     color: 'text.primary',
+                    top: 0,
+                    right: 0,
+                    left: 'auto', // Important for right aligning with margins
                 }}
             >
                 <Toolbar sx={{ justifyContent: 'space-between' }}>
@@ -166,11 +247,11 @@ export default function Layout() {
                             aria-label="open drawer"
                             edge="start"
                             onClick={handleDrawerToggle}
-                            sx={{ mr: 2, display: { sm: 'none' }, color: 'primary.main' }}
+                            sx={{ mr: 2, display: { md: 'none' }, color: 'primary.main' }}
                         >
                             <MenuIcon />
                         </IconButton>
-                        <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', bgcolor: alpha(theme.palette.text.primary, 0.05), borderRadius: '12px', px: 2, py: 0.5 }}>
+                        <Box sx={{ display: { xs: 'none', lg: 'flex' }, alignItems: 'center', bgcolor: alpha(theme.palette.text.primary, 0.05), borderRadius: '12px', px: 2, py: 0.5 }}>
                             <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
                             <InputBase placeholder="Search..." sx={{ fontSize: '0.9rem', color: 'text.primary' }} />
                         </Box>
@@ -181,10 +262,10 @@ export default function Layout() {
                             {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
                         </IconButton>
 
-                        <IconButton size="small" sx={{ color: 'text.secondary' }}>
+                        <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'inline-flex' } }}>
                             <NotificationsOutlined />
                         </IconButton>
-                        <IconButton size="small" sx={{ color: 'text.secondary' }}>
+                        <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'inline-flex' } }}>
                             <SettingsOutlined />
                         </IconButton>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 1, p: 0.5, pr: 1.5, borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
@@ -200,7 +281,7 @@ export default function Layout() {
 
             <Box
                 component="nav"
-                sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+                sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
             >
                 <Drawer
                     variant="temporary"
@@ -208,11 +289,11 @@ export default function Layout() {
                     onClose={handleDrawerToggle}
                     ModalProps={{ keepMounted: true }}
                     sx={{
-                        display: { xs: 'block', sm: 'none' },
+                        display: { xs: 'block', md: 'none' },
                         '& .MuiDrawer-paper': {
                             boxSizing: 'border-box',
                             width: drawerWidth,
-                            background: 'var(--sidebar-bg)',
+                            background: 'transparent',
                             border: 'none',
                         },
                     }}
@@ -222,13 +303,16 @@ export default function Layout() {
                 <Drawer
                     variant="permanent"
                     sx={{
-                        display: { xs: 'none', sm: 'block' },
+                        display: { xs: 'none', md: 'block' },
                         '& .MuiDrawer-paper': {
                             boxSizing: 'border-box',
                             width: drawerWidth,
-                            background: 'var(--sidebar-bg)',
+                            height: 'calc(100vh - 32px)', // Floating height
+                            margin: '16px', // Floating margin
+                            borderRadius: '24px', // Rounded corners
+                            background: 'transparent',
                             border: 'none',
-                            boxShadow: '4px 0 24px rgba(0,0,0,0.05)'
+                            boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
                         },
                     }}
                     open
@@ -242,15 +326,15 @@ export default function Layout() {
                 sx={{
                     flexGrow: 1,
                     p: { xs: 2, sm: 3 },
-                    width: { sm: `calc(100% - ${drawerWidth}px)` },
-                    mt: 8,
+                    width: { md: `calc(100% - ${drawerWidth}px)` },
+                    mt: { xs: 8, md: 10 }, // Adjusted for floating header
                     overflowX: 'hidden'
                 }}
             >
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
                 >
                     <Outlet />
                 </motion.div>
