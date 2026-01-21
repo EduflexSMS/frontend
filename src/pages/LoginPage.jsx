@@ -165,12 +165,21 @@ export default function LoginPage() {
                                     ),
                                     sx: {
                                         color: 'white',
-                                        bgcolor: 'rgba(0,0,0,0.2)',
+                                        bgcolor: 'rgba(255, 255, 255, 0.05)',
                                         borderRadius: '16px',
-                                        '&:hover': { bgcolor: 'rgba(0,0,0,0.3)' },
-                                        '&.Mui-focused': { bgcolor: 'rgba(0,0,0,0.3)' },
+                                        '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' },
+                                        '&.Mui-focused': { bgcolor: 'rgba(255, 255, 255, 0.15)', borderColor: '#3b82f6' },
                                         transition: 'all 0.2s',
-                                        height: 56
+                                        height: 56,
+                                        '& .MuiInputBase-input:-webkit-autofill': {
+                                            WebkitBoxShadow: '0 0 0 100px rgba(30, 41, 59, 0.8) inset',
+                                            WebkitTextFillColor: '#ffffff',
+                                            borderRadius: '16px',
+                                            transition: 'background-color 5000s ease-in-out 0s',
+                                        },
+                                        '& .MuiInputBase-input': {
+                                            color: 'white'
+                                        }
                                     }
                                 }}
                                 sx={{
@@ -205,12 +214,22 @@ export default function LoginPage() {
                                     ),
                                     sx: {
                                         color: 'white',
-                                        bgcolor: 'rgba(0,0,0,0.2)',
+                                        bgcolor: 'rgba(255, 255, 255, 0.05)', // Even more transparent
                                         borderRadius: '16px',
-                                        '&:hover': { bgcolor: 'rgba(0,0,0,0.3)' },
-                                        '&.Mui-focused': { bgcolor: 'rgba(0,0,0,0.3)' },
+                                        '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' },
+                                        '&.Mui-focused': { bgcolor: 'rgba(255, 255, 255, 0.15)', borderColor: '#3b82f6' },
                                         transition: 'all 0.2s',
-                                        height: 56
+                                        height: 56,
+                                        // Fix for Autofill
+                                        '& .MuiInputBase-input:-webkit-autofill': {
+                                            WebkitBoxShadow: '0 0 0 100px rgba(30, 41, 59, 0.8) inset', // Match dark overlay
+                                            WebkitTextFillColor: '#ffffff',
+                                            borderRadius: '16px', // Try to respect border radius
+                                            transition: 'background-color 5000s ease-in-out 0s',
+                                        },
+                                        '& .MuiInputBase-input': {
+                                            color: 'white' // Ensure typing text is white
+                                        }
                                     }
                                 }}
                                 sx={{
