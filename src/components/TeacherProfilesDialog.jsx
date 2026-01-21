@@ -3,18 +3,17 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
-    List,
-    ListItem,
-    ListItemText,
-    ListItemAvatar,
-    Avatar,
     Typography,
     IconButton,
     Box,
     useTheme,
-    useMediaQuery
+    useMediaQuery,
+    Grid,
+    Paper,
+    Avatar,
+    Chip
 } from '@mui/material';
-import { Close as CloseIcon, School as SchoolIcon, Verified as VerifiedIcon } from '@mui/icons-material';
+import { Close as CloseIcon, School as SchoolIcon, Verified as VerifiedIcon, AutoStories } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const teachers = [
@@ -38,9 +37,9 @@ const containerVariants = {
 };
 
 const itemVariants = {
-    hidden: { x: -20, opacity: 0 },
+    hidden: { y: 20, opacity: 0 },
     visible: {
-        x: 0,
+        y: 0,
         opacity: 1,
         transition: {
             type: "spring",
@@ -54,6 +53,127 @@ const TeacherProfilesDialog = ({ open, onClose }) => {
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
+    const TeacherCard = ({ teacher, index }) => (
+        <Paper
+            component={motion.div}
+            variants={itemVariants}
+            whileHover={{
+                y: -8,
+                transition: { type: "spring", stiffness: 300 }
+            }}
+            elevation={0}
+            sx={{
+                p: 3,
+                height: '100%',
+                borderRadius: 4,
+                position: 'relative',
+                overflow: 'hidden',
+                background: 'rgba(255, 255, 255, 0.8)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.6)',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                transition: 'box-shadow 0.3s ease',
+                '&:hover': {
+                    boxShadow: '0 12px 30px rgba(37, 99, 235, 0.15)',
+                    border: '1px solid rgba(37, 99, 235, 0.3)',
+                }
+            }}
+        >
+            {/* Decorative Top Gradient */}
+            <Box sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 80,
+                background: `linear-gradient(135deg, ${theme.palette.primary.light}15 0%, ${theme.palette.secondary.light}15 100%)`,
+                zIndex: 0
+            }} />
+
+            <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: index * 0.1 + 0.3 }}
+                style={{ position: 'relative', zIndex: 1, marginBottom: 16 }}
+            >
+                <Box sx={{ p: 0.5, bgcolor: 'white', borderRadius: '50%', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                    <Avatar
+                        src={teacher.image}
+                        alt={teacher.name}
+                        sx={{
+                            width: 100,
+                            height: 100,
+                            border: `3px solid ${theme.palette.background.paper}`,
+                            bgcolor: `hsl(${210 + index * 40}, 80%, 96%)`,
+                            color: `hsl(${210 + index * 40}, 90%, 60%)`,
+                            fontSize: '2.5rem',
+                            fontWeight: 700
+                        }}
+                    >
+                        {!teacher.image && teacher.name.charAt(0)}
+                    </Avatar>
+                </Box>
+                <Box sx={{
+                    position: 'absolute',
+                    bottom: 5,
+                    right: 5,
+                    bgcolor: 'white',
+                    borderRadius: '50%',
+                    p: 0.5,
+                    boxShadow: 1
+                }}>
+                    <VerifiedIcon color="primary" sx={{ fontSize: 20 }} />
+                </Box>
+            </motion.div>
+
+            <Box sx={{ position: 'relative', zIndex: 1, flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Typography variant="h6" fontWeight="800" sx={{
+                    mb: 0.5,
+                    background: 'linear-gradient(90deg, #1e293b 0%, #334155 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                }}>
+                    {teacher.name}
+                </Typography>
+
+                <Chip
+                    icon={<AutoStories sx={{ fontSize: 16 }} />}
+                    label={teacher.subject}
+                    size="small"
+                    sx={{
+                        mb: 2,
+                        fontWeight: 600,
+                        color: 'primary.main',
+                        bgcolor: 'primary.50',
+                        border: '1px solid',
+                        borderColor: 'primary.100'
+                    }}
+                />
+
+                <Box sx={{
+                    mt: 'auto',
+                    p: 1.5,
+                    width: '100%',
+                    bgcolor: 'rgba(241, 245, 249, 0.6)',
+                    borderRadius: 3,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 1
+                }}>
+                    <SchoolIcon color="action" fontSize="small" sx={{ opacity: 0.7 }} />
+                    <Typography variant="caption" color="text.secondary" fontWeight={500} sx={{ lineHeight: 1.3 }}>
+                        {teacher.qual}
+                    </Typography>
+                </Box>
+            </Box>
+        </Paper>
+    );
+
     return (
         <AnimatePresence>
             {open && (
@@ -61,142 +181,71 @@ const TeacherProfilesDialog = ({ open, onClose }) => {
                     open={open}
                     onClose={onClose}
                     fullScreen={fullScreen}
-                    maxWidth="sm"
+                    maxWidth="md"
                     fullWidth
                     PaperProps={{
                         component: motion.div,
-                        initial: { opacity: 0, scale: 0.9, rotateX: 10 },
-                        animate: { opacity: 1, scale: 1, rotateX: 0 },
-                        exit: { opacity: 0, scale: 0.9, rotateX: -10 },
-                        transition: { duration: 0.4, type: "spring" },
+                        initial: { opacity: 0, scale: 0.95, y: 20 },
+                        animate: { opacity: 1, scale: 1, y: 0 },
+                        exit: { opacity: 0, scale: 0.95, y: 20 },
+                        transition: { duration: 0.4, ease: "easeOut" },
                         style: {
-                            borderRadius: fullScreen ? 0 : 28,
-                            padding: 0,
-                            overflow: 'hidden',
-                            background: 'rgba(255, 255, 255, 0.95)',
-                            backdropFilter: 'blur(20px)'
+                            borderRadius: fullScreen ? 0 : 24,
+                            background: 'rgba(248, 250, 252, 0.8)',
+                            backdropFilter: 'blur(15px)',
+                            border: '1px solid rgba(255,255,255,0.5)',
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
                         }
                     }}
                 >
                     <DialogTitle sx={{
-                        p: 3,
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(33, 203, 243, 0.05) 100%)',
-                        borderBottom: '1px solid rgba(0,0,0,0.05)'
+                        p: { xs: 2.5, md: 4 },
+                        pb: { xs: 1, md: 2 }
                     }}>
                         <Box>
-                            <Typography variant="h5" fontWeight="800" sx={{
-                                background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                letterSpacing: '-0.5px'
+                            <Typography variant="h4" fontWeight="800" sx={{
+                                color: '#0f172a',
+                                fontSize: { xs: '1.5rem', md: '2rem' },
+                                letterSpacing: '-0.02em'
                             }}>
-                                Teacher Profiles
+                                Expert Faculty
                             </Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                Meet our qualified academic staff
+                            <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
+                                Meet the dedicated educators shaping your future
                             </Typography>
                         </Box>
                         <IconButton
                             onClick={onClose}
-                            component={motion.button}
-                            whileHover={{ rotate: 90, scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
                             sx={{
-                                color: (theme) => theme.palette.grey[500],
+                                color: 'text.secondary',
                                 bgcolor: 'white',
                                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                                '&:hover': { bgcolor: 'white' }
+                                transition: 'transform 0.2s',
+                                '&:hover': { bgcolor: 'white', transform: 'rotate(90deg)' }
                             }}
                         >
                             <CloseIcon />
                         </IconButton>
                     </DialogTitle>
-                    <DialogContent sx={{ p: '0 !important' }}>
-                        <List component={motion.ul} variants={containerVariants} initial="hidden" animate="visible" sx={{ p: 2 }}>
-                            {teachers.map((teacher, index) => (
-                                <ListItem
-                                    key={index}
-                                    component={motion.li}
-                                    variants={itemVariants}
-                                    sx={{
-                                        mb: 2,
-                                        p: 2,
-                                        borderRadius: '20px',
-                                        bgcolor: 'white',
-                                        border: '1px solid rgba(0,0,0,0.03)',
-                                        boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                        '&:hover': {
-                                            transform: 'translateY(-4px) scale(1.02)',
-                                            boxShadow: '0 12px 24px rgba(33, 150, 243, 0.15)',
-                                            borderColor: 'rgba(33, 150, 243, 0.3)',
-                                            '& .MuiAvatar-root': {
-                                                transform: 'scale(1.1) rotate(-5deg)',
-                                            }
-                                        }
-                                    }}
-                                >
-                                    <ListItemAvatar>
-                                        <Avatar
-                                            src={teacher.image}
-                                            alt={teacher.name}
-                                            sx={{
-                                                width: 56,
-                                                height: 56,
-                                                bgcolor: `hsl(${210 + index * 30}, 80%, 96%)`,
-                                                color: `hsl(${210 + index * 30}, 90%, 60%)`,
-                                                fontWeight: 'bold',
-                                                fontSize: '1.5rem',
-                                                transition: 'transform 0.3s ease',
-                                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                                            }}
-                                        >
-                                            {!teacher.image && teacher.name.charAt(0)}
-                                        </Avatar>
-                                    </ListItemAvatar>
-                                    <ListItemText
-                                        primary={
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                                                <Typography variant="h6" fontWeight="700" color="text.primary" sx={{ lineHeight: 1.2 }}>
-                                                    {teacher.name}
-                                                </Typography>
-                                                <VerifiedIcon sx={{ fontSize: 16, color: '#2196F3' }} />
-                                            </Box>
-                                        }
-                                        secondary={
-                                            <Box>
-                                                <Typography component="span" variant="body2" sx={{
-                                                    color: 'primary.main',
-                                                    fontWeight: 600,
-                                                    display: 'block',
-                                                    mb: 0.5
-                                                }}>
-                                                    {teacher.subject}
-                                                </Typography>
-                                                <Typography component="span" variant="caption" sx={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: 0.5,
-                                                    color: 'text.secondary',
-                                                    bgcolor: 'rgba(0,0,0,0.03)',
-                                                    py: 0.5,
-                                                    px: 1,
-                                                    borderRadius: '10px',
-                                                    width: 'fit-content'
-                                                }}>
-                                                    <SchoolIcon sx={{ fontSize: 14 }} />
-                                                    {teacher.qual}
-                                                </Typography>
-                                            </Box>
-                                        }
-                                    />
-                                </ListItem>
-                            ))}
-                        </List>
+
+                    <DialogContent sx={{ p: { xs: 2, md: 4 } }}>
+                        <Box
+                            component={motion.div}
+                            variants={containerVariants}
+                            initial="hidden"
+                            animate="visible"
+                        >
+                            <Grid container spacing={3}>
+                                {teachers.map((teacher, index) => (
+                                    <Grid item xs={12} sm={6} md={4} key={index}>
+                                        <TeacherCard teacher={teacher} index={index} />
+                                    </Grid>
+                                ))}
+                            </Grid>
+                        </Box>
                     </DialogContent>
                 </Dialog>
             )}
