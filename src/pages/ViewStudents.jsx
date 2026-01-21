@@ -288,9 +288,6 @@ export default function ViewStudents() {
             {viewMode === 'subjects' && (
                 <Grid container spacing={{ xs: 2, md: 3 }} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
                     {subjects.map((subject) => {
-                        const hasSchedule = subject.gradeSchedules && subject.gradeSchedules.some(s => s.grade === selectedGrade);
-                        if (!hasSchedule) return null;
-
                         return (
                             <Grid item xs={6} sm={4} md={3} key={subject._id} component={motion.div} variants={itemVariants} sx={{ display: 'flex' }}>
                                 <Card
