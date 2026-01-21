@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { Box, Button, TextField, Typography, Paper, Container, CircularProgress, Alert } from '@mui/material';
+import { Box, Button, TextField, Typography, Paper, Container, CircularProgress, Alert, InputAdornment, IconButton } from '@mui/material';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import { Visibility, VisibilityOff, LockOutlined, PersonOutline } from '@mui/icons-material';
 import API_BASE_URL from '../config';
 
 import logo from '../assets/logo.jpg';
+import loginBg from '../assets/login-bg.jpg';
 
 export default function LoginPage() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -19,7 +22,7 @@ export default function LoginPage() {
         try {
             const { data } = await axios.post(`${API_BASE_URL}/api/auth/login`, { username, password });
             localStorage.setItem('userInfo', JSON.stringify(data));
-            window.location.href = '/'; // Force reload to update app state
+            window.location.href = '/';
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed');
         } finally {
@@ -28,97 +31,228 @@ export default function LoginPage() {
     };
 
     return (
-        <Container component="main" maxWidth="xs" sx={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {/* Animated Background Blobs */}
-            <Box component={motion.div}
-                animate={{ x: [0, 50, 0], y: [0, -50, 0] }}
-                transition={{ repeat: Infinity, duration: 10, ease: "linear" }}
-                sx={{ position: 'absolute', top: '10%', left: '10%', width: 200, height: 200, borderRadius: '50%', bgcolor: 'rgba(33, 150, 243, 0.3)', filter: 'blur(60px)', zIndex: -1 }}
-            />
-            <Box component={motion.div}
-                animate={{ x: [0, -30, 0], y: [0, 60, 0] }}
-                transition={{ repeat: Infinity, duration: 12, ease: "linear" }}
-                sx={{ position: 'absolute', bottom: '20%', right: '10%', width: 250, height: 250, borderRadius: '50%', bgcolor: 'rgba(233, 30, 99, 0.2)', filter: 'blur(70px)', zIndex: -1 }}
-            />
+        <Box sx={{
+            minHeight: '100vh',
+            display: 'flex',
+            position: 'relative',
+            overflow: 'hidden'
+        }}>
+            {/* Background Image with Parallax-like feel */}
+            <Box sx={{
+                position: 'absolute',
+                inset: 0,
+                backgroundImage: `url(${loginBg})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                zIndex: 0
+            }} />
 
-            <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5 }}
-                style={{ width: '100%' }}
-            >
-                <Paper elevation={6} sx={{
-                    p: 4,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    borderRadius: 4,
-                    backdropFilter: 'blur(10px)',
-                    bgcolor: 'rgba(255, 255, 255, 0.8)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)'
-                }}>
-                    <motion.img
-                        src={logo}
-                        alt="Eduflex Logo"
-                        initial={{ y: -20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.2, type: 'spring', stiffness: 120 }}
-                        style={{ width: 100, height: 100, marginBottom: 16, borderRadius: '50%', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}
-                    />
-                    <Typography component="h1" variant="h4" fontWeight="bold" sx={{ mb: 3, background: 'linear-gradient(45deg, #2196F3, #21CBF3)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                        Welcome Back
-                    </Typography>
+            {/* Premium Dark Overlay */}
+            <Box sx={{
+                position: 'absolute',
+                inset: 0,
+                background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.7) 100%)',
+                backdropFilter: 'blur(8px)',
+                zIndex: 1
+            }} />
 
-                    {error && (
+            <Container component="main" maxWidth="xs" sx={{
+                position: 'relative',
+                zIndex: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '100vh'
+            }}>
+                <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: [0.6, -0.05, 0.01, 0.99] }}
+                    style={{ width: '100%' }}
+                >
+                    <Paper elevation={24} sx={{
+                        p: { xs: 4, sm: 5 },
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        borderRadius: '32px',
+                        backdropFilter: 'blur(20px)',
+                        bgcolor: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                    }}>
                         <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            style={{ width: '100%', marginBottom: 16 }}
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 20 }}
                         >
-                            <Alert severity="error">{error}</Alert>
+                            <Box sx={{
+                                position: 'relative',
+                                mb: 3,
+                                '&::after': {
+                                    content: '""',
+                                    position: 'absolute',
+                                    inset: -5,
+                                    borderRadius: '50%',
+                                    background: 'linear-gradient(45deg, #3b82f6, #8b5cf6)',
+                                    opacity: 0.5,
+                                    filter: 'blur(10px)',
+                                    zIndex: -1
+                                }
+                            }}>
+                                <img
+                                    src={logo}
+                                    alt="Eduflex Logo"
+                                    style={{
+                                        width: 90,
+                                        height: 90,
+                                        borderRadius: '50%',
+                                        border: '3px solid rgba(255,255,255,0.8)',
+                                        display: 'block'
+                                    }}
+                                />
+                            </Box>
                         </motion.div>
-                    )}
 
-                    <Box component="form" onSubmit={handleLogin} sx={{ mt: 1, width: '100%' }}>
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
-                            label="Username"
-                            autoFocus
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                        />
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
-                            label="Password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                        />
-                        <Button
-                            type="submit"
-                            fullWidth
-                            variant="contained"
-                            disabled={loading}
-                            sx={{
-                                mt: 3, mb: 2, py: 1.5,
-                                borderRadius: 3,
-                                fontWeight: 'bold',
-                                fontSize: '1rem',
-                                background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-                                boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
-                            }}
-                        >
-                            {loading ? <CircularProgress size={24} color="inherit" /> : "Sign In"}
-                        </Button>
-                    </Box>
-                </Paper>
-            </motion.div>
-        </Container>
+                        <Typography component="h1" variant="h4" fontWeight="800" sx={{
+                            mb: 1,
+                            color: 'white',
+                            textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                            letterSpacing: -0.5
+                        }}>
+                            Welcome Back
+                        </Typography>
+
+                        <Typography variant="body2" sx={{ mb: 4, color: 'rgba(255,255,255,0.7)', textAlign: 'center' }}>
+                            Sign in to access your classroom dashboard
+                        </Typography>
+
+                        {error && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                style={{ width: '100%', marginBottom: 24 }}
+                            >
+                                <Alert
+                                    severity="error"
+                                    variant="filled"
+                                    sx={{
+                                        borderRadius: '12px',
+                                        bgcolor: 'rgba(239, 68, 68, 0.9)',
+                                        color: 'white',
+                                        '& .MuiAlert-icon': { color: 'white' }
+                                    }}
+                                >
+                                    {error}
+                                </Alert>
+                            </motion.div>
+                        )}
+
+                        <Box component="form" onSubmit={handleLogin} sx={{ width: '100%' }}>
+                            <TextField
+                                margin="normal"
+                                required
+                                fullWidth
+                                placeholder="Username"
+                                autoFocus
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <PersonOutline sx={{ color: 'rgba(255,255,255,0.7)' }} />
+                                        </InputAdornment>
+                                    ),
+                                    sx: {
+                                        color: 'white',
+                                        bgcolor: 'rgba(0,0,0,0.2)',
+                                        borderRadius: '16px',
+                                        '&:hover': { bgcolor: 'rgba(0,0,0,0.3)' },
+                                        '&.Mui-focused': { bgcolor: 'rgba(0,0,0,0.3)' },
+                                        transition: 'all 0.2s',
+                                        height: 56
+                                    }
+                                }}
+                                sx={{
+                                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                                }}
+                            />
+
+                            <TextField
+                                margin="normal"
+                                required
+                                fullWidth
+                                placeholder="Password"
+                                type={showPassword ? 'text' : 'password'}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <LockOutlined sx={{ color: 'rgba(255,255,255,0.7)' }} />
+                                        </InputAdornment>
+                                    ),
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                edge="end"
+                                                sx={{ color: 'rgba(255,255,255,0.5)' }}
+                                            >
+                                                {showPassword ? <VisibilityOff /> : <Visibility />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                    sx: {
+                                        color: 'white',
+                                        bgcolor: 'rgba(0,0,0,0.2)',
+                                        borderRadius: '16px',
+                                        '&:hover': { bgcolor: 'rgba(0,0,0,0.3)' },
+                                        '&.Mui-focused': { bgcolor: 'rgba(0,0,0,0.3)' },
+                                        transition: 'all 0.2s',
+                                        height: 56
+                                    }
+                                }}
+                                sx={{
+                                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                                    mb: 3
+                                }}
+                            />
+
+                            <Button
+                                component={motion.button}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                type="submit"
+                                fullWidth
+                                variant="contained"
+                                disabled={loading}
+                                sx={{
+                                    py: 1.8,
+                                    borderRadius: '16px',
+                                    fontWeight: '700',
+                                    fontSize: '1rem',
+                                    background: 'linear-gradient(45deg, #3b82f6 0%, #2563eb 100%)',
+                                    boxShadow: '0 10px 25px -5px rgba(59, 130, 246, 0.5)',
+                                    textTransform: 'none',
+                                    '&:hover': {
+                                        background: 'linear-gradient(45deg, #2563eb 0%, #1d4ed8 100%)',
+                                        boxShadow: '0 15px 30px -5px rgba(59, 130, 246, 0.6)',
+                                    }
+                                }}
+                            >
+                                {loading ? <CircularProgress size={24} color="inherit" /> : "Sign In"}
+                            </Button>
+                        </Box>
+
+                        <Box sx={{ mt: 4, opacity: 0.6 }}>
+                            <Typography variant="caption" sx={{ color: 'white' }}>
+                                © 2026 Eduflex Institute
+                            </Typography>
+                        </Box>
+                    </Paper>
+                </motion.div>
+            </Container>
+        </Box>
     );
 }
