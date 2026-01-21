@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Grid, Card, CardContent, Typography, CircularProgress, Paper, LinearProgress, Button, Container, alpha } from '@mui/material';
-import { MenuBook, AttachMoney, Assessment, TrendingUp, PeopleOutline, SupervisedUserCircle } from '@mui/icons-material';
+import { Box, Grid, Card, CardContent, Typography, CircularProgress, Paper, LinearProgress, Button, Container, alpha, useTheme, Avatar } from '@mui/material';
+import { MenuBook, Assessment, TrendingUp, PeopleOutline, SupervisedUserCircle, VerifiedUser } from '@mui/icons-material';
 import axios from 'axios';
 import API_BASE_URL from '../config';
 import ReportDialog from '../components/ReportDialog';
@@ -8,15 +8,13 @@ import SubjectDetailsDialog from '../components/SubjectDetailsDialog';
 import TeacherProfilesDialog from '../components/TeacherProfilesDialog';
 import { motion } from 'framer-motion';
 
-// Force redeploy - Update Teachers Profile Card
-
-
 const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
         opacity: 1,
         transition: {
-            staggerChildren: 0.1
+            staggerChildren: 0.1,
+            delayChildren: 0.2
         }
     }
 };
@@ -28,12 +26,14 @@ const itemVariants = {
         opacity: 1,
         transition: {
             type: "spring",
-            stiffness: 100
+            stiffness: 100,
+            damping: 10
         }
     }
 };
 
 export default function Dashboard() {
+    const theme = useTheme();
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     // State for dialogs
@@ -43,7 +43,6 @@ export default function Dashboard() {
     const [selectedSubject, setSelectedSubject] = useState(null);
 
     const handleSubjectClick = (subjectName) => {
-        console.log("Card clicked:", subjectName);
         setSelectedSubject(subjectName);
         setDetailsOpen(true);
     };
@@ -66,7 +65,7 @@ export default function Dashboard() {
     if (loading) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-                <CircularProgress size={60} thickness={4} sx={{ color: 'var(--primary-color)' }} />
+                <CircularProgress size={60} thickness={4} sx={{ color: theme.palette.primary.main }} />
             </Box>
         );
     }
@@ -82,63 +81,108 @@ export default function Dashboard() {
         );
     }
 
-    const StatCard = ({ title, value, icon, gradient, delay }) => (
-        <Card
+    const StatCard = ({ title, value, icon, gradient1, gradient2, delay, onClick }) => (
+        <Paper
             component={motion.div}
-            whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
-            sx={{
-                background: gradient,
-                color: 'white',
-                height: '100%',
-                borderRadius: '24px',
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                position: 'relative',
-                overflow: 'hidden'
+            whileHover={{
+                y: -10,
+                scale: 1.02,
+                transition: { type: "spring", stiffness: 300, damping: 20 }
             }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onClick}
+            sx={{
+                height: 220, // Fixed height
+                width: '100%',
+                borderRadius: '32px',
+                position: 'relative',
+                overflow: 'hidden',
+                cursor: onClick ? 'pointer' : 'default',
+                background: `linear-gradient(135deg, ${gradient1} 0%, ${gradient2} 100%)`,
+                boxShadow: '0 20px 40px -10px rgba(0,0,0,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white'
+            }}
+            elevation={0}
         >
+            {/* Decorative Circles */}
             <Box sx={{
                 position: 'absolute',
-                top: -20,
-                right: -20,
-                opacity: 0.2,
-                transform: 'rotate(15deg) scale(1.5)',
-            }}>
-                {icon}
-            </Box>
-            <CardContent sx={{ p: 3, position: 'relative', zIndex: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Box sx={{
-                        p: 1.5,
-                        borderRadius: '16px',
-                        bgcolor: 'rgba(255,255,255,0.2)',
-                        backdropFilter: 'blur(10px)',
-                        display: 'flex',
-                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                    }}>
-                        {React.cloneElement(icon, { sx: { fontSize: 32 } })}
+                top: -30,
+                right: -30,
+                width: 150,
+                height: 150,
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.1)',
+                zIndex: 0
+            }} />
+            <Box sx={{
+                position: 'absolute',
+                bottom: -40,
+                left: -40,
+                width: 180,
+                height: 180,
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.08)',
+                zIndex: 0
+            }} />
+
+            <CardContent sx={{ position: 'relative', zIndex: 1, width: '100%', p: 4 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <Box>
+                        <Box sx={{
+                            p: 1.5,
+                            bgcolor: 'rgba(255,255,255,0.2)',
+                            backdropFilter: 'blur(10px)',
+                            borderRadius: '16px',
+                            display: 'inline-flex',
+                            mb: 2,
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                        }}>
+                            {React.cloneElement(icon, { sx: { fontSize: 32, color: 'white' } })}
+                        </Box>
+                        <Typography variant="h6" sx={{ opacity: 0.9, fontWeight: 600, fontSize: '1.1rem' }}>
+                            {title}
+                        </Typography>
+                        <Typography variant="h2" sx={{ fontWeight: 800, mt: 1, letterSpacing: '-0.02em', fontSize: '3.5rem' }}>
+                            {value}
+                        </Typography>
+                    </Box>
+                    <Box sx={{ opacity: 0.3 }}>
+                        {React.cloneElement(icon, { sx: { fontSize: 100 } })}
                     </Box>
                 </Box>
-                <Typography variant="h6" sx={{ opacity: 0.9, fontWeight: 500 }}>{title}</Typography>
-                <Typography variant="h3" sx={{ fontWeight: 800, mt: 1, letterSpacing: -1 }}>
-                    {value}
-                </Typography>
             </CardContent>
-        </Card>
+        </Paper>
     );
 
     return (
-        <Container maxWidth="xl">
+        <Container maxWidth="xl" sx={{ pb: 8 }}>
             <motion.div
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
             >
-                <Box sx={{ mb: 5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+                {/* Header Section */}
+                <Box sx={{
+                    mb: 6,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-end',
+                    flexWrap: 'wrap',
+                    gap: 3
+                }}>
                     <Box>
-                        <Typography variant="h4" sx={{ fontWeight: 800, background: 'linear-gradient(45deg, #1e3a8a, #3b82f6)', backgroundClip: 'text', textFillColor: 'transparent', mb: 1 }}>
+                        <Typography variant="h3" fontWeight="800" sx={{
+                            color: '#1e293b',
+                            letterSpacing: '-0.03em',
+                            mb: 1
+                        }}>
                             Dashboard Overview
                         </Typography>
-                        <Typography variant="subtitle1" color="text.secondary">
+                        <Typography variant="h6" color="text.secondary" fontWeight="500">
                             Welcome back, here's what's happening today.
                         </Typography>
                     </Box>
@@ -150,14 +194,16 @@ export default function Dashboard() {
                         startIcon={<Assessment />}
                         onClick={() => setReportOpen(true)}
                         sx={{
-                            borderRadius: '12px',
+                            borderRadius: '16px',
                             textTransform: 'none',
                             fontSize: '1rem',
-                            padding: '10px 24px',
+                            fontWeight: 700,
+                            padding: '12px 32px',
                             background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                            boxShadow: '0 4px 14px 0 rgba(245, 158, 11, 0.39)',
+                            boxShadow: '0 8px 20px -4px rgba(245, 158, 11, 0.4)',
                             '&:hover': {
                                 background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
+                                boxShadow: '0 12px 24px -4px rgba(245, 158, 11, 0.5)',
                             }
                         }}
                     >
@@ -165,134 +211,142 @@ export default function Dashboard() {
                     </Button>
                 </Box>
 
-                <Grid container spacing={3} sx={{ mb: 6 }}>
+                {/* Main Stats Grid */}
+                <Grid container spacing={3} sx={{ mb: 8 }}>
                     <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemVariants}>
                         <StatCard
                             title="Total Students"
                             value={stats.totalStudents}
-                            icon={<PeopleOutline sx={{ fontSize: 100 }} />}
-                            gradient="linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)"
+                            icon={<PeopleOutline />}
+                            gradient1="#3b82f6"
+                            gradient2="#1d4ed8"
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemVariants}>
                         <StatCard
                             title="Total Subjects"
                             value={stats.totalSubjects}
-                            icon={<MenuBook sx={{ fontSize: 100 }} />}
-                            gradient="linear-gradient(135deg, #10b981 0%, #059669 100%)"
+                            icon={<MenuBook />}
+                            gradient1="#10b981"
+                            gradient2="#047857"
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemVariants}>
-                        <Box
-                            component={motion.div}
-                            animate={{
-                                y: [0, -5, 0],
-                                boxShadow: [
-                                    "0 10px 15px -3px rgba(139, 92, 246, 0.1)",
-                                    "0 20px 25px -5px rgba(139, 92, 246, 0.3)",
-                                    "0 10px 15px -3px rgba(139, 92, 246, 0.1)"
-                                ]
-                            }}
-                            transition={{
-                                duration: 4,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                            }}
+                        <StatCard
+                            title="Expert Teachers"
+                            value={6}
+                            icon={<SupervisedUserCircle />}
+                            gradient1="#8b5cf6"
+                            gradient2="#6d28d9"
                             onClick={() => setTeachersOpen(true)}
-                            sx={{ height: '100%', cursor: 'pointer' }}
-                        >
-                            <StatCard
-                                title="Teachers Profiles"
-                                value={
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <Typography variant="h3" sx={{ fontWeight: 800, letterSpacing: -1 }}>
-                                            6
-                                        </Typography>
-                                        <Typography variant="h6" sx={{ opacity: 0.8, fontWeight: 500, pt: 1 }}>
-                                            Teachers
-                                        </Typography>
-                                    </Box>
-                                }
-                                icon={<SupervisedUserCircle sx={{ fontSize: 100 }} />}
-                                gradient="linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)"
-                            />
-                        </Box>
+                        />
                     </Grid>
                 </Grid>
 
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <TrendingUp sx={{ color: 'var(--primary-color)' }} /> Performance Analytics
-                </Typography>
+                {/* Analytics Section */}
+                <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ p: 1.5, bgcolor: alpha(theme.palette.primary.main, 0.1), borderRadius: '12px' }}>
+                        <TrendingUp sx={{ color: theme.palette.primary.main, fontSize: 28 }} />
+                    </Box>
+                    <Typography variant="h4" fontWeight="800" color="#1e293b">
+                        Performance Analytics
+                    </Typography>
+                </Box>
 
-                <Grid container spacing={3}>
+                <Grid container spacing={4}>
                     {(stats.subjectStats || []).map((sub) => (
                         <Grid item xs={12} md={6} lg={4} key={sub.subject} component={motion.div} variants={itemVariants}>
                             <Paper
                                 component={motion.div}
-                                whileHover={{ y: -4 }}
-                                elevation={0}
-                                sx={{
-                                    p: 3,
-                                    borderRadius: '20px',
-                                    border: '1px solid',
-                                    borderColor: 'divider',
-                                    background: 'rgba(255,255,255,0.7)',
-                                    backdropFilter: 'blur(10px)',
-                                    boxShadow: 'var(--card-shadow)',
-                                    transition: 'all 0.3s ease',
-                                    cursor: 'pointer'
+                                whileHover={{
+                                    y: -8,
+                                    transition: { type: "spring", stiffness: 300, damping: 20 }
                                 }}
                                 onClick={() => handleSubjectClick(sub.subject)}
+                                elevation={0}
+                                sx={{
+                                    p: 4,
+                                    height: '100%',
+                                    borderRadius: 5,
+                                    border: '1px solid rgba(255,255,255,0.6)',
+                                    background: 'rgba(255,255,255,0.7)',
+                                    backdropFilter: 'blur(20px)',
+                                    boxShadow: '0 10px 30px -10px rgba(0,0,0,0.05)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    '&:hover': {
+                                        boxShadow: '0 25px 50px -12px rgba(59, 130, 246, 0.15)',
+                                        borderColor: 'rgba(59, 130, 246, 0.4)',
+                                    }
+                                }}
                             >
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
                                     <Box>
-                                        <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                                        <Typography variant="h5" fontWeight="700" sx={{ mb: 0.5, color: '#0f172a' }}>
                                             {sub.subject}
                                         </Typography>
-                                        <Typography variant="body2" color="text.secondary">
+                                        <Typography variant="body2" color="text.secondary" fontWeight="500">
                                             Class Performance
                                         </Typography>
                                     </Box>
                                     <Box sx={{
-                                        px: 1.5, py: 0.5,
+                                        px: 2, py: 0.8,
                                         bgcolor: alpha(sub.studentCount > 0 && (sub.paidFees / sub.studentCount) > 0.8 ? '#10b981' : '#f59e0b', 0.1),
                                         color: sub.studentCount > 0 && (sub.paidFees / sub.studentCount) > 0.8 ? '#059669' : '#d97706',
-                                        borderRadius: '20px',
-                                        fontSize: '0.75rem',
-                                        fontWeight: 600
+                                        borderRadius: '30px',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 700,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 0.5
                                     }}>
+                                        <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'currentColor' }} />
                                         Active
                                     </Box>
                                 </Box>
 
-                                <Box sx={{ mb: 3 }}>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                        <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>Fee Collection</Typography>
-                                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{Math.round((sub.paidFees / (sub.studentCount || 1)) * 100)}%</Typography>
+                                <Box sx={{ mb: 4 }}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
+                                        <Typography variant="body2" fontWeight="600" color="text.secondary">Fee Collection</Typography>
+                                        <Typography variant="body2" fontWeight="700" color="primary.main">
+                                            {Math.round((sub.paidFees / (sub.studentCount || 1)) * 100)}%
+                                        </Typography>
                                     </Box>
                                     <LinearProgress
                                         variant="determinate"
                                         value={sub.studentCount > 0 ? (sub.paidFees / sub.studentCount) * 100 : 0}
                                         sx={{
-                                            height: 10,
-                                            borderRadius: 5,
-                                            bgcolor: alpha('#3b82f6', 0.1),
+                                            height: 12,
+                                            borderRadius: 6,
+                                            bgcolor: alpha(theme.palette.primary.main, 0.1),
                                             '& .MuiLinearProgress-bar': {
-                                                borderRadius: 5,
-                                                background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)'
+                                                borderRadius: 6,
+                                                background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`
                                             }
                                         }}
                                     />
                                 </Box>
 
-                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 2, borderTop: '1px dashed', borderColor: 'divider' }}>
+                                <Box sx={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    pt: 3,
+                                    borderTop: '1px solid',
+                                    borderColor: 'rgba(0,0,0,0.05)'
+                                }}>
                                     <Box>
-                                        <Typography variant="caption" display="block" color="text.secondary">Students</Typography>
-                                        <Typography variant="subtitle1" fontWeight="bold">{sub.studentCount}</Typography>
+                                        <Typography variant="caption" display="block" color="text.secondary" fontWeight="600" sx={{ mb: 0.5 }}>STUDENTS</Typography>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <PeopleOutline sx={{ fontSize: 20, color: 'text.secondary', opacity: 0.6 }} />
+                                            <Typography variant="h6" fontWeight="800" color="#334155">{sub.studentCount}</Typography>
+                                        </Box>
                                     </Box>
                                     <Box sx={{ textAlign: 'right' }}>
-                                        <Typography variant="caption" display="block" color="text.secondary">Paid</Typography>
-                                        <Typography variant="subtitle1" fontWeight="bold" color="success.main">{sub.paidFees}</Typography>
+                                        <Typography variant="caption" display="block" color="text.secondary" fontWeight="600" sx={{ mb: 0.5 }}>PAID</Typography>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
+                                            <Typography variant="h6" fontWeight="800" color="#10b981">{sub.paidFees}</Typography>
+                                            <VerifiedUser sx={{ fontSize: 20, color: '#10b981', opacity: 0.8 }} />
+                                        </Box>
                                     </Box>
                                 </Box>
                             </Paper>
