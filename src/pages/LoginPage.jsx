@@ -43,11 +43,24 @@ export default function LoginPage() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [studentId, setStudentId] = useState('');
+    const [subjects, setSubjects] = useState([]);
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const theme = useTheme();
     const { t } = useTranslation();
+
+    useEffect(() => {
+        const fetchSubjects = async () => {
+            try {
+                const { data } = await axios.get(`${API_BASE_URL}/api/subjects`);
+                setSubjects(data);
+            } catch (err) {
+                console.error("Failed to fetch subjects", err);
+            }
+        };
+        fetchSubjects();
+    }, []);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -66,13 +79,14 @@ export default function LoginPage() {
             } else {
                 if (!username || !password) throw new Error("Username and password required");
                 // In a real app, call API here
-                // const { data } = await axios.post(`${API_BASE_URL}/api/auth/login`, { username, password, role: selectedRole });
+                const { data } = await axios.post(`${API_BASE_URL}/api/auth/login`, { username, password });
+                userData = data;
 
                 if (selectedRole === 'teacher') {
-                    userData = { role: 'teacher', username, name: "Teacher User" };
+                    // Check if selected subject matches assigned subject (optional security check or just context)
+                    // if (userData.assignedSubject && !username.includes(userData.assignedSubject)) ...
                     redirectUrl = '/teacher-dashboard';
                 } else {
-                    userData = { role: 'admin', username, name: "Admin User" };
                     redirectUrl = '/';
                 }
             }
@@ -248,12 +262,10 @@ export default function LoginPage() {
                                                 select
                                                 fullWidth
                                                 required
-                                                value={username} // Using username state to store subject? No, let's just use it as a filter or "Pre-fill" hint? 
-                                                // Actually the user wants to SELECT subject and then enter credentials. 
-                                                // Using a separate state for 'selectedSubject' would be better but for now let's just show it.
-                                                // Wait, if I select "Math", maybe I should just AUTO-FILL the username "combined_teacher" for demo?
-                                                // User said "create username".
-                                                // let's just add the dropdown as requested.
+                                                value={username}
+                                                // Map subject selection to username auto-fill for better UX if they don't know the handle? 
+                                                // Or just let them select subject as a filter context.
+                                                // User explicitly asked for "Select Subject".
                                                 label="Select Your Subject"
                                                 SelectProps={{ native: true }}
                                                 InputProps={{
@@ -261,23 +273,17 @@ export default function LoginPage() {
                                                 }}
                                                 sx={{ '& .MuiOutlinedInput-notchedOutline': { border: 'none' }, '& label': { color: 'rgba(255,255,255,0.7)' } }}
                                                 onChange={(e) => {
-                                                    // Optional: Auto-fill username based on selection for demo convenience
+                                                    // If we want to auto-fill credential based on subject (demo mode):
                                                     // const sub = e.target.value;
                                                     // setUsername(sub.toLowerCase().split(' ')[0] + '_teacher');
-                                                    // But user said "create username", so let's leave it empty or just let them select.
-                                                    // Actually, let's bind it to a temp state or just ignore it if it's purely for UI flow as requested?
-                                                    // Let's binds it.
                                                 }}
                                             >
                                                 <option value="" style={{ color: 'black' }}>Select Subject...</option>
-                                                {/* We need to fetch subjects. For now hardcode or fetch. 
-                                                    Ideally fetch. But to keep this edit simple without fetching logic in this component,
-                                                    I will add a fetch in useEffect.
-                                                */}
-                                                <option value="Combined Mathematics" style={{ color: 'black' }}>Combined Mathematics</option>
-                                                <option value="Physics" style={{ color: 'black' }}>Physics</option>
-                                                <option value="Chemistry" style={{ color: 'black' }}>Chemistry</option>
-                                                <option value="ICT" style={{ color: 'black' }}>ICT</option>
+                                                {subjects.map((sub) => (
+                                                    <option key={sub._id} value={sub.name} style={{ color: 'black' }}>
+                                                        {sub.name}
+                                                    </option>
+                                                ))}
                                             </TextField>
                                         </Box>
                                     )}
