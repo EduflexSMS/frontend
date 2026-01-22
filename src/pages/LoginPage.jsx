@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import { Visibility, VisibilityOff, LockOutlined, PersonOutline, School } from '@mui/icons-material';
 import API_BASE_URL from '../config';
+import { useTranslation } from 'react-i18next';
 
 import logo from '../assets/logo.jpg';
 import loginBg from '../assets/login-bg.jpg';
@@ -44,6 +45,7 @@ export default function LoginPage() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const theme = useTheme();
+    const { t } = useTranslation();
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -204,7 +206,7 @@ export default function LoginPage() {
                                 letterSpacing: '-0.02em',
                                 textShadow: '0 10px 20px rgba(0,0,0,0.2)'
                             }}>
-                                Welcome Back
+                                {t('welcome_back')}
                             </Typography>
 
                             <Typography variant="body2" sx={{
@@ -213,7 +215,7 @@ export default function LoginPage() {
                                 fontWeight: 500,
                                 fontSize: '0.95rem'
                             }}>
-                                Access your educational dashboard
+                                {t('access_dashboard')}
                             </Typography>
                         </motion.div>
 
@@ -366,7 +368,7 @@ export default function LoginPage() {
                                         }
                                     }}
                                 >
-                                    {loading ? <CircularProgress size={26} color="inherit" /> : "Sign In to Dashboard"}
+                                    {loading ? <CircularProgress size={26} color="inherit" /> : t('sign_in')}
                                 </Button>
                             </motion.div>
                         </Box>

@@ -1,11 +1,12 @@
 import React, { useState, useContext } from 'react';
-import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, AppBar, Toolbar, Typography, CssBaseline, IconButton, Avatar, useTheme, useMediaQuery, InputBase, alpha } from '@mui/material';
-import { Dashboard, People, Class, AddBox, Assessment, Menu as MenuIcon, NotificationsOutlined, Search as SearchIcon, SettingsOutlined, Logout as LogoutIcon, Brightness4, Brightness7 } from '@mui/icons-material';
+import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, AppBar, Toolbar, Typography, CssBaseline, IconButton, Avatar, useTheme, useMediaQuery, InputBase, alpha, Button } from '@mui/material';
+import { Dashboard, People, Class, AddBox, Assessment, Menu as MenuIcon, NotificationsOutlined, Search as SearchIcon, SettingsOutlined, Logout as LogoutIcon, Brightness4, Brightness7, Language } from '@mui/icons-material';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../assets/logo.jpg';
 import { ColorModeContext } from '../App';
 import { pageVariants, containerStagger, itemFadeUp, tapScale, springFast } from '../utils/animations';
+import { useTranslation } from 'react-i18next';
 
 const drawerWidth = 280;
 
@@ -16,17 +17,23 @@ export default function Layout() {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const colorMode = useContext(ColorModeContext);
+    const { t, i18n } = useTranslation();
 
     const menuItems = [
-        { text: 'Dashboard', icon: <Dashboard />, path: '/' },
-        { text: 'View Students', icon: <People />, path: '/students' },
-        { text: 'Class Reports', icon: <Assessment />, path: '/reports' },
-        { text: 'Add Student', icon: <AddBox />, path: '/add-student' },
-        { text: 'Add Subject', icon: <Class />, path: '/add-subject' },
+        { text: t('dashboard'), icon: <Dashboard />, path: '/' },
+        { text: t('view_students'), icon: <People />, path: '/students' },
+        { text: t('class_reports'), icon: <Assessment />, path: '/reports' },
+        { text: t('add_student'), icon: <AddBox />, path: '/add-student' },
+        { text: t('add_subject'), icon: <Class />, path: '/add-subject' },
     ];
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
+    };
+
+    const toggleLanguage = () => {
+        const newLang = i18n.language === 'en' ? 'si' : 'en';
+        i18n.changeLanguage(newLang);
     };
 
     const drawerContent = (
@@ -190,7 +197,7 @@ export default function Layout() {
                         <LogoutIcon />
                     </ListItemIcon>
                     <ListItemText
-                        primary="Logout"
+                        primary={t('logout')}
                         primaryTypographyProps={{ fontWeight: 600, fontSize: '0.95rem' }}
                     />
                 </Box>
@@ -301,11 +308,28 @@ export default function Layout() {
                             </IconButton>
                             <Box sx={{ display: { xs: 'none', lg: 'flex' }, alignItems: 'center', bgcolor: alpha(theme.palette.text.primary, 0.05), borderRadius: '12px', px: 2, py: 0.5 }}>
                                 <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
-                                <InputBase placeholder="Search..." sx={{ fontSize: '0.9rem', color: 'text.primary' }} />
+                                <InputBase placeholder={t('search')} sx={{ fontSize: '0.9rem', color: 'text.primary' }} />
                             </Box>
                         </Box>
 
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Button
+                                startIcon={<Language />}
+                                onClick={toggleLanguage}
+                                sx={{
+                                    color: 'text.primary',
+                                    fontWeight: 600,
+                                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                    borderRadius: '12px',
+                                    px: 2,
+                                    '&:hover': {
+                                        bgcolor: alpha(theme.palette.primary.main, 0.2)
+                                    }
+                                }}
+                            >
+                                {i18n.language === 'si' ? 'සිංහල' : 'English'}
+                            </Button>
+
                             <IconButton onClick={colorMode.toggleColorMode} sx={{ color: 'text.primary' }}>
                                 {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
                             </IconButton>
@@ -319,8 +343,8 @@ export default function Layout() {
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 1, p: 0.5, pr: 1.5, borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
                                 <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.9rem' }}>A</Avatar>
                                 <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                                    <Typography variant="subtitle2" sx={{ lineHeight: 1.2, color: 'text.primary' }}>Admin User</Typography>
-                                    <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1 }}>Administrator</Typography>
+                                    <Typography variant="subtitle2" sx={{ lineHeight: 1.2, color: 'text.primary' }}>{t('admin_user')}</Typography>
+                                    <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1 }}>{t('administrator')}</Typography>
                                 </Box>
                             </Box>
                         </Box>

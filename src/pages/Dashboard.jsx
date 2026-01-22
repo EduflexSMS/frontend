@@ -8,6 +8,7 @@ import SubjectDetailsDialog from '../components/SubjectDetailsDialog';
 import TeacherProfilesDialog from '../components/TeacherProfilesDialog';
 import { motion } from 'framer-motion';
 import { containerStagger, itemFadeUp, hoverScale, tapScale, springFast } from '../utils/animations';
+import { useTranslation } from 'react-i18next';
 
 export default function Dashboard() {
     const theme = useTheme();
@@ -18,6 +19,7 @@ export default function Dashboard() {
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [teachersOpen, setTeachersOpen] = useState(false);
     const [selectedSubject, setSelectedSubject] = useState(null);
+    const { t } = useTranslation();
 
     const handleSubjectClick = (subjectName) => {
         setSelectedSubject(subjectName);
@@ -153,10 +155,10 @@ export default function Dashboard() {
                             letterSpacing: '-0.03em',
                             mb: 1
                         }}>
-                            Dashboard Overview
+                            {t('dashboard_overview')}
                         </Typography>
                         <Typography variant="h6" color="text.secondary" fontWeight="500">
-                            Welcome back, here's what's happening today.
+                            {t('dashboard_subtitle')}
                         </Typography>
                     </Box>
                     <Button
@@ -181,7 +183,7 @@ export default function Dashboard() {
                             }
                         }}
                     >
-                        Generate Report
+                        {t('generate_report')}
                     </Button>
                 </Box>
 
@@ -189,7 +191,7 @@ export default function Dashboard() {
                 <Grid container spacing={3} sx={{ mb: 8 }}>
                     <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemFadeUp}>
                         <StatCard
-                            title="Total Students"
+                            title={t('total_students')}
                             value={stats.totalStudents}
                             icon={<PeopleOutline />}
                             gradient1="#3b82f6"
@@ -198,7 +200,7 @@ export default function Dashboard() {
                     </Grid>
                     <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemFadeUp}>
                         <StatCard
-                            title="Total Subjects"
+                            title={t('total_subjects')}
                             value={stats.totalSubjects}
                             icon={<MenuBook />}
                             gradient1="#10b981"
@@ -207,7 +209,7 @@ export default function Dashboard() {
                     </Grid>
                     <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemFadeUp}>
                         <StatCard
-                            title="Expert Teachers"
+                            title={t('expert_teachers')}
                             value={6}
                             icon={<SupervisedUserCircle />}
                             gradient1="#8b5cf6"
@@ -223,7 +225,7 @@ export default function Dashboard() {
                         <TrendingUp sx={{ color: theme.palette.primary.main, fontSize: 28 }} />
                     </Box>
                     <Typography variant="h4" fontWeight="800" color="text.primary">
-                        Performance Analytics
+                        {t('performance_analytics')}
                     </Typography>
                 </Box>
 
@@ -262,7 +264,7 @@ export default function Dashboard() {
                                             {sub.subject}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary" fontWeight="500">
-                                            Class Performance
+                                            {t('class_performance')}
                                         </Typography>
                                     </Box>
                                     <Box sx={{
@@ -277,13 +279,13 @@ export default function Dashboard() {
                                         gap: 0.5
                                     }}>
                                         <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'currentColor' }} />
-                                        Active
+                                        {t('active')}
                                     </Box>
                                 </Box>
 
                                 <Box sx={{ mb: 4 }}>
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                                        <Typography variant="body2" fontWeight="600" color="text.secondary">Fee Collection</Typography>
+                                        <Typography variant="body2" fontWeight="600" color="text.secondary">{t('fee_collection')}</Typography>
                                         <Typography variant="body2" fontWeight="700" color="primary.main">
                                             {Math.round((sub.paidFees / (sub.studentCount || 1)) * 100)}%
                                         </Typography>
@@ -311,14 +313,14 @@ export default function Dashboard() {
                                     borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
                                 }}>
                                     <Box>
-                                        <Typography variant="caption" display="block" color="text.secondary" fontWeight="600" sx={{ mb: 0.5 }}>STUDENTS</Typography>
+                                        <Typography variant="caption" display="block" color="text.secondary" fontWeight="600" sx={{ mb: 0.5 }}>{t('students')}</Typography>
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                             <PeopleOutline sx={{ fontSize: 20, color: 'text.secondary', opacity: 0.6 }} />
                                             <Typography variant="h6" fontWeight="800" color="text.primary">{sub.studentCount}</Typography>
                                         </Box>
                                     </Box>
                                     <Box sx={{ textAlign: 'right' }}>
-                                        <Typography variant="caption" display="block" color="text.secondary" fontWeight="600" sx={{ mb: 0.5 }}>PAID</Typography>
+                                        <Typography variant="caption" display="block" color="text.secondary" fontWeight="600" sx={{ mb: 0.5 }}>{t('paid')}</Typography>
                                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
                                             <Typography variant="h6" fontWeight="800" color="#10b981">{sub.paidFees}</Typography>
                                             <VerifiedUser sx={{ fontSize: 20, color: '#10b981', opacity: 0.8 }} />
