@@ -1,31 +1,114 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Container, Grid, Paper, Typography, LinearProgress, Chip, Avatar, useTheme, alpha } from '@mui/material';
+import { Box, Container, Grid, Paper, Typography, LinearProgress, Chip, Avatar, useTheme, alpha, CircularProgress, Alert } from '@mui/material';
 import { motion } from 'framer-motion';
 import { CheckCircle, Pending, School, EventAvailable, MonetizationOn } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
+import API_BASE_URL from '../config';
 import { itemFadeUp, containerStagger, hoverScale } from '../utils/animations';
-
-// Mock Data - Replace with API call
-const mockStudentData = {
-    name: "Keshara Rathnayaka",
-    id: "STU-2026-001",
-    grade: "Grade 12",
-    attendance: {
-        total: 45,
-        attended: 38,
-        percentage: 84
-    },
-    subjects: [
-        { name: "Combined Mathematics", teacher: "Mr. Perera", feesStart: "Jan", feesPaid: true, attendance: 90 },
-        { name: "Physics", teacher: "Mrs. Silva", feesStart: "Jan", feesPaid: false, attendance: 75 },
-        { name: "Chemistry", teacher: "Mr. Fernando", feesStart: "Jan", feesPaid: true, attendance: 88 }
-    ]
-};
 
 export default function StudentDashboard() {
     const theme = useTheme();
     const { t } = useTranslation();
-    const [student, setStudent] = useState(mockStudentData);
+    const [student, setStudent] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        const fetchStudentData = async () => {
+            try {
+                const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+                if (!userInfo || !userInfo.id) {
+                    throw new Error("Student ID not found. Please login again.");
+                }
+
+                const response = await axios.get(`${API_BASE_URL}/api/students?search=${userInfo.id}`);
+                const students = response.data.students;
+
+                if (!students || students.length === 0) {
+                    throw new Error("Student profile not found.");
+                }
+
+                // Match exact ID to avoid partial matches
+                const currentStudent = students.find(s => s.indexNumber === userInfo.id) || students[0];
+                setStudent(processStudentData(currentStudent));
+                setLoading(false);
+            } catch (err) {
+                console.error(err);
+                setError(err.message || "Failed to load dashboard data");
+                setLoading(false);
+            }
+        };
+
+        fetchStudentData();
+    }, []);
+
+    const processStudentData = (data) => {
+        const currentMonth = new Date().getMonth();
+
+        // Calculate Statistics
+        let totalClasses = 0;
+        let attendedClasses = 0;
+
+        const subjects = data.enrollments.map(enrollment => {
+            // Get current month record
+            const monthRecord = enrollment.monthlyRecords.find(r => r.monthIndex === currentMonth);
+
+            // Calculate Subject Attendance (Assuming 5 weeks max per month for now or calculating all time)
+            // For simplicity, let's show this month's attendance or overall if desired. 
+            // The mock showed overall, let's try to aggregate all months for accuracy if possible, 
+            // or just use the current month for "Active Status"
+
+            // Aggregating all months for attendance rate
+            let subTotal = 0;
+            let subAttended = 0;
+
+            enrollment.monthlyRecords.forEach(rec => {
+                rec.attendance.forEach(status => {
+                    if (status !== 'pending') subTotal++;
+                    if (status === 'present' || status === true || status === 'true') subAttended++;
+                });
+            });
+
+            totalClasses += subTotal;
+            attendedClasses += subAttended;
+
+            return {
+                name: enrollment.subject,
+                teacher: "Eduflex Institute", // Backend doesn't store teacher yet
+                feesPaid: monthRecord ? monthRecord.feePaid : false,
+                attendance: subTotal === 0 ? 0 : Math.round((subAttended / subTotal) * 100)
+            };
+        });
+
+        return {
+            name: data.name,
+            id: data.indexNumber,
+            grade: data.grade,
+            attendance: {
+                total: totalClasses,
+                attended: attendedClasses,
+                percentage: totalClasses === 0 ? 0 : Math.round((attendedClasses / totalClasses) * 100)
+            },
+            subjects: subjects
+        };
+    };
+
+    if (loading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (error) {
+        return (
+            <Container maxWidth="lg" sx={{ py: 4 }}>
+                <Alert severity="error">{error}</Alert>
+            </Container>
+        );
+    }
 
     return (
         <Container maxWidth="lg" sx={{ py: 4 }}>

@@ -1,25 +1,112 @@
-import React, { useState } from 'react';
-import { Box, Container, Grid, Paper, Typography, Avatar, useTheme, alpha, IconButton, List, ListItem, ListItemAvatar, ListItemText, Divider } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Container, Grid, Paper, Typography, Avatar, useTheme, alpha, IconButton, CircularProgress, Alert } from '@mui/material';
 import { motion } from 'framer-motion';
 import { Class, People, MonetizationOn, ArrowForwardIos } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
+import API_BASE_URL from '../config';
 import { itemFadeUp, containerStagger, hoverScale } from '../utils/animations';
-
-// Mock Data
-const mockTeacherData = {
-    name: "Mr. Amal Perera",
-    subject: "Combined Mathematics",
-    classes: [
-        { id: 1, name: "2026 Theory", students: 120, collection: 240000, activeRate: 92 },
-        { id: 2, name: "2025 Revision", students: 85, collection: 170000, activeRate: 88 },
-        { id: 3, name: "2027 Paper Class", students: 40, collection: 60000, activeRate: 95 }
-    ]
-};
 
 export default function TeacherDashboard() {
     const theme = useTheme();
     const { t } = useTranslation();
-    const [teacher] = useState(mockTeacherData);
+    const [teacherData, setTeacherData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Fetch Subjects
+                const { data: subjects } = await axios.get(`${API_BASE_URL}/api/subjects`);
+
+                // Fetch Students to aggregate data
+                // In a real large-scale app, we would use a dedicated stats endpoint.
+                // For this prototype, we'll fetch a page of students or all if possible, 
+                // but checking individual class reports is safer for accuracy.
+
+                // Strategy: Iterate over subjects and build class list
+                const classesData = [];
+                let totalStudents = 0;
+                let totalCollection = 0;
+                const currentMonth = new Date().getMonth();
+
+                // Flatten subjects into classes (Subject + Grade)
+                // Since subjects have gradeSchedules, we can iterate those.
+
+                const promises = subjects.map(async (subject) => {
+                    const gradePromises = subject.gradeSchedules.map(async (schedule) => {
+                        // Fetch Report for this Subject + Grade + Month
+                        try {
+                            const { data: report } = await axios.get(`${API_BASE_URL}/api/reports/class-report`, {
+                                params: {
+                                    subject: subject.name,
+                                    grade: schedule.grade,
+                                    month: currentMonth
+                                }
+                            });
+
+                            const studentCount = report.length;
+                            const paidCount = report.filter(s => s.feePaid).length;
+
+                            // Estimate collection (Assuming 2000 LKR per student for demo, or we need fee in DB)
+                            const estimatedFee = 2000;
+                            const collection = paidCount * estimatedFee;
+
+                            totalStudents += studentCount;
+                            totalCollection += collection;
+
+                            return {
+                                id: `${subject._id}-${schedule.grade}`,
+                                name: `${subject.name} - ${schedule.grade}`,
+                                students: studentCount,
+                                collection: collection,
+                                activeRate: studentCount > 0 ? Math.round((paidCount / studentCount) * 100) : 0
+                            };
+                        } catch (e) {
+                            console.error(`Failed to load data for ${subject.name} ${schedule.grade}`, e);
+                            return null;
+                        }
+                    });
+
+                    return Promise.all(gradePromises);
+                });
+
+                const results = await Promise.all(promises);
+                const flatClasses = results.flat().flat().filter(c => c !== null);
+
+                setTeacherData({
+                    name: JSON.parse(localStorage.getItem('userInfo'))?.name || "Teacher",
+                    subject: "Institute Overview", // Or specific subject if we could filter
+                    classes: flatClasses
+                });
+
+                setLoading(false);
+            } catch (err) {
+                console.error(err);
+                setError("Failed to load dashboard data");
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    if (loading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (error) {
+        return (
+            <Container maxWidth="lg" sx={{ py: 4 }}>
+                <Alert severity="error">{error}</Alert>
+            </Container>
+        );
+    }
 
     return (
         <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -31,11 +118,11 @@ export default function TeacherDashboard() {
                 {/* Header */}
                 <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Avatar sx={{ width: 64, height: 64, bgcolor: 'primary.main' }}>
-                        {teacher.name.charAt(0)}
+                        {teacherData?.name?.charAt(0)}
                     </Avatar>
                     <Box>
-                        <Typography variant="h4" fontWeight="800">{teacher.name}</Typography>
-                        <Typography variant="subtitle1" color="text.secondary">{teacher.subject}</Typography>
+                        <Typography variant="h4" fontWeight="800">{teacherData?.name}</Typography>
+                        <Typography variant="subtitle1" color="text.secondary">{teacherData?.subject}</Typography>
                     </Box>
                 </Box>
 
@@ -56,8 +143,9 @@ export default function TeacherDashboard() {
                         >
                             <Box sx={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.1)' }} />
                             <Typography variant="h6" sx={{ opacity: 0.9 }}>{t('total_students_enrolled')}</Typography>
+                            {/* Use calculated total if available, else sum classes */}
                             <Typography variant="h2" fontWeight="800" sx={{ mt: 1 }}>
-                                {teacher.classes.reduce((acc, curr) => acc + curr.students, 0)}
+                                {teacherData?.classes.reduce((acc, curr) => acc + curr.students, 0)}
                             </Typography>
                         </Paper>
                     </Grid>
@@ -77,7 +165,7 @@ export default function TeacherDashboard() {
                             <Box sx={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.1)' }} />
                             <Typography variant="h6" sx={{ opacity: 0.9 }}>{t('monthly_collection')}</Typography>
                             <Typography variant="h2" fontWeight="800" sx={{ mt: 1 }}>
-                                LKR {(teacher.classes.reduce((acc, curr) => acc + curr.collection, 0) / 1000).toFixed(1)}k
+                                LKR {(teacherData?.classes.reduce((acc, curr) => acc + curr.collection, 0) / 1000).toFixed(1)}k
                             </Typography>
                         </Paper>
                     </Grid>
@@ -86,7 +174,11 @@ export default function TeacherDashboard() {
                 {/* Class List */}
                 <Typography variant="h5" fontWeight="700" sx={{ mb: 3 }}>{t('my_classes')}</Typography>
                 <Grid container spacing={3}>
-                    {teacher.classes.map((cls) => (
+                    {teacherData?.classes.length === 0 ? (
+                        <Grid item xs={12}>
+                            <Alert severity="info" variant="outlined">No active classes found.</Alert>
+                        </Grid>
+                    ) : teacherData?.classes.map((cls) => (
                         <Grid item xs={12} key={cls.id}>
                             <Paper
                                 component={motion.div}
@@ -115,7 +207,7 @@ export default function TeacherDashboard() {
                                                 <People fontSize="small" /> {cls.students} Students
                                             </Typography>
                                             <Typography variant="body2" color="success.main" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontWeight: 600 }}>
-                                                <MonetizationOn fontSize="small" /> Paid
+                                                <MonetizationOn fontSize="small" /> {cls.collection.toLocaleString()} LKR Collected
                                             </Typography>
                                         </Box>
                                     </Box>
