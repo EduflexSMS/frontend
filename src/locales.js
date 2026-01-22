@@ -29,7 +29,32 @@ export const resources = {
             "active": "Active",
             "fee_collection": "Fee Collection",
             "students": "STUDENTS",
-            "paid": "PAID"
+            "paid": "PAID",
+
+            // Role Based Login
+            "admin_portal": "Admin Portal",
+            "teacher_portal": "Teacher Portal",
+            "student_portal": "Student Portal",
+            "student_id": "Student ID Number",
+            "enter_student_id": "Enter your Student ID",
+            "login_as_student": "Login as Student",
+            "login_as_teacher": "Login as Teacher",
+            "login_as_admin": "Login as Admin",
+
+            // Student Dashboard
+            "student_profile": "Student Profile",
+            "my_attendance": "My Attendance",
+            "my_fees": "My Fees",
+            "total_classes": "Total Classes",
+            "attended": "Attended",
+            "attendance_rate": "Attendance Rate",
+            "payment_status": "Payment Status",
+            "pending": "Pending",
+
+            // Teacher Dashboard
+            "my_classes": "My Classes",
+            "total_students_enrolled": "Total Students Enrolled",
+            "monthly_collection": "Monthly Collection"
         }
     },
     si: {
@@ -62,7 +87,32 @@ export const resources = {
             "active": "සක්‍රීය",
             "fee_collection": "ගාස්තු එකතු කිරීම",
             "students": "සිසුන්",
-            "paid": "ගෙවූ"
+            "paid": "ගෙවූ",
+
+            // Role Based Login
+            "admin_portal": "පරිපාලක අංශය",
+            "teacher_portal": "ගුරු අංශය",
+            "student_portal": "ශිෂ්‍ය අංශය",
+            "student_id": "ශිෂ්‍ය අංකය",
+            "enter_student_id": "ඔබගේ ශිෂ්‍ය අංකය ඇතුලත් කරන්න",
+            "login_as_student": "ශිෂ්‍යයෙකු ලෙස ඇතුල් වන්න",
+            "login_as_teacher": "ගුරුවරයෙකු ලෙස ඇතුල් වන්න",
+            "login_as_admin": "පරිපාලකයෙකු ලෙස ඇතුල් වන්න",
+
+            // Student Dashboard
+            "student_profile": "ශිෂ්‍ය පැතිකඩ",
+            "my_attendance": "මගේ පැමිණීම",
+            "my_fees": "මගේ ගාස්තු",
+            "total_classes": "මුළු පන්ති",
+            "attended": "පැමිණි",
+            "attendance_rate": "පැමිණීමේ ප්‍රතිශතය",
+            "payment_status": "ගෙවීම් තත්ත්වය",
+            "pending": "ගෙවීමට ඇති",
+
+            // Teacher Dashboard
+            "my_classes": "මගේ පන්ති",
+            "total_students_enrolled": "ලියාපදිංචි වූ මුළු සිසුන්",
+            "monthly_collection": "මාසික එකතු කිරීම"
         }
     }
 };

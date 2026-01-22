@@ -5,22 +5,14 @@ import Layout from './components/Layout';
 import ViewStudents from './pages/ViewStudents';
 import LoginPage from './pages/LoginPage';
 import PrivateRoute from './components/PrivateRoute';
-
+import StudentDashboard from './pages/StudentDashboard';
+import TeacherDashboard from './pages/TeacherDashboard';
 
 // Placeholder components for other routes
 import AddStudent from './pages/AddStudent';
-
 import ClassReport from './pages/ClassReport';
 import AddSubject from './pages/AddSubject';
-
 import Dashboard from './pages/Dashboard';
-
-// const Dashboard = () => <Box p={3}><Typography variant="h4">Dashboard (Coming Soon)</Typography></Box>;
-// const AddStudent = () => <Box p={3}><Typography variant="h4">Add Student Form (Coming Soon)</Typography></Box>;
-// const AddSubject = () => <Box p={3}><Typography variant="h4">Add Subject Form (Coming Soon)</Typography></Box>;
-
-
-
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -49,10 +41,6 @@ class ErrorBoundary extends React.Component {
     return this.props.children;
   }
 }
-
-// Imports moved to top
-
-// ... (ErrorBoundary remains same)
 
 export const ColorModeContext = React.createContext({ toggleColorMode: () => { } });
 
@@ -137,6 +125,7 @@ function App() {
 
               {/* Protected Routes */}
               <Route element={<PrivateRoute />}>
+                {/* Admin Routes */}
                 <Route path="/" element={<Layout />}>
                   <Route index element={<Dashboard />} />
                   <Route path="students" element={<ViewStudents />} />
@@ -144,6 +133,12 @@ function App() {
                   <Route path="add-subject" element={<AddSubject />} />
                   <Route path="reports" element={<ClassReport />} />
                 </Route>
+
+                {/* Student Route - Assuming they might share Layout or have none. 
+                    If they need sidebar, keep in Layout. If not, separate. 
+                    For now, putting them separate but protected. */}
+                <Route path="/student-dashboard" element={<StudentDashboard />} />
+                <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
               </Route>
 
               <Route path="*" element={<Navigate to="/" replace />} />
