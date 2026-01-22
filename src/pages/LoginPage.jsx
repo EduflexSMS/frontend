@@ -40,6 +40,7 @@ const Particle = ({ delay, duration, x, y, size }) => (
 
 export default function LoginPage() {
     const [selectedRole, setSelectedRole] = useState(null); // 'admin', 'teacher', 'student'
+    const [selectedSubject, setSelectedSubject] = useState(''); // For teacher login
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [studentId, setStudentId] = useState('');
@@ -262,7 +263,7 @@ export default function LoginPage() {
                                                 select
                                                 fullWidth
                                                 required
-                                                value={username}
+                                                value={selectedSubject}
                                                 // Map subject selection to username auto-fill for better UX if they don't know the handle? 
                                                 // Or just let them select subject as a filter context.
                                                 // User explicitly asked for "Select Subject".
@@ -272,11 +273,7 @@ export default function LoginPage() {
                                                     sx: { color: 'white', bgcolor: 'rgba(0,0,0,0.2)', borderRadius: '16px', height: 56 }
                                                 }}
                                                 sx={{ '& .MuiOutlinedInput-notchedOutline': { border: 'none' }, '& label': { color: 'rgba(255,255,255,0.7)' } }}
-                                                onChange={(e) => {
-                                                    // If we want to auto-fill credential based on subject (demo mode):
-                                                    // const sub = e.target.value;
-                                                    // setUsername(sub.toLowerCase().split(' ')[0] + '_teacher');
-                                                }}
+                                                onChange={(e) => setSelectedSubject(e.target.value)}
                                             >
                                                 <option value="" style={{ color: 'black' }}>Select Subject...</option>
                                                 {subjects.map((sub) => (
