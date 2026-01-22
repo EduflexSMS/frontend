@@ -75,10 +75,18 @@ export default function TeacherDashboard() {
                 const results = await Promise.all(promises);
                 const flatClasses = results.flat().flat().filter(c => c !== null);
 
+                // Filter by assigned subject if it exists
+                const user = JSON.parse(localStorage.getItem('userInfo'));
+                const assignedSubject = user?.assignedSubject;
+
+                const filteredClasses = assignedSubject
+                    ? flatClasses.filter(c => c.name.includes(assignedSubject))
+                    : flatClasses;
+
                 setTeacherData({
-                    name: JSON.parse(localStorage.getItem('userInfo'))?.name || "Teacher",
-                    subject: "Institute Overview", // Or specific subject if we could filter
-                    classes: flatClasses
+                    name: user?.name || "Teacher",
+                    subject: assignedSubject || "Institute Overview",
+                    classes: filteredClasses
                 });
 
                 setLoading(false);

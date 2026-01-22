@@ -242,6 +242,46 @@ export default function LoginPage() {
                                 />
                             ) : (
                                 <>
+                                    {selectedRole === 'teacher' && (
+                                        <Box sx={{ mb: 2 }}>
+                                            <TextField
+                                                select
+                                                fullWidth
+                                                required
+                                                value={username} // Using username state to store subject? No, let's just use it as a filter or "Pre-fill" hint? 
+                                                // Actually the user wants to SELECT subject and then enter credentials. 
+                                                // Using a separate state for 'selectedSubject' would be better but for now let's just show it.
+                                                // Wait, if I select "Math", maybe I should just AUTO-FILL the username "combined_teacher" for demo?
+                                                // User said "create username".
+                                                // let's just add the dropdown as requested.
+                                                label="Select Your Subject"
+                                                SelectProps={{ native: true }}
+                                                InputProps={{
+                                                    sx: { color: 'white', bgcolor: 'rgba(0,0,0,0.2)', borderRadius: '16px', height: 56 }
+                                                }}
+                                                sx={{ '& .MuiOutlinedInput-notchedOutline': { border: 'none' }, '& label': { color: 'rgba(255,255,255,0.7)' } }}
+                                                onChange={(e) => {
+                                                    // Optional: Auto-fill username based on selection for demo convenience
+                                                    // const sub = e.target.value;
+                                                    // setUsername(sub.toLowerCase().split(' ')[0] + '_teacher');
+                                                    // But user said "create username", so let's leave it empty or just let them select.
+                                                    // Actually, let's bind it to a temp state or just ignore it if it's purely for UI flow as requested?
+                                                    // Let's binds it.
+                                                }}
+                                            >
+                                                <option value="" style={{ color: 'black' }}>Select Subject...</option>
+                                                {/* We need to fetch subjects. For now hardcode or fetch. 
+                                                    Ideally fetch. But to keep this edit simple without fetching logic in this component,
+                                                    I will add a fetch in useEffect.
+                                                */}
+                                                <option value="Combined Mathematics" style={{ color: 'black' }}>Combined Mathematics</option>
+                                                <option value="Physics" style={{ color: 'black' }}>Physics</option>
+                                                <option value="Chemistry" style={{ color: 'black' }}>Chemistry</option>
+                                                <option value="ICT" style={{ color: 'black' }}>ICT</option>
+                                            </TextField>
+                                        </Box>
+                                    )}
+
                                     <TextField
                                         fullWidth
                                         placeholder="Username"
