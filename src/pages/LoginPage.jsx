@@ -52,6 +52,15 @@ export default function LoginPage() {
     const { t } = useTranslation();
 
     useEffect(() => {
+        // Redirect if already logged in
+        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        if (userInfo) {
+            if (userInfo.role === 'student') window.location.href = '/student-dashboard';
+            else if (userInfo.role === 'teacher') window.location.href = '/teacher-dashboard';
+            // Assuming admin goes to root
+            else window.location.href = '/';
+        }
+
         const fetchSubjects = async () => {
             try {
                 const { data } = await axios.get(`${API_BASE_URL}/api/subjects`);
