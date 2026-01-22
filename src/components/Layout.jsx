@@ -5,6 +5,7 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../assets/logo.jpg';
 import { ColorModeContext } from '../App';
+import { pageVariants, containerStagger, itemFadeUp, tapScale, springFast } from '../utils/animations';
 
 const drawerWidth = 280;
 
@@ -28,29 +29,12 @@ export default function Layout() {
         setMobileOpen(!mobileOpen);
     };
 
-    const sidebarVariants = {
-        hidden: { opacity: 0, x: -20 },
-        visible: {
-            opacity: 1,
-            x: 0,
-            transition: {
-                staggerChildren: 0.1,
-                delayChildren: 0.2
-            }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, x: -20 },
-        visible: { opacity: 1, x: 0 }
-    };
-
     const drawerContent = (
         <Box
             component={motion.div}
             initial="hidden"
             animate="visible"
-            variants={sidebarVariants}
+            variants={containerStagger(0.05)}
             sx={{
                 height: '100%',
                 display: 'flex',
@@ -78,6 +62,7 @@ export default function Layout() {
                 <motion.div
                     whileHover={{ scale: 1.1, rotate: 5 }}
                     whileTap={{ scale: 0.9 }}
+                    transition={springFast}
                 >
                     <Avatar
                         src={logo}
@@ -111,7 +96,7 @@ export default function Layout() {
                     return (
                         <ListItem
                             component={motion.div}
-                            variants={itemVariants}
+                            variants={itemFadeUp}
                             key={item.text}
                             disablePadding
                             sx={{ mb: 1, display: 'block' }}
@@ -119,7 +104,8 @@ export default function Layout() {
                             <Box
                                 component={motion.div}
                                 whileHover={{ scale: 1.02, x: 5 }}
-                                whileTap={{ scale: 0.98 }}
+                                whileTap={tapScale}
+                                transition={springFast}
                                 onClick={() => {
                                     navigate(item.path);
                                     if (isMobile) setMobileOpen(false);
@@ -151,7 +137,7 @@ export default function Layout() {
                                             boxShadow: '0 4px 15px rgba(37, 99, 235, 0.4)',
                                             zIndex: 0
                                         }}
-                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                        transition={springFast}
                                     />
                                 )}
 
@@ -180,9 +166,10 @@ export default function Layout() {
             <Box sx={{ p: 2, position: 'relative', zIndex: 1 }}>
                 <Box
                     component={motion.div}
-                    variants={itemVariants}
+                    variants={itemFadeUp}
                     whileHover={{ scale: 1.02, backgroundColor: 'rgba(239, 68, 68, 0.15)' }}
-                    whileTap={{ scale: 0.98 }}
+                    whileTap={tapScale}
+                    transition={springFast}
                     onClick={() => {
                         localStorage.removeItem('userInfo');
                         navigate('/login');
@@ -298,6 +285,7 @@ export default function Layout() {
                         mb: { xs: 2, md: 4 },
                         width: '100%',
                         zIndex: 1100
+                        // Remove transition property from Sx to prevent conflict with framer motion if we were animating it
                     }}
                 >
                     <Toolbar sx={{ justifyContent: 'space-between' }}>
@@ -339,13 +327,19 @@ export default function Layout() {
                     </Toolbar>
                 </AppBar>
 
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                >
-                    <Outlet />
-                </motion.div>
+                {/* Page Transitions with AnimatePresence */}
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={location.pathname}
+                        variants={pageVariants}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        style={{ width: '100%', flexGrow: 1 }}
+                    >
+                        <Outlet />
+                    </motion.div>
+                </AnimatePresence>
             </Box>
         </Box>
     );

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Grid, Card, CardContent, Typography, CircularProgress, Paper, LinearProgress, Button, Container, alpha, useTheme, Avatar } from '@mui/material';
+import { Box, Grid, CardContent, Typography, CircularProgress, Paper, LinearProgress, Button, Container, alpha, useTheme } from '@mui/material';
 import { MenuBook, Assessment, TrendingUp, PeopleOutline, SupervisedUserCircle, VerifiedUser } from '@mui/icons-material';
 import axios from 'axios';
 import API_BASE_URL from '../config';
@@ -7,30 +7,7 @@ import ReportDialog from '../components/ReportDialog';
 import SubjectDetailsDialog from '../components/SubjectDetailsDialog';
 import TeacherProfilesDialog from '../components/TeacherProfilesDialog';
 import { motion } from 'framer-motion';
-
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.1,
-            delayChildren: 0.2
-        }
-    }
-};
-
-const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-        y: 0,
-        opacity: 1,
-        transition: {
-            type: "spring",
-            stiffness: 100,
-            damping: 10
-        }
-    }
-};
+import { containerStagger, itemFadeUp, hoverScale, tapScale, springFast } from '../utils/animations';
 
 export default function Dashboard() {
     const theme = useTheme();
@@ -81,15 +58,11 @@ export default function Dashboard() {
         );
     }
 
-    const StatCard = ({ title, value, icon, gradient1, gradient2, delay, onClick }) => (
+    const StatCard = ({ title, value, icon, gradient1, gradient2, onClick }) => (
         <Paper
             component={motion.div}
-            whileHover={{
-                y: -10,
-                scale: 1.02,
-                transition: { type: "spring", stiffness: 300, damping: 20 }
-            }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={hoverScale}
+            whileTap={onClick ? tapScale : undefined}
             onClick={onClick}
             sx={{
                 height: 220, // Fixed height
@@ -161,7 +134,7 @@ export default function Dashboard() {
     return (
         <Container maxWidth="xl" sx={{ pb: 8 }}>
             <motion.div
-                variants={containerVariants}
+                variants={containerStagger(0.08)}
                 initial="hidden"
                 animate="visible"
             >
@@ -189,7 +162,8 @@ export default function Dashboard() {
                     <Button
                         component={motion.button}
                         whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileTap={tapScale}
+                        transition={springFast}
                         variant="contained"
                         startIcon={<Assessment />}
                         onClick={() => setReportOpen(true)}
@@ -213,7 +187,7 @@ export default function Dashboard() {
 
                 {/* Main Stats Grid */}
                 <Grid container spacing={3} sx={{ mb: 8 }}>
-                    <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemVariants}>
+                    <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemFadeUp}>
                         <StatCard
                             title="Total Students"
                             value={stats.totalStudents}
@@ -222,7 +196,7 @@ export default function Dashboard() {
                             gradient2="#1d4ed8"
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemVariants}>
+                    <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemFadeUp}>
                         <StatCard
                             title="Total Subjects"
                             value={stats.totalSubjects}
@@ -231,7 +205,7 @@ export default function Dashboard() {
                             gradient2="#047857"
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemVariants}>
+                    <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemFadeUp}>
                         <StatCard
                             title="Expert Teachers"
                             value={6}
@@ -255,13 +229,10 @@ export default function Dashboard() {
 
                 <Grid container spacing={4}>
                     {(stats.subjectStats || []).map((sub) => (
-                        <Grid item xs={12} md={6} lg={4} key={sub.subject} component={motion.div} variants={itemVariants}>
+                        <Grid item xs={12} md={6} lg={4} key={sub.subject} component={motion.div} variants={itemFadeUp}>
                             <Paper
                                 component={motion.div}
-                                whileHover={{
-                                    y: -8,
-                                    transition: { type: "spring", stiffness: 300, damping: 20 }
-                                }}
+                                whileHover={hoverScale}
                                 onClick={() => handleSubjectClick(sub.subject)}
                                 elevation={0}
                                 sx={{
