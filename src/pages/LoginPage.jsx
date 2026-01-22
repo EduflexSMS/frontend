@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Button, TextField, Typography, Paper, Container, CircularProgress, Alert, InputAdornment, IconButton, useTheme, alpha } from '@mui/material';
+import { Box, Button, TextField, Typography, Paper, Container, CircularProgress, Alert, InputAdornment, IconButton, useTheme, alpha, Avatar } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import { Visibility, VisibilityOff, LockOutlined, PersonOutline, School } from '@mui/icons-material';
