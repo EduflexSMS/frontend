@@ -49,8 +49,9 @@ export default function TeacherDashboard() {
                             const studentCount = report.length;
                             const paidCount = report.filter(s => s.feePaid).length;
 
-                            // Estimate collection (Assuming 2000 LKR per student for demo, or we need fee in DB)
-                            const estimatedFee = 2000;
+                            // Corrected Fee Calculation: Using 1000 LKR as base based on user feedback (was 2000)
+                            // Ideally this should be in the database per subject.
+                            const estimatedFee = 1000;
                             const collection = paidCount * estimatedFee;
 
                             totalStudents += studentCount;
@@ -100,6 +101,11 @@ export default function TeacherDashboard() {
         fetchData();
     }, []);
 
+    const handleLogout = () => {
+        localStorage.removeItem('userInfo');
+        window.location.href = '/login';
+    };
+
     if (loading) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
@@ -124,14 +130,22 @@ export default function TeacherDashboard() {
                 animate="visible"
             >
                 {/* Header */}
-                <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar sx={{ width: 64, height: 64, bgcolor: 'primary.main' }}>
-                        {teacherData?.name?.charAt(0)}
-                    </Avatar>
-                    <Box>
-                        <Typography variant="h4" fontWeight="800">{teacherData?.name}</Typography>
-                        <Typography variant="subtitle1" color="text.secondary">{teacherData?.subject}</Typography>
+                <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Avatar sx={{ width: 64, height: 64, bgcolor: 'primary.main' }}>
+                            {teacherData?.name?.charAt(0)}
+                        </Avatar>
+                        <Box>
+                            <Typography variant="h4" fontWeight="800">{teacherData?.name}</Typography>
+                            <Typography variant="subtitle1" color="text.secondary">{teacherData?.subject}</Typography>
+                        </Box>
                     </Box>
+                    <IconButton onClick={handleLogout} sx={{ bgcolor: 'rgba(255,0,0,0.1)', color: 'error.main', '&:hover': { bgcolor: 'rgba(255,0,0,0.2)' } }}>
+                        {/* Need to import Logout icon or use generic */}
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17 7L15.59 8.41L18.17 11H8V13H18.17L15.59 15.58L17 17L22 12L17 7ZM4 5H12V3H4C2.9 3 2 3.9 2 5V19C2 20.1 2.9 21 4 21H12V19H4V5Z" fill="currentColor" />
+                        </svg>
+                    </IconButton>
                 </Box>
 
                 {/* Stats Overview */}
