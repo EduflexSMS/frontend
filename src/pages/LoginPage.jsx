@@ -110,43 +110,62 @@ export default function LoginPage() {
         }
     };
 
-    const RoleCard = ({ role, icon, title, delay }) => (
+    const RoleCard = ({ role, icon, title, subtitle, delay }) => (
         <Paper
             component={motion.div}
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay, type: "spring", stiffness: 100 }}
-            whileHover={{ y: -10, scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{ y: -10, scale: 1.05, boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setSelectedRole(role)}
             sx={{
-                p: 3,
+                p: 4,
                 height: '100%',
+                minHeight: 200,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
                 textAlign: 'center',
-                borderRadius: '24px',
+                borderRadius: '32px',
                 cursor: 'pointer',
-                bgcolor: selectedRole === role ? alpha(theme.palette.primary.main, 0.2) : 'rgba(255,255,255,0.05)',
-                border: '2px solid',
-                borderColor: selectedRole === role ? theme.palette.primary.main : 'rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(10px)',
-                transition: 'all 0.3s ease'
+                bgcolor: selectedRole === role ? alpha(theme.palette.primary.main, 0.2) : 'rgba(255,255,255,0.03)',
+                border: '1px solid',
+                borderColor: selectedRole === role ? theme.palette.primary.main : 'rgba(255,255,255,0.08)',
+                backdropFilter: 'blur(20px)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                transition: 'all 0.3s ease',
+                position: 'relative',
+                overflow: 'hidden'
             }}
         >
+            <Box sx={{
+                position: 'absolute',
+                top: 0, left: 0, right: 0, bottom: 0,
+                background: selectedRole === role
+                    ? `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, transparent 100%)`
+                    : 'transparent',
+                zIndex: 0
+            }} />
+
             <Avatar sx={{
-                width: 70,
-                height: 70,
-                mb: 2,
-                bgcolor: selectedRole === role ? theme.palette.primary.main : 'rgba(255,255,255,0.1)',
-                color: 'white'
+                width: 80,
+                height: 80,
+                mb: 3,
+                bgcolor: selectedRole === role ? theme.palette.primary.main : 'rgba(255,255,255,0.05)',
+                color: 'white',
+                fontSize: '2.5rem',
+                boxShadow: selectedRole === role ? `0 0 20px ${theme.palette.primary.main}` : 'none',
+                zIndex: 1
             }}>
                 {icon}
             </Avatar>
-            <Typography variant="h6" fontWeight="bold" sx={{ color: 'white' }}>
+            <Typography variant="h5" fontWeight="bold" sx={{ color: 'white', mb: 1, zIndex: 1 }}>
                 {title}
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)', zIndex: 1 }}>
+                {subtitle}
             </Typography>
         </Paper>
     );
@@ -157,198 +176,309 @@ export default function LoginPage() {
             display: 'flex',
             position: 'relative',
             overflow: 'hidden',
-            bgcolor: '#0f172a'
+            bgcolor: '#09090b', // Deep rich black
+            color: 'white'
         }}>
-            {/* Background elements same as before */}
+            {/* Animated Background */}
             <Box
                 component={motion.div}
-                animate={{ scale: [1, 1.1, 1] }}
+                animate={{
+                    scale: [1, 1.2, 1],
+                    rotate: [0, 5, -5, 0]
+                }}
+                transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
+                sx={{
+                    position: 'absolute',
+                    top: '-50%',
+                    left: '-50%',
+                    width: '200%',
+                    height: '200%',
+                    backgroundImage: `radial-gradient(circle at center, #1e3a8a 0%, #000000 70%)`,
+                    opacity: 0.4,
+                    zIndex: 0,
+                    filter: 'blur(100px)'
+                }}
+            />
+            <Box
+                component={motion.div}
+                animate={{
+                    x: [0, 100, 0],
+                    y: [0, -50, 0]
+                }}
                 transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
                 sx={{
                     position: 'absolute',
-                    inset: -50,
-                    backgroundImage: `url(${loginBg})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    zIndex: 0
+                    bottom: '-20%',
+                    right: '-20%',
+                    width: '80%',
+                    height: '80%',
+                    backgroundImage: `radial-gradient(circle at center, #7c3aed 0%, transparent 70%)`, // Purple glow
+                    opacity: 0.2,
+                    zIndex: 0,
+                    filter: 'blur(80px)'
                 }}
             />
-            <Box sx={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%)', zIndex: 1 }} />
-            <Box sx={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-                <Particle delay={0} duration={15} x="10%" y="20%" size={150} />
-                <Particle delay={2} duration={20} x="80%" y="10%" size={200} />
-            </Box>
 
-            <Container maxWidth="md" sx={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100vh', py: 4 }}>
+            <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100vh', py: 4 }}>
 
                 {/* Header Logo */}
-                <Box sx={{ textAlign: 'center', mb: 6 }}>
-                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}>
-                        <Avatar src={logo} sx={{ width: 80, height: 80, mx: 'auto', mb: 2, border: '4px solid rgba(255,255,255,0.1)' }} />
+                <Box sx={{ textAlign: 'center', mb: 8 }}>
+                    <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", duration: 1 }}>
+                        <Box sx={{
+                            position: 'relative',
+                            width: 100,
+                            height: 100,
+                            mx: 'auto',
+                            mb: 3,
+                            borderRadius: '50%',
+                            padding: '4px',
+                            background: 'linear-gradient(45deg, #06b6d4, #3b82f6, #8b5cf6)',
+                            boxShadow: '0 0 40px rgba(59, 130, 246, 0.5)'
+                        }}>
+                            <Avatar src={logo} sx={{ width: '100%', height: '100%', border: '4px solid #000' }} />
+                        </Box>
                     </motion.div>
-                    <Typography variant="h3" fontWeight="900" sx={{ background: 'linear-gradient(45deg, #fff, #60a5fa)', backgroundClip: 'text', textFillColor: 'transparent' }}>
+                    <Typography variant="h2" fontWeight="900" sx={{
+                        background: 'linear-gradient(to right, #fff, #94a3b8)',
+                        backgroundClip: 'text',
+                        textFillColor: 'transparent',
+                        letterSpacing: '-0.02em',
+                        mb: 1
+                    }}>
                         EDUFLEX
+                    </Typography>
+                    <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                        Institute Management System
                     </Typography>
                 </Box>
 
-                {!selectedRole ? (
-                    <Grid container spacing={3} justifyContent="center" alignItems="stretch">
-                        <Grid item xs={12} sm={4}>
-                            <RoleCard
-                                role="admin"
-                                title={t('admin_portal')}
-                                icon={<AdminPanelSettings fontSize="large" />}
-                                delay={0.1}
-                            />
-                        </Grid>
-                        <Grid item xs={12} sm={4}>
-                            <RoleCard
-                                role="teacher"
-                                title={t('teacher_portal')}
-                                icon={<SupervisedUserCircle fontSize="large" />}
-                                delay={0.2}
-                            />
-                        </Grid>
-                        <Grid item xs={12} sm={4}>
-                            <RoleCard
-                                role="student"
-                                title={t('student_portal')}
-                                icon={<School fontSize="large" />}
-                                delay={0.3}
-                            />
-                        </Grid>
-                    </Grid>
-                ) : (
-                    <Paper
-                        component={motion.div}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        elevation={24}
-                        sx={{
-                            maxWidth: 450,
-                            mx: 'auto',
-                            width: '100%',
-                            p: 4,
-                            borderRadius: '32px',
-                            backdropFilter: 'blur(16px)',
-                            bgcolor: 'rgba(255, 255, 255, 0.03)',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                        }}
-                    >
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
-                            <Button
-                                onClick={() => setSelectedRole(null)}
-                                sx={{ color: 'rgba(255,255,255,0.5)', minWidth: 'auto', mr: 2 }}
-                            >
-                                ← Back
-                            </Button>
-                            <Typography variant="h5" fontWeight="bold" color="white">
-                                {selectedRole === 'student' ? t('login_as_student') :
-                                    selectedRole === 'teacher' ? t('login_as_teacher') : t('login_as_admin')}
-                            </Typography>
-                        </Box>
-
-                        <form onSubmit={handleLogin}>
-                            {error && <Alert severity="error" variant="filled" sx={{ mb: 3 }}>{error}</Alert>}
-
-                            {selectedRole === 'student' ? (
-                                <TextField
-                                    fullWidth
-                                    placeholder={t('enter_student_id')}
-                                    required
-                                    value={studentId}
-                                    onChange={(e) => setStudentId(e.target.value)}
-                                    InputProps={{
-                                        startAdornment: <InputAdornment position="start"><School sx={{ color: 'rgba(255,255,255,0.5)' }} /></InputAdornment>,
-                                        sx: { color: 'white', bgcolor: 'rgba(0,0,0,0.2)', borderRadius: '16px', height: 56 }
-                                    }}
-                                    sx={{ mb: 4, '& .MuiOutlinedInput-notchedOutline': { border: 'none' } }}
+                <AnimatePresence mode="wait">
+                    {!selectedRole ? (
+                        <Grid container spacing={4} justifyContent="center" key="role-selection">
+                            <Grid item xs={12} md={4}>
+                                <RoleCard
+                                    role="admin"
+                                    title={t('admin_portal')}
+                                    subtitle="Manage institute settings & users"
+                                    icon={<AdminPanelSettings fontSize="inherit" />}
+                                    delay={0.1}
                                 />
-                            ) : (
-                                <>
-                                    {selectedRole === 'teacher' && (
-                                        <Box sx={{ mb: 2 }}>
-                                            <TextField
-                                                select
-                                                fullWidth
-                                                required
-                                                value={selectedSubject}
-                                                // Map subject selection to username auto-fill for better UX if they don't know the handle? 
-                                                // Or just let them select subject as a filter context.
-                                                // User explicitly asked for "Select Subject".
-                                                label="Select Your Subject"
-                                                SelectProps={{ native: true }}
-                                                InputProps={{
-                                                    sx: { color: 'white', bgcolor: 'rgba(0,0,0,0.2)', borderRadius: '16px', height: 56 }
-                                                }}
-                                                sx={{ '& .MuiOutlinedInput-notchedOutline': { border: 'none' }, '& label': { color: 'rgba(255,255,255,0.7)' } }}
-                                                onChange={(e) => setSelectedSubject(e.target.value)}
-                                            >
-                                                <option value="" style={{ color: 'black' }}>Select Subject...</option>
-                                                {subjects.map((sub) => (
-                                                    <option key={sub._id} value={sub.name} style={{ color: 'black' }}>
-                                                        {sub.name}
-                                                    </option>
-                                                ))}
-                                            </TextField>
-                                        </Box>
-                                    )}
-
-                                    <TextField
-                                        fullWidth
-                                        placeholder="Username"
-                                        required
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
-                                        InputProps={{
-                                            startAdornment: <InputAdornment position="start"><PersonOutline sx={{ color: 'rgba(255,255,255,0.5)' }} /></InputAdornment>,
-                                            sx: { color: 'white', bgcolor: 'rgba(0,0,0,0.2)', borderRadius: '16px', height: 56 }
-                                        }}
-                                        sx={{ mb: 2, '& .MuiOutlinedInput-notchedOutline': { border: 'none' } }}
-                                    />
-                                    <TextField
-                                        fullWidth
-                                        placeholder="Password"
-                                        type={showPassword ? 'text' : 'password'}
-                                        required
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        InputProps={{
-                                            startAdornment: <InputAdornment position="start"><LockOutlined sx={{ color: 'rgba(255,255,255,0.5)' }} /></InputAdornment>,
-                                            endAdornment: (
-                                                <IconButton onClick={() => setShowPassword(!showPassword)} sx={{ color: 'rgba(255,255,255,0.4)' }}>
-                                                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                                                </IconButton>
-                                            ),
-                                            sx: { color: 'white', bgcolor: 'rgba(0,0,0,0.2)', borderRadius: '16px', height: 56 }
-                                        }}
-                                        sx={{ mb: 4, '& .MuiOutlinedInput-notchedOutline': { border: 'none' } }}
-                                    />
-                                </>
-                            )}
-
-                            <Button
-                                type="submit"
-                                fullWidth
-                                variant="contained"
-                                disabled={loading}
-                                size="large"
+                            </Grid>
+                            <Grid item xs={12} md={4}>
+                                <RoleCard
+                                    role="teacher"
+                                    title={t('teacher_portal')}
+                                    subtitle="Manage classes, materials & students"
+                                    icon={<SupervisedUserCircle fontSize="inherit" />}
+                                    delay={0.2}
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={4}>
+                                <RoleCard
+                                    role="student"
+                                    title={t('student_portal')}
+                                    subtitle="Access dashboard & learning materials"
+                                    icon={<School fontSize="inherit" />}
+                                    delay={0.3}
+                                />
+                            </Grid>
+                        </Grid>
+                    ) : (
+                        <motion.div
+                            key="login-form"
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            transition={{ type: "spring", duration: 0.5 }}
+                        >
+                            <Paper
+                                elevation={0}
                                 sx={{
-                                    py: 1.5,
-                                    borderRadius: '16px',
-                                    fontSize: '1rem',
-                                    fontWeight: 'bold',
-                                    background: 'linear-gradient(45deg, #2563eb 0%, #7c3aed 100%)'
+                                    maxWidth: 480,
+                                    mx: 'auto',
+                                    p: { xs: 4, sm: 6 },
+                                    borderRadius: '40px',
+                                    bgcolor: 'rgba(255, 255, 255, 0.02)',
+                                    backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%)',
+                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    backdropFilter: 'blur(40px)',
+                                    boxShadow: '0 40px 80px -20px rgba(0,0,0,0.5)'
                                 }}
                             >
-                                {loading ? <CircularProgress size={24} color="inherit" /> : t('sign_in')}
-                            </Button>
-                        </form>
-                    </Paper>
-                )}
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 5 }}>
+                                    <IconButton
+                                        onClick={() => setSelectedRole(null)}
+                                        sx={{
+                                            color: 'rgba(255,255,255,0.6)',
+                                            mr: 2,
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            '&:hover': { bgcolor: 'rgba(255,255,255,0.1)', color: 'white' }
+                                        }}
+                                    >
+                                        <Typography variant="h6" component="span">←</Typography>
+                                    </IconButton>
+                                    <Box>
+                                        <Typography variant="h5" fontWeight="bold" color="white">
+                                            {selectedRole === 'student' ? 'Student Login' :
+                                                selectedRole === 'teacher' ? 'Teacher Login' : 'Admin Access'}
+                                        </Typography>
+                                        <Typography variant="body2" color="rgba(255,255,255,0.5)">
+                                            Please enter your credentials
+                                        </Typography>
+                                    </Box>
+                                </Box>
+
+                                <form onSubmit={handleLogin}>
+                                    {error && (
+                                        <Alert
+                                            severity="error"
+                                            variant="filled"
+                                            sx={{ mb: 3, borderRadius: '12px', bgcolor: alpha(theme.palette.error.main, 0.2), color: '#ff6b6b' }}
+                                        >
+                                            {error}
+                                        </Alert>
+                                    )}
+
+                                    {selectedRole === 'student' ? (
+                                        <Box sx={{ mb: 4 }}>
+                                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', ml: 1, mb: 1, display: 'block', fontWeight: 600 }}>STUDENT ID</Typography>
+                                            <TextField
+                                                fullWidth
+                                                placeholder="e.g. STU-2026-001"
+                                                required
+                                                value={studentId}
+                                                onChange={(e) => setStudentId(e.target.value)}
+                                                InputProps={{
+                                                    startAdornment: <InputAdornment position="start"><School sx={{ color: 'rgba(255,255,255,0.4)' }} /></InputAdornment>,
+                                                    sx: {
+                                                        color: 'white',
+                                                        bgcolor: 'rgba(0,0,0,0.2)',
+                                                        borderRadius: '16px',
+                                                        height: 60,
+                                                        fontSize: '1.1rem',
+                                                        border: '1px solid rgba(255,255,255,0.05)',
+                                                        transition: 'all 0.2s',
+                                                        '&:hover': { bgcolor: 'rgba(0,0,0,0.3)', borderColor: 'rgba(255,255,255,0.1)' },
+                                                        '&.Mui-focused': { borderColor: theme.palette.primary.main, bgcolor: 'rgba(0,0,0,0.4)' }
+                                                    }
+                                                }}
+                                                sx={{ '& .MuiOutlinedInput-notchedOutline': { border: 'none' } }}
+                                            />
+                                        </Box>
+                                    ) : (
+                                        <>
+                                            {selectedRole === 'teacher' && (
+                                                <Box sx={{ mb: 3 }}>
+                                                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', ml: 1, mb: 1, display: 'block', fontWeight: 600 }}>SUBJECT</Typography>
+                                                    <TextField
+                                                        select
+                                                        fullWidth
+                                                        required
+                                                        value={selectedSubject}
+                                                        SelectProps={{ native: true }}
+                                                        InputProps={{
+                                                            sx: {
+                                                                color: 'white',
+                                                                bgcolor: 'rgba(0,0,0,0.2)',
+                                                                borderRadius: '16px',
+                                                                height: 60,
+                                                                border: '1px solid rgba(255,255,255,0.05)'
+                                                            }
+                                                        }}
+                                                        sx={{ '& .MuiOutlinedInput-notchedOutline': { border: 'none' } }}
+                                                        onChange={(e) => setSelectedSubject(e.target.value)}
+                                                    >
+                                                        <option value="" style={{ color: '#000' }}>Select Subject...</option>
+                                                        {subjects.map((sub) => (
+                                                            <option key={sub._id} value={sub.name} style={{ color: '#000' }}>
+                                                                {sub.name}
+                                                            </option>
+                                                        ))}
+                                                    </TextField>
+                                                </Box>
+                                            )}
+
+                                            <Box sx={{ mb: 3 }}>
+                                                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', ml: 1, mb: 1, display: 'block', fontWeight: 600 }}>USERNAME</Typography>
+                                                <TextField
+                                                    fullWidth
+                                                    placeholder="Enter username"
+                                                    required
+                                                    value={username}
+                                                    onChange={(e) => setUsername(e.target.value)}
+                                                    InputProps={{
+                                                        startAdornment: <InputAdornment position="start"><PersonOutline sx={{ color: 'rgba(255,255,255,0.4)' }} /></InputAdornment>,
+                                                        sx: {
+                                                            color: 'white',
+                                                            bgcolor: 'rgba(0,0,0,0.2)',
+                                                            borderRadius: '16px',
+                                                            height: 60,
+                                                            border: '1px solid rgba(255,255,255,0.05)',
+                                                            '&.Mui-focused': { borderColor: theme.palette.primary.main }
+                                                        }
+                                                    }}
+                                                    sx={{ '& .MuiOutlinedInput-notchedOutline': { border: 'none' } }}
+                                                />
+                                            </Box>
+
+                                            <Box sx={{ mb: 5 }}>
+                                                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', ml: 1, mb: 1, display: 'block', fontWeight: 600 }}>PASSWORD</Typography>
+                                                <TextField
+                                                    fullWidth
+                                                    placeholder="••••••••"
+                                                    type={showPassword ? 'text' : 'password'}
+                                                    required
+                                                    value={password}
+                                                    onChange={(e) => setPassword(e.target.value)}
+                                                    InputProps={{
+                                                        startAdornment: <InputAdornment position="start"><LockOutlined sx={{ color: 'rgba(255,255,255,0.4)' }} /></InputAdornment>,
+                                                        endAdornment: (
+                                                            <IconButton onClick={() => setShowPassword(!showPassword)} sx={{ color: 'rgba(255,255,255,0.4)' }}>
+                                                                {showPassword ? <VisibilityOff /> : <Visibility />}
+                                                            </IconButton>
+                                                        ),
+                                                        sx: {
+                                                            color: 'white',
+                                                            bgcolor: 'rgba(0,0,0,0.2)',
+                                                            borderRadius: '16px',
+                                                            height: 60,
+                                                            border: '1px solid rgba(255,255,255,0.05)',
+                                                            '&.Mui-focused': { borderColor: theme.palette.primary.main }
+                                                        }
+                                                    }}
+                                                    sx={{ '& .MuiOutlinedInput-notchedOutline': { border: 'none' } }}
+                                                />
+                                            </Box>
+                                        </>
+                                    )}
+
+                                    <Button
+                                        type="submit"
+                                        fullWidth
+                                        disabled={loading}
+                                        component={motion.button}
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        sx={{
+                                            py: 2,
+                                            borderRadius: '16px',
+                                            fontSize: '1.1rem',
+                                            fontWeight: 'bold',
+                                            color: 'white',
+                                            background: 'linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%)',
+                                            boxShadow: '0 10px 30px rgba(59, 130, 246, 0.4)',
+                                            textTransform: 'none',
+                                            '&:disabled': { opacity: 0.7 }
+                                        }}
+                                    >
+                                        {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
+                                    </Button>
+                                </form>
+                            </Paper>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </Container>
         </Box>
     );
 }
-
-
