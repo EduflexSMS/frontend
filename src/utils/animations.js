@@ -1,83 +1,113 @@
 import { easeInOut } from "framer-motion";
 
-// 1. Fast, Snappy Spring (For hover effects, small interactions)
+// --- Easing Curves ---
+// "Snappy" ease out expo for premium feel
+const EASE_SNAPPY = [0.16, 1, 0.3, 1];
+
+// --- Spring Presets ---
+// 1. Fast, Snappy Spring (Buttons, Hover, Small items)
 export const springFast = {
     type: "spring",
-    stiffness: 400,
-    damping: 25,
+    stiffness: 500, // Increased from 400
+    damping: 30,    // Increased from 25
     mass: 0.5
 };
 
-// 2. Smooth, Elegant Spring (For page transitions, modal entries)
+// 2. Smooth, Elegant Spring (Modals, Large Cards)
 export const springSmooth = {
     type: "spring",
-    stiffness: 250,
-    damping: 25,
+    stiffness: 300,
+    damping: 30,
     mass: 1
 };
 
-// 3. Page Transition Variants
+// --- Variants ---
+
+// 3. Page Transition (Faster, crisper)
 export const pageVariants = {
     initial: {
         opacity: 0,
-        y: 10,
-        scale: 0.98
+        y: 8, // Reduced movement
+        scale: 0.99
     },
     animate: {
         opacity: 1,
         y: 0,
         scale: 1,
         transition: {
-            duration: 0.4,
-            ease: [0.25, 1, 0.5, 1], // Custom cubic bezier for "Apple-like" feel
+            duration: 0.3, // Faster duration
+            ease: EASE_SNAPPY
         }
     },
     exit: {
         opacity: 0,
-        y: -10,
-        filter: 'blur(5px)',
+        y: -8,
+        filter: 'blur(2px)',
         transition: {
-            duration: 0.3,
+            duration: 0.2,
             ease: "easeInOut"
         }
     }
 };
 
-// 4. Stagger Container (For lists, grids)
-export const containerStagger = (staggerDelay = 0.05) => ({
+// 4. Stagger Container (Fast listing)
+export const containerStagger = (staggerDelay = 0.03) => ({
     hidden: { opacity: 0 },
     visible: {
         opacity: 1,
         transition: {
             staggerChildren: staggerDelay,
-            delayChildren: 0.1
+            delayChildren: 0.05
         }
     }
 });
 
-// 5. Item Fade Up (Standard element entry)
+// 5. Item Fade Up (Standard list item)
 export const itemFadeUp = {
-    hidden: { opacity: 0, y: 15 },
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: {
+            duration: 0.3,
+            ease: EASE_SNAPPY
+        }
+    }
+};
+
+// 6. Simple Fade In (Text, details)
+export const fadeIn = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { duration: 0.2, ease: "easeOut" }
+    }
+};
+
+// 7. Slide Up (Cards, Sections)
+export const slideUp = {
+    hidden: { opacity: 0, y: 20 },
     visible: {
         opacity: 1,
         y: 0,
         transition: {
             type: "spring",
-            stiffness: 300,
-            damping: 24
+            stiffness: 400,
+            damping: 30
         }
     }
 };
 
-// 6. Hover Scale (Standard card hover)
+// 8. Hover Scale (Cards)
 export const hoverScale = {
-    scale: 1.03,
-    y: -4,
-    transition: springFast
+    scale: 1.02,
+    y: -2,
+    transition: { duration: 0.2, ease: "easeOut" } // Non-spring hover can feel snappier
 };
 
-// 7. Tap Feedback
+// 9. Tap Feedback
 export const tapScale = {
-    scale: 0.96,
-    transition: { duration: 0.1 }
+    scale: 0.97,
+    transition: { duration: 0.05 }
 };
+
