@@ -48,18 +48,23 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isCheckingAuth, setIsCheckingAuth] = useState(true); // Prevent flash
     const theme = useTheme();
     const { t } = useTranslation();
 
     useEffect(() => {
-        // Redirect if already logged in
-        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-        if (userInfo) {
-            if (userInfo.role === 'student') window.location.href = '/student-dashboard';
-            else if (userInfo.role === 'teacher') window.location.href = '/teacher-dashboard';
-            // Assuming admin goes to root
-            else window.location.href = '/';
-        }
+        const checkAuth = () => {
+            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+            if (userInfo) {
+                if (userInfo.role === 'student') window.location.href = '/student-dashboard';
+                else if (userInfo.role === 'teacher') window.location.href = '/teacher-dashboard';
+                else if (userInfo.role === 'admin') window.location.href = '/';
+                else setIsCheckingAuth(false); // Valid user but unknown role? Should log out, but for now show login
+            } else {
+                setIsCheckingAuth(false);
+            }
+        };
+        checkAuth();
 
         const fetchSubjects = async () => {
             try {
@@ -78,25 +83,32 @@ export default function LoginPage() {
         setError('');
 
         try {
-            // Mock Login Logic for Prototype
             let userData = null;
             let redirectUrl = '/';
 
+            // 1. Prepare Login Data
+            const loginData = { username, password, role: selectedRole }; // Send role to backend
+
             if (selectedRole === 'student') {
                 if (!studentId) throw new Error("Student ID is required");
+                // Mock student login for now or use API if available
                 userData = { role: 'student', id: studentId, name: "Student User" };
                 redirectUrl = '/student-dashboard';
             } else {
                 if (!username || !password) throw new Error("Username and password required");
-                // In a real app, call API here
-                const { data } = await axios.post(`${API_BASE_URL}/api/auth/login`, { username, password });
+
+                // 2. Call Backend API
+                const { data } = await axios.post(`${API_BASE_URL}/api/auth/login`, loginData);
                 userData = data;
 
+                // 3. Strict Client-Side Role Verification (Double Check)
+                if (userData.role !== selectedRole) {
+                    throw new Error(`Access Denied: You cannot login as ${selectedRole} with a ${userData.role} account.`);
+                }
+
                 if (selectedRole === 'teacher') {
-                    // Check if selected subject matches assigned subject (optional security check or just context)
-                    // if (userData.assignedSubject && !username.includes(userData.assignedSubject)) ...
                     redirectUrl = '/teacher-dashboard';
-                } else {
+                } else if (selectedRole === 'admin') {
                     redirectUrl = '/';
                 }
             }
@@ -109,6 +121,15 @@ export default function LoginPage() {
             setLoading(false);
         }
     };
+
+    // Show full screen loader while checking auth to prevent flash
+    if (isCheckingAuth) {
+        return (
+            <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#09090b' }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
 
     const RoleCard = ({ role, icon, title, subtitle, delay }) => (
         <Paper
