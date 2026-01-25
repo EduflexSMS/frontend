@@ -5,7 +5,8 @@ import axios from 'axios';
 import API_BASE_URL from '../config';
 import ReportDialog from '../components/ReportDialog';
 import SubjectDetailsDialog from '../components/SubjectDetailsDialog';
-import TeacherProfilesDialog from '../components/TeacherProfilesDialog';
+import CreateTeacherDialog from '../components/CreateTeacherDialog';
+import TeacherListDialog from '../components/TeacherListDialog';
 import { motion } from 'framer-motion';
 import { containerStagger, itemFadeUp, hoverScale, tapScale, springFast } from '../utils/animations';
 import { useTranslation } from 'react-i18next';
@@ -17,7 +18,8 @@ export default function Dashboard() {
     // State for dialogs
     const [reportOpen, setReportOpen] = useState(false);
     const [detailsOpen, setDetailsOpen] = useState(false);
-    const [teachersOpen, setTeachersOpen] = useState(false);
+    const [createTeacherOpen, setCreateTeacherOpen] = useState(false);
+    const [teacherListOpen, setTeacherListOpen] = useState(false);
     const [selectedSubject, setSelectedSubject] = useState(null);
     const { t } = useTranslation();
 
@@ -209,12 +211,22 @@ export default function Dashboard() {
                     </Grid>
                     <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemFadeUp}>
                         <StatCard
-                            title={t('expert_teachers')}
-                            value={6}
+                            title="Create Teacher Account"
+                            value="+"
                             icon={<SupervisedUserCircle />}
                             gradient1="#8b5cf6"
                             gradient2="#6d28d9"
-                            onClick={() => setTeachersOpen(true)}
+                            onClick={() => setCreateTeacherOpen(true)}
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemFadeUp}>
+                        <StatCard
+                            title="Teachers Profile"
+                            value={stats.teacherCount || "-"} // Try to use a stat if available, else placeholder
+                            icon={<PeopleOutline />}
+                            gradient1="#f43f5e"
+                            gradient2="#e11d48"
+                            onClick={() => setTeacherListOpen(true)}
                         />
                     </Grid>
                 </Grid>
@@ -338,9 +350,13 @@ export default function Dashboard() {
                 onClose={() => setDetailsOpen(false)}
                 subjectName={selectedSubject}
             />
-            <TeacherProfilesDialog
-                open={teachersOpen}
-                onClose={() => setTeachersOpen(false)}
+            <CreateTeacherDialog
+                open={createTeacherOpen}
+                onClose={() => setCreateTeacherOpen(false)}
+            />
+            <TeacherListDialog
+                open={teacherListOpen}
+                onClose={() => setTeacherListOpen(false)}
             />
         </Container>
     );
