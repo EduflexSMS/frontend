@@ -41,6 +41,7 @@ import {
 } from '@mui/icons-material';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import html2canvas from 'html2canvas';
 import API_BASE_URL from '../config';
 import { motion, AnimatePresence } from 'framer-motion';
 
