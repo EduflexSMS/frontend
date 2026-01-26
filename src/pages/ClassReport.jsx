@@ -190,6 +190,26 @@ export default function ClassReport() {
         doc.save(`Eduflex_Report_${grade}_${subject}_${monthName}.pdf`);
     };
 
+    const handleDownloadPNG = async () => {
+        const element = document.getElementById('report-container');
+        if (!element) return;
+
+        try {
+            const canvas = await html2canvas(element, {
+                scale: 2, // Higher quality
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            });
+
+            const link = document.createElement('a');
+            link.download = `Eduflex_Report_${grade}_${subject}_${month}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        } catch (err) {
+            console.error("Failed to generate PNG", err);
+        }
+    };
+
     const ReportCard = ({ row }) => {
         const attendanceCount = countAttendance(row.attendance);
         const maxDays = 5;
@@ -290,6 +310,7 @@ export default function ClassReport() {
 
     return (
         <MotionContainer
+            id="report-container"
             maxWidth="lg"
             initial="hidden"
             animate="visible"
@@ -338,7 +359,23 @@ export default function ClassReport() {
                 </Box>
 
                 {reportData && reportData.length > 0 && (
-                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} style={{ display: 'flex', gap: '10px' }}>
+                        <Button
+                            variant="contained"
+                            onClick={handleDownloadPNG}
+                            startIcon={<Download />} // Using same icon for now, or could use Image icon
+                            sx={{
+                                borderRadius: 3,
+                                textTransform: 'none',
+                                fontWeight: 700,
+                                px: 3,
+                                py: 1,
+                                boxShadow: '0 4px 14px 0 rgba(234, 88, 12, 0.3)',
+                                background: 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)' // Orange-ish for PNG
+                            }}
+                        >
+                            Export PNG
+                        </Button>
                         <Button
                             variant="contained"
                             color="success"
