@@ -36,10 +36,16 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
 
             autoTable(doc, {
                 startY: 50,
-                head: [['Grade', 'Total Students', `Paid (${months[selectedMonth]})`]],
-                body: details.map(row => [row.grade, row.totalStudents, row.paidStudents]),
+                head: [['Grade', 'Total Students', `Paid Count (${months[selectedMonth]})`, 'Collected Amount']],
+                body: details.map(row => [
+                    row.grade,
+                    row.totalStudents,
+                    row.paidStudents,
+                    `LKR ${(row.paidStudents * subjectFee).toLocaleString()}`
+                ]),
                 theme: 'striped',
-                headStyles: { fillColor: [66, 133, 244] }
+                headStyles: { fillColor: [66, 133, 244] },
+                columnStyles: { 3: { halign: 'right' } }
             });
             doc.save(`${subjectName}_Report.pdf`);
         } catch (err) {
@@ -106,7 +112,7 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
             <DialogContent dividers>
                 <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Typography variant="subtitle1">Fee: <strong>{editingFee ? '' : subjectFee}</strong></Typography>
+                        <Typography variant="subtitle1">Fee: <strong>{editingFee ? '' : `LKR ${subjectFee.toLocaleString()}`}</strong></Typography>
                         {editingFee ? (
                             <Box sx={{ display: 'flex', gap: 1 }}>
                                 <input
@@ -151,7 +157,8 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                                 <TableRow sx={{ bgcolor: 'action.hover' }}>
                                     <TableCell sx={{ fontWeight: 'bold' }}>Grade</TableCell>
                                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>Total Students</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Paid ({months[selectedMonth]})</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Paid Count ({months[selectedMonth]})</TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>Collected Amount</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -168,6 +175,9 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                                                 color={row.paidStudents > 0 ? "success" : "default"}
                                                 variant={row.paidStudents > 0 ? "filled" : "outlined"}
                                             />
+                                        </TableCell>
+                                        <TableCell align="right" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                                            LKR {(row.paidStudents * subjectFee).toLocaleString()}
                                         </TableCell>
                                     </TableRow>
                                 ))}
