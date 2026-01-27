@@ -70,6 +70,21 @@ const TeacherPaymentDialog = ({ open, onClose, teacherId, teacherName }) => {
         }
     };
 
+    const handleFixData = async () => {
+        if (!window.confirm("This will recalculate all payment records and correct fee discrepancies. Continue?")) return;
+        setLoading(true);
+        try {
+            const res = await axios.post(`${API_BASE_URL}/api/payments/fix-fees`);
+            alert(res.data.message + "\n" + (res.data.changes.join("\n") || "No changes needed."));
+            fetchStats();
+        } catch (err) {
+            console.error(err);
+            alert("Error fixing data: " + (err.response?.data?.message || err.message));
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
             <DialogTitle>Teacher Payment: {teacherName}</DialogTitle>
@@ -144,6 +159,9 @@ const TeacherPaymentDialog = ({ open, onClose, teacherId, teacherName }) => {
                 )}
             </DialogContent>
             <DialogActions>
+                <Button onClick={handleFixData} color="warning" size="small" sx={{ mr: 'auto' }}>
+                    Fix Data
+                </Button>
                 <Button onClick={onClose}>Close</Button>
                 <Button
                     onClick={handleSubmit}
