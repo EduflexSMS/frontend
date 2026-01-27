@@ -14,6 +14,9 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
     const [details, setDetails] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [subjectFee, setSubjectFee] = useState(0);
+    const [editingFee, setEditingFee] = useState(false);
+    const [newFee, setNewFee] = useState(0);
 
     const months = [
         "January", "February", "March", "April", "May", "June",
@@ -23,28 +26,21 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
     const handleDownloadPDF = () => {
         try {
             const doc = new jsPDF();
-
-            // Title
             doc.setFontSize(18);
             doc.text(`${subjectName} - Grade Breakdown`, 14, 20);
-
-            // Month text
             doc.setFontSize(12);
             doc.text(`Month: ${months[selectedMonth]}`, 14, 28);
-
-            // Date
+            doc.text(`Fee: ${subjectFee}`, 14, 34);
             doc.setFontSize(10);
-            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 34);
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 40);
 
-            // Table
             autoTable(doc, {
-                startY: 40,
+                startY: 50,
                 head: [['Grade', 'Total Students', `Paid (${months[selectedMonth]})`]],
                 body: details.map(row => [row.grade, row.totalStudents, row.paidStudents]),
                 theme: 'striped',
-                headStyles: { fillColor: [66, 133, 244] } // Google Blue
+                headStyles: { fillColor: [66, 133, 244] }
             });
-
             doc.save(`${subjectName}_Report.pdf`);
         } catch (err) {
             console.error("PDF Generation Error:", err);
@@ -54,24 +50,53 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
 
     useEffect(() => {
         if (open && subjectName) {
-            const fetchDetails = async () => {
-                setLoading(true);
-                setError(null);
-                try {
-                    const response = await axios.get(`${API_BASE_URL}/api/dashboard/subject/${encodeURIComponent(subjectName)}`, {
-                        params: { month: selectedMonth }
-                    });
-                    setDetails(response.data);
-                } catch (err) {
-                    console.error("Error fetching subject details:", err);
-                    setError("Failed to load details");
-                } finally {
-                    setLoading(false);
-                }
-            };
             fetchDetails();
+            fetchSubjectInfo();
         }
     }, [open, subjectName, selectedMonth]);
+
+    const fetchDetails = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await axios.get(`${API_BASE_URL}/api/dashboard/subject/${encodeURIComponent(subjectName)}`, {
+                params: { month: selectedMonth }
+            });
+            setDetails(response.data);
+        } catch (err) {
+            console.error("Error fetching subject details:", err);
+            setError("Failed to load details");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchSubjectInfo = async () => {
+        try {
+            // Need a way to get subject info specifically (fee). 
+            // The existing getAllSubjects returns all, maybe we can filter or use a new endpoint.
+            // For now, let's fetch all and find ours. Not efficient but works for now.
+            const { data } = await axios.get(`${API_BASE_URL}/api/subjects`);
+            const sub = data.find(s => s.name === subjectName);
+            if (sub) {
+                setSubjectFee(sub.fee || 0);
+                setNewFee(sub.fee || 0);
+            }
+        } catch (err) {
+            console.error("Error fetching subject info", err);
+        }
+    }
+
+    const handleSaveFee = async () => {
+        try {
+            await axios.put(`${API_BASE_URL}/api/subjects/${encodeURIComponent(subjectName)}`, { fee: newFee });
+            setSubjectFee(newFee);
+            setEditingFee(false);
+        } catch (err) {
+            console.error("Error updating fee", err);
+            alert("Failed to update fee");
+        }
+    };
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -79,7 +104,25 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                 {subjectName} - Grade Breakdown
             </DialogTitle>
             <DialogContent dividers>
-                <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Typography variant="subtitle1">Fee: <strong>{editingFee ? '' : subjectFee}</strong></Typography>
+                        {editingFee ? (
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                <input
+                                    type="number"
+                                    value={newFee}
+                                    onChange={(e) => setNewFee(e.target.value)}
+                                    style={{ width: '80px', padding: '5px' }}
+                                />
+                                <Button size="small" variant="contained" onClick={handleSaveFee}>Save</Button>
+                                <Button size="small" onClick={() => setEditingFee(false)}>Cancel</Button>
+                            </Box>
+                        ) : (
+                            <Button size="small" onClick={() => setEditingFee(true)}>Edit Fee</Button>
+                        )}
+                    </Box>
+
                     <FormControl size="small" sx={{ minWidth: 120 }}>
                         <InputLabel>Month</InputLabel>
                         <Select
