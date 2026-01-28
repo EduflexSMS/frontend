@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp, Edit, Phone, Delete } from '@mui/icons-material';
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
+import API_BASE_URL from '../config';
 import SubjectGrid from './SubjectGrid';
 import EditStudentDialog from '../components/EditStudentDialog';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -201,7 +202,7 @@ export default function StudentTable({ students, onUpdate, subjectColorMap }) {
         if (!studentToDelete) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/students/${studentToDelete._id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/students/${studentToDelete._id}`, {
                 method: 'DELETE',
             });
 
