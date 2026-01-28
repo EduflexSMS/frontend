@@ -3,12 +3,13 @@ import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Collapse, Box, Typography,
     useTheme, useMediaQuery, Card, CardContent, Button, Grid, Chip, Avatar
 } from '@mui/material';
-import { KeyboardArrowDown, KeyboardArrowUp, Edit, Phone } from '@mui/icons-material';
+import { KeyboardArrowDown, KeyboardArrowUp, Edit, Phone, Delete } from '@mui/icons-material';
+import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import SubjectGrid from './SubjectGrid';
 import EditStudentDialog from '../components/EditStudentDialog';
 import { motion, AnimatePresence } from 'framer-motion';
 
-function Row({ row, onUpdate, onEdit, subjectColorMap, index }) {
+function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
     const [open, setOpen] = useState(false);
 
     return (
@@ -70,6 +71,13 @@ function Row({ row, onUpdate, onEdit, subjectColorMap, index }) {
                     >
                         <Edit fontSize="small" />
                     </IconButton>
+                    <IconButton
+                        onClick={() => onDelete(row)}
+                        color="error"
+                        sx={{ ml: 1, bgcolor: 'rgba(239, 68, 68, 0.1)', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } }}
+                    >
+                        <Delete fontSize="small" />
+                    </IconButton>
                 </TableCell>
             </TableRow>
             <TableRow>
@@ -96,7 +104,7 @@ function Row({ row, onUpdate, onEdit, subjectColorMap, index }) {
     );
 }
 
-function StudentCard({ row, onUpdate, onEdit, subjectColorMap, index }) {
+function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
     const [expanded, setExpanded] = useState(false);
 
     return (
@@ -121,6 +129,9 @@ function StudentCard({ row, onUpdate, onEdit, subjectColorMap, index }) {
                     </Box>
                     <IconButton onClick={() => onEdit(row)} size="small" sx={{ bgcolor: 'rgba(37, 99, 235, 0.1)', color: 'primary.main' }}>
                         <Edit fontSize="small" />
+                    </IconButton>
+                    <IconButton onClick={() => onDelete(row)} size="small" sx={{ ml: 1, bgcolor: 'rgba(239, 68, 68, 0.1)', color: 'error.main' }}>
+                        <Delete fontSize="small" />
                     </IconButton>
                 </Box>
 
@@ -176,8 +187,37 @@ function StudentCard({ row, onUpdate, onEdit, subjectColorMap, index }) {
 
 export default function StudentTable({ students, onUpdate, subjectColorMap }) {
     const [editingStudent, setEditingStudent] = useState(null);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [studentToDelete, setStudentToDelete] = useState(null);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+    const handleDeleteClick = (student) => {
+        setStudentToDelete(student);
+        setDeleteConfirmOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!studentToDelete) return;
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/students/${studentToDelete._id}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                onUpdate(); // Refresh the list
+                setDeleteConfirmOpen(false);
+                setStudentToDelete(null);
+            } else {
+                console.error("Failed to delete student");
+                alert("Failed to delete student");
+            }
+        } catch (error) {
+            console.error("Error deleting student:", error);
+            alert("Error deleting student");
+        }
+    };
 
     return (
         <>
@@ -190,6 +230,7 @@ export default function StudentTable({ students, onUpdate, subjectColorMap }) {
                                 row={student}
                                 onUpdate={onUpdate}
                                 onEdit={setEditingStudent}
+                                onDelete={handleDeleteClick}
                                 subjectColorMap={subjectColorMap}
                                 index={index}
                             />
@@ -227,6 +268,7 @@ export default function StudentTable({ students, onUpdate, subjectColorMap }) {
                                     row={student}
                                     onUpdate={onUpdate}
                                     onEdit={setEditingStudent}
+                                    onDelete={handleDeleteClick}
                                     subjectColorMap={subjectColorMap}
                                     index={index}
                                 />
@@ -244,6 +286,24 @@ export default function StudentTable({ students, onUpdate, subjectColorMap }) {
                     onUpdate={onUpdate}
                 />
             )}
+
+            <Dialog
+                open={deleteConfirmOpen}
+                onClose={() => setDeleteConfirmOpen(false)}
+            >
+                <DialogTitle>Confirm Delete</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to delete {studentToDelete?.name}? This action cannot be undone.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
+                    <Button onClick={handleConfirmDelete} color="error" autoFocus>
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </>
     );
 }
