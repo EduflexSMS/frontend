@@ -28,6 +28,19 @@ export default function Dashboard() {
         setDetailsOpen(true);
     };
 
+    const handleFixData = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.post(`${API_BASE_URL}/api/payments/fix-fees`);
+            alert(response.data.message || "Data fixed successfully");
+            window.location.reload();
+        } catch (error) {
+            console.error("Error fixing data:", error);
+            alert("Failed to fix data");
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         const fetchStats = async () => {
             try {
@@ -186,6 +199,13 @@ export default function Dashboard() {
                         }}
                     >
                         {t('generate_report')}
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        onClick={handleFixData}
+                        sx={{ ml: 2, borderRadius: '16px', fontWeight: 700 }}
+                    >
+                        Fix Data
                     </Button>
                 </Box>
 
