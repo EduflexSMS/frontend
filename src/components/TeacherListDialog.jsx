@@ -88,6 +88,7 @@ export default function TeacherListDialog({ open, onClose }) {
                     ) : (
                         <Grid container spacing={3}>
                             {teachers.map((teacher, index) => (
+                                // Enforcing strict 3-column grid (lg=4) to prevent layout imbalance
                                 <Grid item xs={12} sm={6} md={4} lg={4} xl={4} key={teacher._id || index}>
                                     <Paper
                                         elevation={0}
