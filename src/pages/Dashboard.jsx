@@ -89,77 +89,62 @@ export default function Dashboard() {
             sx={{
                 height: 180,
                 width: '100%',
-                borderRadius: '16px', // Sharper corners
+                borderRadius: '16px',
                 position: 'relative',
                 overflow: 'hidden',
                 cursor: onClick ? 'pointer' : 'default',
-                background: alpha(theme.palette.background.paper, 0.6),
-                backdropFilter: 'blur(12px)',
+                background: alpha(theme.palette.background.paper, 0.3),
+                backdropFilter: 'blur(40px)',
                 border: '1px solid',
                 borderColor: 'rgba(255, 255, 255, 0.08)',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.1)',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
                 p: 3,
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)' // EASE_SNAPPY
             }}
             elevation={0}
         >
-            {/* Tech Accent Bar on Left */}
-            <Box sx={{
-                position: 'absolute',
-                left: 0, top: '15%', bottom: '15%',
-                width: '4px',
-                borderRadius: '0 4px 4px 0',
-                background: accentColor || theme.palette.primary.main,
-                boxShadow: `0 0 10px ${accentColor || theme.palette.primary.main}`
-            }} />
-
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, pl: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
                 <Box sx={{
                     p: 1.5,
                     borderRadius: '12px',
-                    bgcolor: alpha(accentColor || theme.palette.primary.main, 0.1),
-                    color: accentColor || theme.palette.primary.main,
-                    border: '1px solid',
-                    borderColor: alpha(accentColor || theme.palette.primary.main, 0.2),
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    color: accentColor || theme.palette.primary.main,
+                    bgcolor: alpha(accentColor || theme.palette.primary.main, 0.1)
                 }}>
                     {React.cloneElement(icon, { fontSize: 'medium' })}
                 </Box>
-                {/* Tech Background Icon */}
+
+                {/* Minimal Glow Dot */}
                 <Box sx={{
-                    position: 'absolute',
-                    right: -20,
-                    bottom: -30,
-                    opacity: 0.03, // Very subtle
-                    color: 'text.primary',
-                    transform: 'rotate(-10deg) scale(1.5)'
-                }}>
-                    {React.cloneElement(icon, { sx: { fontSize: 120 } })}
-                </Box>
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    bgcolor: accentColor || theme.palette.primary.main,
+                    boxShadow: `0 0 10px ${accentColor || theme.palette.primary.main}`
+                }} />
             </Box>
 
-            <Box sx={{ pl: 2 }}>
+            <Box sx={{ pl: 1 }}>
                 <Typography variant="h3" sx={{
                     fontWeight: 800,
                     color: 'text.primary',
                     letterSpacing: '-0.02em',
                     mb: 0.5,
-                    fontFamily: "'Roboto', sans-serif"
+                    fontFamily: "'Inter', sans-serif"
                 }}>
                     {value}
                 </Typography>
                 <Typography variant="body2" sx={{
                     color: 'text.secondary',
                     fontWeight: 600,
-                    letterSpacing: '0.05em',
+                    fontSize: '0.75rem',
                     textTransform: 'uppercase',
-                    fontSize: '0.7rem',
-                    opacity: 0.8
+                    letterSpacing: '0.05em'
                 }}>
                     {title}
                 </Typography>

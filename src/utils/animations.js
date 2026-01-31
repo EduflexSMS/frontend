@@ -8,9 +8,9 @@ const EASE_SNAPPY = [0.16, 1, 0.3, 1];
 // 1. Fast, Snappy Spring (Buttons, Hover, Small items)
 export const springFast = {
     type: "spring",
-    stiffness: 500, // Increased from 400
-    damping: 30,    // Increased from 25
-    mass: 0.5
+    stiffness: 600, // Hyper-fast
+    damping: 25,
+    mass: 0.4
 };
 
 // 2. Smooth, Elegant Spring (Modals, Large Cards)
@@ -35,7 +35,7 @@ export const pageVariants = {
         y: 0,
         scale: 1,
         transition: {
-            duration: 0.3, // Faster duration
+            duration: 0.2, // Hyper-Speed
             ease: EASE_SNAPPY
         }
     },
@@ -102,7 +102,7 @@ export const slideUp = {
 export const hoverScale = {
     scale: 1.02,
     y: -2,
-    transition: { duration: 0.2, ease: "easeOut" } // Non-spring hover can feel snappier
+    transition: { duration: 0.15, ease: "easeOut" } // Instant feeling
 };
 
 // 9. Tap Feedback

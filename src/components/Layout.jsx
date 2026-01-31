@@ -230,13 +230,13 @@ export default function Layout() {
                         sx: {
                             boxSizing: 'border-box',
                             width: drawerWidth,
-                            background: theme.palette.mode === 'dark' ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.4)',
+                            background: theme.palette.mode === 'dark' ? alpha('#0f172a', 0.4) : alpha('#ffffff', 0.5),
                             borderRight: '1px solid',
                             border: 'none',
-                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.2)',
-                            backdropFilter: 'blur(16px)',
+                            borderColor: 'rgba(255,255,255,0.08)',
+                            backdropFilter: 'blur(40px)', // Crystal Blur
                             height: '100vh',
-                            boxShadow: 'none', // Flat glass look
+                            boxShadow: 'none',
                             overflow: 'hidden'
                         }
                     }}
@@ -284,10 +284,10 @@ export default function Layout() {
                     elevation={0}
                     sx={{
                         borderRadius: { md: '20px' },
-                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-                        backdropFilter: 'blur(12px)',
+                        bgcolor: theme.palette.mode === 'dark' ? alpha('#0f172a', 0.6) : alpha('#ffffff', 0.7),
+                        backdropFilter: 'blur(24px)',
                         border: '1px solid',
-                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)',
+                        borderColor: 'rgba(255,255,255,0.08)',
                         color: 'text.primary',
                         top: { xs: 0, md: 16 }, // Add spacing from top on desktop
                         mb: { xs: 2, md: 4 },
