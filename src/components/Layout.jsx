@@ -216,8 +216,7 @@ export default function Layout() {
                 sx={{
                     width: { md: drawerWidth },
                     flexShrink: { md: 0 },
-                    display: { xs: 'none', md: 'block' },
-                    p: 2 // Outer padding for float effect
+                    display: { xs: 'none', md: 'block' }
                 }}
             >
                 <Drawer
@@ -226,16 +225,15 @@ export default function Layout() {
                     PaperProps={{
                         sx: {
                             boxSizing: 'border-box',
-                            width: drawerWidth - 32, // Adjust width to account for padding
-                            background: theme.palette.mode === 'dark' ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
-                            border: '1px solid',
-                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)',
-                            backdropFilter: 'blur(20px)',
-                            borderRadius: '24px',
-                            margin: '16px 0 16px 16px', // Floating margin (top, right, bottom, left)
-                            height: 'calc(100vh - 32px)',
-                            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
-                            overflow: 'hidden' // Clean rounded corners
+                            width: drawerWidth,
+                            background: theme.palette.mode === 'dark' ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.4)',
+                            borderRight: '1px solid',
+                            border: 'none',
+                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.2)',
+                            backdropFilter: 'blur(16px)',
+                            height: '100vh',
+                            boxShadow: 'none', // Flat glass look
+                            overflow: 'hidden'
                         }
                     }}
                 >

@@ -75,90 +75,93 @@ export default function Dashboard() {
         );
     }
 
-    const StatCard = ({ title, value, icon, gradient1, gradient2, onClick }) => (
+    const StatCard = ({ title, value, icon, onClick, accentColor }) => (
         <Paper
             component={motion.div}
             whileHover={{
-                scale: 1.05,
-                rotateX: 5,
-                rotateY: 5,
-                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
+                scale: 1.02,
+                translateY: -5,
+                boxShadow: `0 20px 40px -5px ${alpha(accentColor || theme.palette.primary.main, 0.3)}`
             }}
             whileTap={onClick ? tapScale : undefined}
             onClick={onClick}
             sx={{
-                height: 220, // Fixed height
+                height: 200,
                 width: '100%',
-                borderRadius: '32px',
+                borderRadius: '24px',
                 position: 'relative',
                 overflow: 'hidden',
                 cursor: onClick ? 'pointer' : 'default',
-                background: `linear-gradient(135deg, ${gradient1} 0%, ${gradient2} 100%)`,
-                boxShadow: '0 20px 40px -10px rgba(0,0,0,0.15)',
+                background: theme.palette.mode === 'dark'
+                    ? 'rgba(30, 41, 59, 0.4)'
+                    : 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid',
+                borderColor: theme.palette.mode === 'dark'
+                    ? 'rgba(255, 255, 255, 0.1)'
+                    : 'rgba(255, 255, 255, 0.4)',
+                boxShadow: theme.palette.mode === 'dark'
+                    ? '0 8px 32px 0 rgba(0, 0, 0, 0.2)'
+                    : '0 8px 32px 0 rgba(31, 38, 135, 0.05)',
                 display: 'flex',
-                alignItems: 'center',
+                flexDirection: 'column',
                 justifyContent: 'center',
-                color: 'white',
-                transformStyle: 'preserve-3d', // Enable 3D transform
-                perspective: '1000px'
+                p: 3,
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
             }}
             elevation={0}
         >
-            {/* Decorative Circles */}
-            <Box
-                component={motion.div}
-                animate={{ rotate: 360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                sx={{
-                    position: 'absolute',
-                    top: -50,
-                    right: -50,
-                    width: 200,
-                    height: 200,
-                    borderRadius: '40%', // Squircle orbit
-                    border: '2px dashed rgba(255,255,255,0.1)',
-                    zIndex: 0
-                }}
-            />
-
+            {/* Subtle Glow at top */}
             <Box sx={{
                 position: 'absolute',
-                bottom: -40,
-                left: -40,
-                width: 180,
-                height: 180,
-                borderRadius: '50%',
-                background: 'rgba(255,255,255,0.08)',
-                zIndex: 0,
-                filter: 'blur(20px)'
+                top: 0, left: 0, right: 0,
+                height: '4px',
+                background: `linear-gradient(90deg, transparent, ${accentColor || theme.palette.primary.main}, transparent)`,
+                opacity: 0.8
             }} />
 
-            <CardContent sx={{ position: 'relative', zIndex: 1, width: '100%', p: 4, transform: 'translateZ(20px)' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <Box>
-                        <Box sx={{
-                            p: 1.5,
-                            bgcolor: 'rgba(255,255,255,0.2)',
-                            backdropFilter: 'blur(10px)',
-                            borderRadius: '16px',
-                            display: 'inline-flex',
-                            mb: 2,
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                        }}>
-                            {React.cloneElement(icon, { sx: { fontSize: 32, color: 'white' } })}
-                        </Box>
-                        <Typography variant="h6" sx={{ opacity: 0.9, fontWeight: 600, fontSize: '1.1rem', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                            {title}
-                        </Typography>
-                        <Typography variant="h2" sx={{ fontWeight: 800, mt: 1, letterSpacing: '-0.02em', fontSize: '3.5rem', textShadow: '0 4px 8px rgba(0,0,0,0.2)' }}>
-                            {value}
-                        </Typography>
-                    </Box>
-                    <Box sx={{ opacity: 0.3, transform: 'translateZ(-10px)' }}>
-                        {React.cloneElement(icon, { sx: { fontSize: 100 } })}
-                    </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                <Box sx={{
+                    p: 1.5,
+                    borderRadius: '14px',
+                    bgcolor: alpha(accentColor || theme.palette.primary.main, 0.1),
+                    color: accentColor || theme.palette.primary.main,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    {React.cloneElement(icon, { fontSize: 'medium' })}
                 </Box>
-            </CardContent>
+                {/* Optional Orbit Icon in background */}
+                <Box sx={{
+                    position: 'absolute',
+                    right: -20,
+                    bottom: -20,
+                    opacity: 0.05,
+                    color: 'text.primary',
+                    transform: 'rotate(-15deg)'
+                }}>
+                    {React.cloneElement(icon, { sx: { fontSize: 140 } })}
+                </Box>
+            </Box>
+
+            <Typography variant="h3" sx={{
+                fontWeight: 800,
+                color: 'text.primary',
+                letterSpacing: '-0.03em',
+                mb: 0.5
+            }}>
+                {value}
+            </Typography>
+            <Typography variant="body2" sx={{
+                color: 'text.secondary',
+                fontWeight: 600,
+                letterSpacing: '0.02em',
+                textTransform: 'uppercase',
+                fontSize: '0.75rem'
+            }}>
+                {title}
+            </Typography>
         </Paper>
     );
 
@@ -230,8 +233,7 @@ export default function Dashboard() {
                             title={t('total_students')}
                             value={stats.totalStudents}
                             icon={<PeopleOutline />}
-                            gradient1="#3b82f6"
-                            gradient2="#1d4ed8"
+                            accentColor="#3b82f6"
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemFadeUp}>
@@ -239,8 +241,7 @@ export default function Dashboard() {
                             title={t('total_subjects')}
                             value={stats.totalSubjects}
                             icon={<MenuBook />}
-                            gradient1="#10b981"
-                            gradient2="#047857"
+                            accentColor="#10b981"
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemFadeUp}>
@@ -248,18 +249,16 @@ export default function Dashboard() {
                             title="Create Teacher Account"
                             value="+"
                             icon={<SupervisedUserCircle />}
-                            gradient1="#8b5cf6"
-                            gradient2="#6d28d9"
+                            accentColor="#8b5cf6"
                             onClick={() => setCreateTeacherOpen(true)}
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4} component={motion.div} variants={itemFadeUp}>
                         <StatCard
                             title="Teachers Profile"
-                            value={stats.teacherCount || "-"} // Try to use a stat if available, else placeholder
+                            value={stats.teacherCount || "-"}
                             icon={<PeopleOutline />}
-                            gradient1="#f43f5e"
-                            gradient2="#e11d48"
+                            accentColor="#f43f5e"
                             onClick={() => setTeacherListOpen(true)}
                         />
                     </Grid>
