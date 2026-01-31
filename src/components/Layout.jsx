@@ -8,6 +8,7 @@ import { ColorModeContext } from '../App';
 import { pageVariants, containerStagger, itemFadeUp, tapScale, springFast } from '../utils/animations';
 import { useTranslation } from 'react-i18next';
 import Background3D from './Background3D';
+import VoiceCommander from './VoiceCommander';
 
 const drawerWidth = 280;
 
@@ -311,6 +312,11 @@ export default function Layout() {
                                 <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
                                 <InputBase placeholder={t('search')} sx={{ fontSize: '0.9rem', color: 'text.primary' }} />
                             </Box>
+                        </Box>
+
+                        {/* Voice Commander (Center-Right) */}
+                        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
+                            <VoiceCommander />
                         </Box>
 
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

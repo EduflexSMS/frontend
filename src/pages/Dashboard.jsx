@@ -10,6 +10,7 @@ import TeacherListDialog from '../components/TeacherListDialog';
 import { motion } from 'framer-motion';
 import { containerStagger, itemFadeUp, hoverScale, tapScale, springFast } from '../utils/animations';
 import { useTranslation } from 'react-i18next';
+import AnalyticsChart from '../components/AnalyticsChart';
 
 export default function Dashboard() {
     const theme = useTheme();
@@ -251,14 +252,9 @@ export default function Dashboard() {
                     </Grid>
                 </Grid>
 
-                {/* Analytics Section */}
-                <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Box sx={{ p: 1.5, bgcolor: alpha(theme.palette.primary.main, 0.1), borderRadius: '12px' }}>
-                        <TrendingUp sx={{ color: theme.palette.primary.main, fontSize: 28 }} />
-                    </Box>
-                    <Typography variant="h4" fontWeight="800" color="text.primary">
-                        {t('performance_analytics')}
-                    </Typography>
+                {/* AI Analytics Section */}
+                <Box sx={{ mb: 4 }}>
+                    <AnalyticsChart />
                 </Box>
 
                 <Grid container spacing={4}>
