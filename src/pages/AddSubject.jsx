@@ -92,36 +92,38 @@ export default function AddSubject() {
                     p: { xs: 3, md: 6 },
                     borderRadius: 4,
                     width: '100%',
-                    background: 'rgba(255, 255, 255, 0.85)',
-                    backdropFilter: 'blur(20px)',
-                    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
-                    border: '1px solid rgba(255, 255, 255, 0.18)',
+                    background: alpha(theme.palette.background.paper, 0.6), // Dark Glass
+                    backdropFilter: 'blur(24px)',
+                    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
                     position: 'relative',
                     overflow: 'hidden'
                 }}
             >
-                {/* Decorative Elements */}
+                {/* Holographic Orbs */}
                 <Box
                     sx={{
                         position: 'absolute',
-                        top: -60,
-                        left: -60,
-                        width: 180,
-                        height: 180,
+                        top: -100,
+                        left: -100,
+                        width: 300,
+                        height: 300,
                         borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #f59e0b33 0%, #fbbf2411 100%)', // Amber hint
+                        background: 'radial-gradient(circle, rgba(6,182,212,0.2) 0%, transparent 70%)', // Cyan Glow
+                        filter: 'blur(40px)',
                         zIndex: 0,
                     }}
                 />
                 <Box
                     sx={{
                         position: 'absolute',
-                        bottom: -40,
-                        right: -40,
-                        width: 150,
-                        height: 150,
+                        bottom: -100,
+                        right: -100,
+                        width: 300,
+                        height: 300,
                         borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #3b82f633 0%, #2563eb11 100%)', // Blue hint
+                        background: 'radial-gradient(circle, rgba(217,70,239,0.2) 0%, transparent 70%)', // Magenta Glow
+                        filter: 'blur(40px)',
                         zIndex: 0,
                     }}
                 />
@@ -134,9 +136,10 @@ export default function AddSubject() {
                         gutterBottom
                         sx={{
                             fontWeight: 700,
-                            color: '#1e3a8a',
+                            color: 'text.primary',
                             textAlign: 'center',
-                            fontSize: { xs: '1.75rem', md: '2.5rem' }
+                            fontSize: { xs: '1.75rem', md: '2.5rem' },
+                            textShadow: '0 0 20px rgba(59, 130, 246, 0.5)'
                         }}
                     >
                         Create New Subject
@@ -173,9 +176,12 @@ export default function AddSubject() {
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
                                                     borderRadius: 2,
-                                                    bgcolor: 'rgba(255,255,255,0.6)',
+                                                    bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                                    color: 'text.primary',
+                                                    border: '1px solid rgba(255,255,255,0.1)',
                                                     '&:hover fieldset': { borderColor: 'primary.main' },
-                                                }
+                                                },
+                                                '& .MuiInputLabel-root': { color: 'text.secondary' }
                                             }}
                                         />
                                     </motion.div>
@@ -199,9 +205,12 @@ export default function AddSubject() {
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
                                                     borderRadius: 2,
-                                                    bgcolor: 'rgba(255,255,255,0.6)',
+                                                    bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                                    color: 'text.primary',
+                                                    border: '1px solid rgba(255,255,255,0.1)',
                                                     '&:hover fieldset': { borderColor: 'primary.main' },
-                                                }
+                                                },
+                                                '& .MuiInputLabel-root': { color: 'text.secondary' }
                                             }}
                                         />
                                     </motion.div>
@@ -216,16 +225,17 @@ export default function AddSubject() {
                                             p: 3,
                                             height: '100%',
                                             borderRadius: 3,
-                                            bgcolor: alpha(formData.color, 0.5),
+                                            bgcolor: alpha(formData.color, 0.2), // More transparent
                                             border: '1px dashed',
-                                            borderColor: 'primary.light',
+                                            borderColor: 'rgba(255,255,255,0.2)',
+                                            backdropFilter: 'blur(10px)',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             alignItems: 'center',
                                             justifyContent: 'center'
                                         }}
                                     >
-                                        <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                                        <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ color: 'text.primary' }}>
                                             Theme Color
                                         </Typography>
                                         <Grid container spacing={1} justifyContent="center" sx={{ maxWidth: 200 }}>
@@ -238,7 +248,7 @@ export default function AddSubject() {
                                                                 bgcolor: color,
                                                                 width: 36,
                                                                 height: 36,
-                                                                border: formData.color === color ? '2px solid #1e3a8a' : '1px solid rgba(0,0,0,0.1)',
+                                                                border: formData.color === color ? `2px solid ${theme.palette.primary.main}` : '1px solid rgba(255,255,255,0.2)',
                                                                 transform: formData.color === color ? 'scale(1.1)' : 'scale(1)',
                                                                 transition: 'all 0.2s',
                                                                 '&:hover': { transform: 'scale(1.15)' }
@@ -254,11 +264,12 @@ export default function AddSubject() {
                                             sx={{
                                                 mt: 3,
                                                 p: 2,
-                                                bgcolor: 'white',
+                                                bgcolor: 'rgba(0,0,0,0.4)',
                                                 borderRadius: 2,
-                                                boxShadow: 1,
+                                                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)',
                                                 width: '100%',
-                                                textAlign: 'center'
+                                                textAlign: 'center',
+                                                border: '1px solid rgba(255,255,255,0.05)'
                                             }}
                                         >
                                             <Typography variant="caption" display="block" color="text.secondary">Preview</Typography>
@@ -274,7 +285,7 @@ export default function AddSubject() {
                                 <motion.div variants={itemVariants}>
                                     <Button
                                         component={motion.button}
-                                        whileHover={{ scale: 1.02 }}
+                                        whileHover={{ scale: 1.02, boxShadow: '0 0 20px rgba(59, 130, 246, 0.6)' }}
                                         whileTap={{ scale: 0.98 }}
                                         type="submit"
                                         variant="contained"
@@ -288,10 +299,11 @@ export default function AddSubject() {
                                             textTransform: 'none',
                                             fontSize: '1.1rem',
                                             fontWeight: 600,
-                                            background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
+                                            background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                                             boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.39)',
                                             display: 'block',
-                                            mx: 'auto'
+                                            mx: 'auto',
+                                            border: '1px solid rgba(255,255,255,0.2)'
                                         }}
                                     >
                                         Add Subject

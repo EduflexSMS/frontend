@@ -1,130 +1,62 @@
-import React, { useRef, useMemo } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import React, { useRef, useState } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Float, ContactShadows, Environment } from '@react-three/drei';
 import { useTheme } from '@mui/material/styles';
 import * as THREE from 'three';
 
 // ----------------------------------------------------------------------
-// TECH CONSTELLATION COMPONENT
+// HOLOGRAPHIC GEOMETRY COMPONENT
 // ----------------------------------------------------------------------
-// Creates floating particles that connect with lines when close to mouse
-function ParticleNetwork({ color, count = 100 }) {
+
+function Hologram({ geometry, position, color, speed = 1 }) {
     const mesh = useRef();
-    const linesMesh = useRef();
-    const { viewport, mouse } = useThree();
-
-    // 1. Create Particles
-    const particles = useMemo(() => {
-        const positions = new Float32Array(count * 3);
-        const velocities = new Float32Array(count * 3); // Store velocity for animation
-
-        for (let i = 0; i < count; i++) {
-            // Random positions spread across viewport
-            positions[i * 3] = (Math.random() - 0.5) * viewport.width * 1.5;
-            positions[i * 3 + 1] = (Math.random() - 0.5) * viewport.height * 1.5;
-            positions[i * 3 + 2] = (Math.random() - 0.5) * 5; // Slight Z depth
-
-            // Random velocities
-            velocities[i * 3] = (Math.random() - 0.5) * 0.005;
-            velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.005;
-            velocities[i * 3 + 2] = 0;
-        }
-        return { positions, velocities };
-    }, [count, viewport]);
-
-    // Refs to hold live geometry data
-    const particlesGeo = useRef();
-    const linesGeo = useRef();
 
     useFrame((state) => {
-        if (!particlesGeo.current || !linesGeo.current) return;
-
-        const positions = particlesGeo.current.attributes.position.array;
-        const velocities = particles.velocities;
-
-        // --- ANIMATION LOOP ---
-        for (let i = 0; i < count; i++) {
-            // Move particles
-            positions[i * 3] += velocities[i * 3];
-            positions[i * 3 + 1] += velocities[i * 3 + 1];
-
-            // Bounce off edges (keep within view mostly)
-            if (Math.abs(positions[i * 3]) > viewport.width / 1.5) velocities[i * 3] *= -1;
-            if (Math.abs(positions[i * 3 + 1]) > viewport.height / 1.5) velocities[i * 3 + 1] *= -1;
-        }
-        particlesGeo.current.attributes.position.needsUpdate = true;
-
-        // --- INTERACTIVE LINES (MOUSE CONNECTION) ---
-        // Convert mouse screen coords to 3D world coords roughly
-        const mouseX = (mouse.x * viewport.width) / 2;
-        const mouseY = (mouse.y * viewport.height) / 2;
-
-        const linePositions = []; // To store pairs of points for lines
-        const connectDistance = 3.5; // Max distance to connect
-        const mouseConnectDistance = 4.0; // Distance to connect to mouse
-
-        for (let i = 0; i < count; i++) {
-            const px = positions[i * 3];
-            const py = positions[i * 3 + 1];
-            const pz = positions[i * 3 + 2];
-
-            // Distance to mouse
-            const dx = mouseX - px;
-            const dy = mouseY - py;
-            const distToMouse = Math.sqrt(dx * dx + dy * dy);
-
-            // Connect to Mouse if close
-            if (distToMouse < mouseConnectDistance) {
-                linePositions.push(px, py, pz); // Start at particle
-                linePositions.push(mouseX, mouseY, 0); // End at mouse
-            }
-        }
-
-        // Update Lines Geometry
-        linesGeo.current.setAttribute(
-            'position',
-            new THREE.Float32BufferAttribute(linePositions, 3)
-        );
+        const time = state.clock.getElapsedTime();
+        // Complex rotation for "floating" feel
+        mesh.current.rotation.x = time * 0.2 * speed;
+        mesh.current.rotation.y = time * 0.3 * speed;
+        // Subtle breathing effect
+        const scale = 1 + Math.sin(time * 0.5) * 0.05;
+        mesh.current.scale.set(scale, scale, scale);
     });
 
     return (
-        <group>
-            {/* The Particles (Dots) */}
-            <points ref={mesh}>
-                <bufferGeometry ref={particlesGeo}>
-                    <bufferAttribute
-                        attach="attributes-position"
-                        count={count}
-                        array={particles.positions}
-                        itemSize={3}
-                    />
-                </bufferGeometry>
-                <pointsMaterial
-                    size={0.08} // Small sharp dots
+        <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+            <mesh ref={mesh} position={position}>
+                {geometry}
+                {/* Wireframe Material for Hologram Look */}
+                <meshStandardMaterial
+                    color={color}
+                    emissive={color}
+                    emissiveIntensity={0.5}
+                    wireframe={true}
+                    transparent
+                    opacity={0.3}
+                    roughness={0}
+                    metalness={1}
+                />
+            </mesh>
+            {/* Inner Glow Mesh (Solid but transparent) */}
+            <mesh position={position} scale={[0.9, 0.9, 0.9]}>
+                {geometry}
+                <meshBasicMaterial
                     color={color}
                     transparent
-                    opacity={0.8}
-                    sizeAttenuation={true}
+                    opacity={0.05}
+                    blending={THREE.AdditiveBlending}
                 />
-            </points>
-
-            {/* The Connecting Lines */}
-            <lineSegments ref={linesMesh}>
-                <bufferGeometry ref={linesGeo} />
-                <lineBasicMaterial
-                    color={color}
-                    transparent
-                    opacity={0.2} // Faint lines
-                    linewidth={1}
-                />
-            </lineSegments>
-        </group>
+            </mesh>
+        </Float>
     );
 }
 
 const Background3D = () => {
     const theme = useTheme();
-    // V4 Colors
-    const particleColor = '#3b82f6'; // Electric Blue
+    // V5 Holographic Colors
+    const color1 = '#06b6d4'; // Cyan
+    const color2 = '#d946ef'; // Magenta
+    const color3 = '#8b5cf6'; // Violet
 
     return (
         <div style={{
@@ -134,11 +66,43 @@ const Background3D = () => {
             width: '100vw',
             height: '100vh',
             zIndex: -1,
-            pointerEvents: 'none', // Allow clicks to pass through
-            background: 'radial-gradient(circle at center, #1e293b 0%, #0f172a 100%)' // Deep Navy Gradient Base
+            pointerEvents: 'none',
+            background: 'radial-gradient(circle at 50% 50%, #1e1b4b 0%, #020617 100%)' // Deep Nebula CSS Background
         }}>
-            <Canvas camera={{ position: [0, 0, 10], fov: 60 }} dpr={[1, 2]}>
-                <ParticleNetwork color={particleColor} count={120} />
+            <Canvas camera={{ position: [0, 0, 15], fov: 50 }}>
+                <ambientLight intensity={0.5} />
+                <pointLight position={[10, 10, 10]} intensity={1} />
+
+                {/* Floating Shapes */}
+                <Hologram
+                    geometry={<torusKnotGeometry args={[1, 0.3, 128, 16]} />}
+                    position={[-5, 2, -5]}
+                    color={color1}
+                    speed={0.8}
+                />
+
+                <Hologram
+                    geometry={<icosahedronGeometry args={[2, 0]} />}
+                    position={[6, -3, -2]}
+                    color={color2}
+                    speed={0.6}
+                />
+
+                <Hologram
+                    geometry={<octahedronGeometry args={[1.5, 0]} />}
+                    position={[0, 4, -8]}
+                    color={color3}
+                    speed={0.5}
+                />
+
+                <Hologram
+                    geometry={<torusGeometry args={[3, 0.2, 16, 100]} />}
+                    position={[0, 0, -10]}
+                    color="#3b82f6"
+                    speed={0.2}
+                />
+
+                <Environment preset="city" />
             </Canvas>
         </div>
     );

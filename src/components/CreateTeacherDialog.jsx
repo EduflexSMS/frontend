@@ -55,24 +55,54 @@ export default function CreateTeacherDialog({ open, onClose }) {
     };
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '20px' } }}>
-            <DialogTitle sx={{ fontWeight: 'bold' }}>Create Teacher Account</DialogTitle>
-            <DialogContent>
+        <Dialog
+            open={open}
+            onClose={onClose}
+            maxWidth="sm"
+            fullWidth
+            PaperProps={{
+                sx: {
+                    borderRadius: '24px',
+                    bgcolor: 'rgba(30, 41, 59, 0.85)', // Dark Glass
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                }
+            }}
+        >
+            <DialogTitle sx={{ fontWeight: 'bold', color: 'text.primary', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                Create Teacher Account
+            </DialogTitle>
+            <DialogContent sx={{ mt: 2 }}>
                 <Box sx={{ mt: 1 }}>
-                    <Alert severity="info" sx={{ mb: 3 }}>
+                    <Alert severity="info" sx={{
+                        mb: 3,
+                        bgcolor: 'rgba(59, 130, 246, 0.1)',
+                        color: 'primary.light',
+                        border: '1px solid rgba(59, 130, 246, 0.2)'
+                    }}>
                         Create a login account for a teacher. They will only see data for their assigned subject.
                     </Alert>
 
                     {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
                     {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                         <TextField
                             select
                             label="Assign Subject"
                             fullWidth
                             value={selectedSubject}
                             onChange={(e) => setSelectedSubject(e.target.value)}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    color: 'text.primary',
+                                    '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.2)' },
+                                    '&:hover fieldset': { borderColor: 'primary.main' },
+                                },
+                                '& .MuiInputLabel-root': { color: 'text.secondary' },
+                                '& .MuiSelect-icon': { color: 'text.secondary' }
+                            }}
                         >
                             {subjects.map((sub) => (
                                 <MenuItem key={sub._id} value={sub.name}>
@@ -86,6 +116,14 @@ export default function CreateTeacherDialog({ open, onClose }) {
                             fullWidth
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    color: 'text.primary',
+                                    '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.2)' },
+                                    '&:hover fieldset': { borderColor: 'primary.main' },
+                                },
+                                '& .MuiInputLabel-root': { color: 'text.secondary' }
+                            }}
                         />
 
                         <TextField
@@ -94,16 +132,31 @@ export default function CreateTeacherDialog({ open, onClose }) {
                             fullWidth
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    color: 'text.primary',
+                                    '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.2)' },
+                                    '&:hover fieldset': { borderColor: 'primary.main' },
+                                },
+                                '& .MuiInputLabel-root': { color: 'text.secondary' }
+                            }}
                         />
                     </Box>
                 </Box>
             </DialogContent>
-            <DialogActions sx={{ p: 3 }}>
-                <Button onClick={onClose} color="inherit">Cancel</Button>
+            <DialogActions sx={{ p: 3, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                <Button onClick={onClose} sx={{ color: 'text.secondary', '&:hover': { color: 'text.primary' } }}>
+                    Cancel
+                </Button>
                 <Button
                     onClick={handleCreate}
                     variant="contained"
                     disabled={loading || !username || !password || !selectedSubject}
+                    sx={{
+                        background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                        boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)',
+                        fontWeight: 'bold'
+                    }}
                 >
                     {loading ? "Creating..." : "Create Teacher Account"}
                 </Button>
