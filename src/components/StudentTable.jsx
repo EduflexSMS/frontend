@@ -84,7 +84,7 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
-                        <Box sx={{ m: 2, ml: 8, p: 2, bgcolor: 'rgba(30, 41, 59, 0.6)', backdropFilter: 'blur(10px)', borderRadius: 4, border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <Box sx={{ m: 2, ml: 8, p: 2, bgcolor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(10px)', borderRadius: 4, border: '1px solid rgba(255,255,255,0.1)' }}>
                             <Typography variant="subtitle2" gutterBottom component="div" sx={{ fontWeight: 600, color: 'text.secondary' }}>
                                 Progress & Attendance Details
                             </Typography>
@@ -119,7 +119,7 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
                 borderRadius: 4,
                 boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
-                bgcolor: 'rgba(30, 41, 59, 0.6)',
+                bgcolor: 'rgba(0, 0, 0, 0.6)',
                 backdropFilter: 'blur(16px)'
             }}
         >
@@ -253,7 +253,7 @@ export default function StudentTable({ students, onUpdate, subjectColorMap }) {
                         borderRadius: 4,
                         boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
                         border: '1px solid rgba(255, 255, 255, 0.1)',
-                        bgcolor: 'rgba(30, 41, 59, 0.6)', // Dark Glass
+                        bgcolor: 'rgba(0, 0, 0, 0.6)', // Deep Void Glass
                         backdropFilter: 'blur(20px)',
                         overflow: 'hidden'
                     }}
