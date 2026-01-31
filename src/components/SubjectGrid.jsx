@@ -23,11 +23,11 @@ const SubjectGrid = ({ studentId, studentGrade, enrollments, onUpdate, subjectCo
                         sx={{
                             mb: 2,
                             p: isMobile ? 1.5 : 2,
-                            background: `linear-gradient(135deg, ${alpha(color, 0.15)} 0%, ${alpha('black', 0.6)} 100%)`,
+                            background: `linear-gradient(135deg, ${alpha(color, 0.15)} 0%, ${alpha('#000000', 0.6)} 100%)`,
                             backdropFilter: 'blur(10px)',
                             borderRadius: 3,
                             border: `1px solid ${alpha(color, 0.3)}`,
-                            boxShadow: `0 8px 32px 0 ${alpha('black', 0.5)}`
+                            boxShadow: `0 8px 32px 0 ${alpha('#000000', 0.5)}`
                         }}
                         elevation={0}
                     >
