@@ -231,7 +231,7 @@ export default function Layout() {
                         sx: {
                             boxSizing: 'border-box',
                             width: drawerWidth,
-                            background: theme.palette.mode === 'dark' ? alpha('#0f172a', 0.4) : alpha('#ffffff', 0.5),
+                            background: theme.palette.mode === 'dark' ? alpha('#000000', 0.6) : alpha('#ffffff', 0.5),
                             borderRight: '1px solid',
                             border: 'none',
                             borderColor: 'rgba(255,255,255,0.08)',
@@ -285,7 +285,7 @@ export default function Layout() {
                     elevation={0}
                     sx={{
                         borderRadius: { md: '20px' },
-                        bgcolor: theme.palette.mode === 'dark' ? alpha('#0f172a', 0.6) : alpha('#ffffff', 0.7),
+                        bgcolor: theme.palette.mode === 'dark' ? alpha('#000000', 0.7) : alpha('#ffffff', 0.7),
                         backdropFilter: 'blur(24px)',
                         border: '1px solid',
                         borderColor: 'rgba(255,255,255,0.08)',

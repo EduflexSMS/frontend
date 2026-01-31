@@ -18,7 +18,7 @@ const Background3D = () => {
             height: '100vh',
             zIndex: -1,
             pointerEvents: 'none',
-            background: 'radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%)', // Deep Crystal Blue
+            background: 'radial-gradient(circle at 50% 50%, #050505 0%, #000000 100%)', // Deep Void
             overflow: 'hidden'
         }}>
             {/* Simple Crystal Grid / Noise Overlay */}

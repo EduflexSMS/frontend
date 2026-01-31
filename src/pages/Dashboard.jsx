@@ -94,7 +94,7 @@ export default function Dashboard() {
                 position: 'relative',
                 overflow: 'hidden',
                 cursor: onClick ? 'pointer' : 'default',
-                background: alpha(theme.palette.background.paper, 0.3),
+                background: alpha('#000000', 0.6),
                 backdropFilter: 'blur(40px)',
                 border: '1px solid',
                 borderColor: 'rgba(255, 255, 255, 0.08)',
@@ -271,7 +271,7 @@ export default function Dashboard() {
                                     borderRadius: 5,
                                     border: '1px solid',
                                     borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-                                    background: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.6) : 'rgba(255,255,255,0.7)',
+                                    background: theme.palette.mode === 'dark' ? alpha('#000000', 0.6) : 'rgba(255,255,255,0.7)',
                                     backdropFilter: 'blur(20px)',
                                     boxShadow: theme.palette.mode === 'dark'
                                         ? '0 10px 30px -10px rgba(0,0,0,0.3)'

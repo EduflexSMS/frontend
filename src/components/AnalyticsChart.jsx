@@ -26,7 +26,7 @@ const AnalyticsChart = () => {
             width: '100%',
             overflow: 'hidden',
             borderRadius: '16px',
-            background: isDark ? alpha('#0f172a', 0.4) : alpha('#ffffff', 0.5),
+            background: isDark ? alpha('#000000', 0.6) : alpha('#ffffff', 0.5),
             backdropFilter: 'blur(12px)',
             border: '1px solid',
             borderColor: 'rgba(255,255,255,0.08)',

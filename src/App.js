@@ -72,11 +72,11 @@ function App() {
             dark: '#0891b2',
           },
           background: {
-            default: '#0f172a', // Slate 900 (Deep Enterprise Navy)
-            paper: '#1e293b',   // Slate 800
+            default: '#000000', // Void Black (OLED)
+            paper: '#050505',   // Deepest Grey
           },
           text: {
-            primary: '#f1f5f9', // Slate 100
+            primary: '#ffffff', // Pure White
             secondary: '#94a3b8', // Slate 400
           },
           action: {
@@ -87,14 +87,14 @@ function App() {
         },
         typography: {
           fontFamily: "'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif",
-          h1: { fontWeight: 800, letterSpacing: '-0.025em', color: '#f8fafc' },
-          h2: { fontWeight: 800, letterSpacing: '-0.025em', color: '#f8fafc' },
-          h3: { fontWeight: 700, letterSpacing: '-0.02em', color: '#f1f5f9' },
-          h4: { fontWeight: 700, letterSpacing: '-0.02em', color: '#f1f5f9' },
-          h5: { fontWeight: 600, letterSpacing: '-0.015em', color: '#e2e8f0' },
-          h6: { fontWeight: 600, letterSpacing: '-0.01em', color: '#e2e8f0' },
+          h1: { fontWeight: 800, letterSpacing: '-0.025em', color: '#ffffff' },
+          h2: { fontWeight: 800, letterSpacing: '-0.025em', color: '#ffffff' },
+          h3: { fontWeight: 700, letterSpacing: '-0.02em', color: '#f8fafc' },
+          h4: { fontWeight: 700, letterSpacing: '-0.02em', color: '#f8fafc' },
+          h5: { fontWeight: 600, letterSpacing: '-0.015em', color: '#f1f5f9' },
+          h6: { fontWeight: 600, letterSpacing: '-0.01em', color: '#f1f5f9' },
           button: { textTransform: 'none', fontWeight: 600, letterSpacing: '0.01em' },
-          body1: { letterSpacing: '0.01em', color: '#cbd5e1' },
+          body1: { letterSpacing: '0.01em', color: '#e2e8f0' },
           body2: { letterSpacing: '0.01em', color: '#94a3b8' },
         },
         shape: {
@@ -104,16 +104,16 @@ function App() {
           MuiCssBaseline: {
             styleOverrides: {
               body: {
-                scrollbarColor: "#334155 #0f172a",
+                scrollbarColor: "#334155 #000000",
                 "&::-webkit-scrollbar, & *::-webkit-scrollbar": {
-                  backgroundColor: "#0f172a",
+                  backgroundColor: "#000000",
                   width: '8px',
                 },
                 "&::-webkit-scrollbar-thumb, & *::-webkit-scrollbar-thumb": {
                   borderRadius: 8,
                   backgroundColor: "#334155", // Slate 700
                   minHeight: 24,
-                  border: "2px solid #0f172a",
+                  border: "2px solid #000000",
                 },
               },
             },
@@ -122,10 +122,10 @@ function App() {
             styleOverrides: {
               root: {
                 backgroundImage: 'none',
-                backgroundColor: 'rgba(30, 41, 59, 0.6)', // Semi-transparent Slate 800
-                backdropFilter: 'blur(12px)',
+                backgroundColor: 'rgba(5, 5, 5, 0.7)', // Semi-transparent Void
+                backdropFilter: 'blur(20px)',
                 border: '1px solid rgba(255, 255, 255, 0.08)', // Thin crisp border
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3)',
                 transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
               },
             },
