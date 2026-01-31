@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 
 import logo from '../assets/logo.jpg';
 import loginBg from '../assets/login-bg.jpg';
+import Background3D from '../components/Background3D';
 
 // Floating particle component
 const Particle = ({ delay, duration, x, y, size }) => (
@@ -200,45 +201,20 @@ export default function LoginPage() {
             bgcolor: '#09090b', // Deep rich black
             color: 'white'
         }}>
-            {/* Animated Background */}
-            <Box
-                component={motion.div}
-                animate={{
-                    scale: [1, 1.2, 1],
-                    rotate: [0, 5, -5, 0]
-                }}
-                transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
-                sx={{
-                    position: 'absolute',
-                    top: '-50%',
-                    left: '-50%',
-                    width: '200%',
-                    height: '200%',
-                    backgroundImage: `radial-gradient(circle at center, #1e3a8a 0%, #000000 70%)`,
-                    opacity: 0.4,
-                    zIndex: 0,
-                    filter: 'blur(100px)'
-                }}
-            />
-            <Box
-                component={motion.div}
-                animate={{
-                    x: [0, 100, 0],
-                    y: [0, -50, 0]
-                }}
-                transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-                sx={{
-                    position: 'absolute',
-                    bottom: '-20%',
-                    right: '-20%',
-                    width: '80%',
-                    height: '80%',
-                    backgroundImage: `radial-gradient(circle at center, #7c3aed 0%, transparent 70%)`, // Purple glow
-                    opacity: 0.2,
-                    zIndex: 0,
-                    filter: 'blur(80px)'
-                }}
-            />
+            {/* 3D Background */}
+            <Background3D />
+
+            {/* Overlay Gradient for readability */}
+            <Box sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                background: 'radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%)',
+                zIndex: 0,
+                pointerEvents: 'none'
+            }} />
 
             <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100vh', py: 4 }}>
 

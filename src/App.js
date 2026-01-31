@@ -62,51 +62,74 @@ function App() {
         palette: {
           mode,
           primary: {
-            main: '#2563eb', // Royal Blue
-            light: '#60a5fa',
-            dark: '#1e40af',
+            main: '#4f46e5', // Indigo 600
+            light: '#818cf8',
+            dark: '#3730a3',
           },
           secondary: {
-            main: '#3b82f6',
-            light: '#93c5fd',
-            dark: '#2563eb',
+            main: '#ec4899', // Pink 500
+            light: '#f472b6',
+            dark: '#db2777',
           },
-          ...(mode === 'dark'
+          background: mode === 'dark'
             ? {
-              background: {
-                default: '#0f172a', // Slate 900
-                paper: '#1e293b',   // Slate 800
-              },
-              text: {
-                primary: '#f1f5f9',
-                secondary: '#94a3b8',
-              },
+              default: '#030712', // Gray 950 (Rich Black)
+              paper: '#111827',   // Gray 900
             }
             : {
-              background: {
-                default: '#f0f2f5', // Slate 50
-                paper: '#ffffff',
-              },
-              text: {
-                primary: '#1e293b',
-                secondary: '#64748b',
-              },
-            }),
+              default: '#f8fafc', // Slate 50
+              paper: '#ffffff',
+            },
+          text: mode === 'dark'
+            ? {
+              primary: '#f8fafc',
+              secondary: '#94a3b8',
+            }
+            : {
+              primary: '#0f172a',
+              secondary: '#475569',
+            },
         },
         typography: {
-          fontFamily: "'Poppins', sans-serif",
-          h1: { fontWeight: 800 },
-          h2: { fontWeight: 800 },
-          h3: { fontWeight: 700 },
-          h4: { fontWeight: 700 },
-          h5: { fontWeight: 600 },
-          h6: { fontWeight: 600 },
+          fontFamily: "'Inter', 'Poppins', sans-serif",
+          h1: { fontWeight: 800, letterSpacing: '-0.025em' },
+          h2: { fontWeight: 800, letterSpacing: '-0.025em' },
+          h3: { fontWeight: 700, letterSpacing: '-0.02em' },
+          h4: { fontWeight: 700, letterSpacing: '-0.02em' },
+          h5: { fontWeight: 600, letterSpacing: '-0.015em' },
+          h6: { fontWeight: 600, letterSpacing: '-0.01em' },
+          button: { textTransform: 'none', fontWeight: 600, letterSpacing: '0.01em' },
         },
         components: {
           MuiPaper: {
             styleOverrides: {
               root: {
-                backgroundImage: 'none', // Reset default dark mode overlay
+                backgroundImage: 'none',
+                borderRadius: 16,
+              },
+            },
+          },
+          MuiButton: {
+            styleOverrides: {
+              root: {
+                borderRadius: 12,
+                boxShadow: 'none',
+              },
+              contained: {
+                '&:hover': {
+                  boxShadow: '0 10px 15px -3px rgba(79, 70, 229, 0.4)',
+                },
+              },
+            },
+          },
+          MuiCard: {
+            styleOverrides: {
+              root: {
+                borderRadius: 20,
+                boxShadow: mode === 'light'
+                  ? '0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.025)'
+                  : '0 10px 20px -5px rgba(0,0,0,0.3)',
+                border: mode === 'light' ? '1px solid rgba(226, 232, 240, 0.8)' : '1px solid rgba(30, 41, 59, 0.5)',
               },
             },
           },

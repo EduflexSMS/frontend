@@ -7,6 +7,7 @@ import logo from '../assets/logo.jpg';
 import { ColorModeContext } from '../App';
 import { pageVariants, containerStagger, itemFadeUp, tapScale, springFast } from '../utils/animations';
 import { useTranslation } from 'react-i18next';
+import Background3D from './Background3D';
 
 const drawerWidth = 280;
 
@@ -212,7 +213,8 @@ export default function Layout() {
     );
 
     return (
-        <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+        <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'transparent' }}>
+            <Background3D />
             <CssBaseline />
 
             {/* Sidebar Navigation - Fixed/Permanent on Desktop */}
