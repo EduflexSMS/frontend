@@ -88,13 +88,13 @@ export default function TeacherListDialog({ open, onClose }) {
                     ) : (
                         <Grid container spacing={3}>
                             {teachers.map((teacher, index) => (
-                                <Grid item xs={12} sm={6} md={4} key={teacher._id || index}>
+                                <Grid item xs={12} sm={6} md={4} lg={4} xl={4} key={teacher._id || index}>
                                     <Paper
                                         elevation={0}
                                         sx={{
                                             p: 0,
-                                            height: '100%',
-                                            minHeight: '320px', // Minimum height for uniformity
+                                            height: '420px', // STRICT FIXED HEIGHT
+                                            width: '100%',
                                             borderRadius: '24px',
                                             border: '1px solid',
                                             borderColor: 'divider',
@@ -118,7 +118,8 @@ export default function TeacherListDialog({ open, onClose }) {
                                             width: '100%',
                                             height: '100px',
                                             background: `linear-gradient(135deg, ${alpha(teacher.color || theme.palette.primary.main, 0.2)} 0%, ${alpha(teacher.color || theme.palette.secondary.main, 0.1)} 100%)`,
-                                            mb: -6
+                                            mb: -6,
+                                            flexShrink: 0
                                         }} />
 
                                         <Avatar
@@ -133,14 +134,15 @@ export default function TeacherListDialog({ open, onClose }) {
                                                 bgcolor: 'background.paper',
                                                 color: 'primary.main',
                                                 fontSize: '2rem',
-                                                fontWeight: '800'
+                                                fontWeight: '800',
+                                                flexShrink: 0
                                             }}
                                         >
                                             {!teacher.image && !teacher.profileImage && teacher.username?.charAt(0).toUpperCase()}
                                         </Avatar>
 
                                         <Box sx={{ px: 3, pb: 4, width: '100%', flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                            <Typography variant="h6" fontWeight="700" sx={{ mb: 0.5, lineHeight: 1.2 }}>
+                                            <Typography variant="h6" fontWeight="700" sx={{ mb: 0.5, lineHeight: 1.2, height: '28px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>
                                                 {teacher.username}
                                             </Typography>
 
@@ -157,7 +159,19 @@ export default function TeacherListDialog({ open, onClose }) {
                                                 }}
                                             />
 
-                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 3, fontSize: '0.875rem' }}>
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                                sx={{
+                                                    mb: 3,
+                                                    fontSize: '0.875rem',
+                                                    display: '-webkit-box',
+                                                    overflow: 'hidden',
+                                                    WebkitBoxOrient: 'vertical',
+                                                    WebkitLineClamp: 3, // Force max 3 lines
+                                                    minHeight: '4.5em' // Reserve space for 3 lines to keep buttons aligned
+                                                }}
+                                            >
                                                 {teacher.description || `Expert instructor for ${teacher.assignedSubject || 'various subjects'}. Dedicated to student success.`}
                                             </Typography>
 
@@ -171,19 +185,13 @@ export default function TeacherListDialog({ open, onClose }) {
                                                         textTransform: 'none',
                                                         fontWeight: 700,
                                                         boxShadow: 'none',
-                                                        py: 1,
+                                                        py: 1.5,
                                                         bgcolor: '#10b981',
                                                         '&:hover': { bgcolor: '#059669' }
                                                     }}
                                                 >
                                                     Process Payment
                                                 </Button>
-                                                <Chip
-                                                    label={teacher.role || "Verified Teacher"}
-                                                    size="small"
-                                                    variant="outlined"
-                                                    sx={{ borderRadius: '6px', borderColor: 'transparent', color: 'text.disabled', fontSize: '0.7rem' }}
-                                                />
                                             </Box>
                                         </Box>
                                     </Paper>
