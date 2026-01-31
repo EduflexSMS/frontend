@@ -112,24 +112,38 @@ export default function AddStudent() {
                     p: { xs: 3, sm: 5 },
                     width: '100%',
                     borderRadius: 4,
-                    background: 'rgba(255, 255, 255, 0.85)',
-                    backdropFilter: 'blur(20px)',
-                    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
-                    border: '1px solid rgba(255, 255, 255, 0.18)',
+                    background: alpha(theme.palette.background.paper, 0.6), // Dark Glass
+                    backdropFilter: 'blur(24px)',
+                    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
                     overflow: 'hidden',
                     position: 'relative'
                 }}
             >
-                {/* Decorative background blob */}
+                {/* Holographic Glows */}
                 <Box
                     sx={{
                         position: 'absolute',
-                        top: -50,
-                        right: -50,
-                        width: 150,
-                        height: 150,
+                        top: -100,
+                        right: -100,
+                        width: 300,
+                        height: 300,
                         borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #2563eb33 0%, #3b82f611 100%)',
+                        background: 'radial-gradient(circle, rgba(6,182,212,0.15) 0%, transparent 70%)', // Cyan
+                        filter: 'blur(40px)',
+                        zIndex: 0,
+                    }}
+                />
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        bottom: -100,
+                        left: -100,
+                        width: 300,
+                        height: 300,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(circle, rgba(217,70,239,0.15) 0%, transparent 70%)', // Magenta
+                        filter: 'blur(40px)',
                         zIndex: 0,
                     }}
                 />
@@ -142,10 +156,11 @@ export default function AddStudent() {
                         gutterBottom
                         sx={{
                             fontWeight: 700,
-                            color: '#1e40af',
+                            color: 'text.primary',
                             textAlign: 'center',
                             mb: 4,
-                            fontSize: { xs: '1.75rem', sm: '2.125rem' }
+                            fontSize: { xs: '1.75rem', sm: '2.125rem' },
+                            textShadow: '0 0 20px rgba(6, 182, 212, 0.5)'
                         }}
                     >
                         Add New Student
@@ -171,15 +186,19 @@ export default function AddStudent() {
                                 sx={{
                                     '& .MuiOutlinedInput-root': {
                                         borderRadius: 2,
+                                        bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                        color: 'text.primary',
+                                        border: '1px solid rgba(255,255,255,0.1)',
                                         '&:hover fieldset': { borderColor: 'primary.main' },
-                                    }
+                                    },
+                                    '& .MuiInputLabel-root': { color: 'text.secondary' }
                                 }}
                             />
                         </motion.div>
 
                         <motion.div variants={itemVariants}>
                             <FormControl fullWidth>
-                                <InputLabel id="grade-label">Grade</InputLabel>
+                                <InputLabel id="grade-label" sx={{ color: 'text.secondary' }}>Grade</InputLabel>
                                 <Select
                                     labelId="grade-label"
                                     name="grade"
@@ -196,7 +215,15 @@ export default function AddStudent() {
                                             }
                                         />
                                     }
-                                    sx={{ borderRadius: 2 }}
+                                    sx={{
+                                        borderRadius: 2,
+                                        bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                        color: 'text.primary',
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        '& .MuiSvgIcon-root': { color: 'text.secondary' },
+                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
+                                    }}
                                 >
                                     {[...Array(13)].map((_, i) => {
                                         const gradeNum = (i + 1).toString().padStart(2, '0');
@@ -223,15 +250,19 @@ export default function AddStudent() {
                                 sx={{
                                     '& .MuiOutlinedInput-root': {
                                         borderRadius: 2,
+                                        bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                        color: 'text.primary',
+                                        border: '1px solid rgba(255,255,255,0.1)',
                                         '&:hover fieldset': { borderColor: 'primary.main' },
-                                    }
+                                    },
+                                    '& .MuiInputLabel-root': { color: 'text.secondary' }
                                 }}
                             />
                         </motion.div>
 
                         <motion.div variants={itemVariants}>
                             <FormControl fullWidth>
-                                <InputLabel>Subjects</InputLabel>
+                                <InputLabel sx={{ color: 'text.secondary' }}>Subjects</InputLabel>
                                 <Select
                                     multiple
                                     value={formData.subjects}
@@ -254,15 +285,24 @@ export default function AddStudent() {
                                                     label={value}
                                                     size="small"
                                                     sx={{
-                                                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                                                        color: 'primary.main',
-                                                        fontWeight: 500
+                                                        backgroundColor: alpha(theme.palette.primary.main, 0.2),
+                                                        color: 'primary.light',
+                                                        fontWeight: 500,
+                                                        border: '1px solid rgba(59,130,246,0.3)'
                                                     }}
                                                 />
                                             ))}
                                         </Box>
                                     )}
-                                    sx={{ borderRadius: 2 }}
+                                    sx={{
+                                        borderRadius: 2,
+                                        bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                        color: 'text.primary',
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        '& .MuiSvgIcon-root': { color: 'text.secondary' },
+                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
+                                    }}
                                 >
                                     {subjectsList.map((sub) => (
                                         <MenuItem key={sub._id} value={sub.name}>
@@ -276,7 +316,7 @@ export default function AddStudent() {
                         <motion.div variants={itemVariants}>
                             <Button
                                 component={motion.button}
-                                whileHover={{ scale: 1.02 }}
+                                whileHover={{ scale: 1.02, boxShadow: '0 0 20px rgba(6, 182, 212, 0.6)' }}
                                 whileTap={{ scale: 0.98 }}
                                 type="submit"
                                 variant="contained"
@@ -288,9 +328,10 @@ export default function AddStudent() {
                                     fontSize: '1rem',
                                     fontWeight: 600,
                                     borderRadius: 3,
-                                    background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
-                                    boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.39)',
-                                    textTransform: 'none'
+                                    background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)', // Cyan to Blue
+                                    boxShadow: '0 4px 14px 0 rgba(6, 182, 212, 0.4)',
+                                    textTransform: 'none',
+                                    border: '1px solid rgba(255,255,255,0.2)'
                                 }}
                             >
                                 Register Student

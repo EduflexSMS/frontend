@@ -22,8 +22,9 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
                 transition={{ delay: index * 0.05 }}
                 sx={{
                     '& > *': { borderBottom: 'unset' },
-                    bgcolor: open ? 'rgba(59, 130, 246, 0.05)' : 'transparent',
-                    transition: 'background-color 0.3s'
+                    bgcolor: open ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+                    transition: 'background-color 0.3s',
+                    '&:hover': { bgcolor: 'rgba(59, 130, 246, 0.05)' }
                 }}
             >
                 <TableCell>
@@ -33,7 +34,8 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
                         onClick={() => setOpen(!open)}
                         sx={{
                             transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-                            transition: 'transform 0.3s'
+                            transition: 'transform 0.3s',
+                            color: 'text.secondary'
                         }}
                     >
                         <KeyboardArrowDown />
@@ -41,24 +43,24 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
                 </TableCell>
                 <TableCell component="th" scope="row">
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Avatar sx={{ width: 32, height: 32, bgcolor: 'var(--secondary-color)', fontSize: '0.85rem' }}>
+                        <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.85rem' }}>
                             {row.name.charAt(0)}
                         </Avatar>
-                        <Typography variant="body2" fontWeight="500">{row.name}</Typography>
+                        <Typography variant="body2" fontWeight="500" sx={{ color: 'text.primary' }}>{row.name}</Typography>
                     </Box>
                 </TableCell>
                 <TableCell>
-                    <Chip label={row.indexNumber} size="small" variant="outlined" sx={{ borderRadius: 1 }} />
+                    <Chip label={row.indexNumber} size="small" variant="outlined" sx={{ borderRadius: 1, color: 'text.secondary', borderColor: 'rgba(255,255,255,0.2)' }} />
                 </TableCell>
-                <TableCell>{row.grade}</TableCell>
-                <TableCell sx={{ fontFamily: 'monospace' }}>{row.mobile}</TableCell>
+                <TableCell sx={{ color: 'text.secondary' }}>{row.grade}</TableCell>
+                <TableCell sx={{ fontFamily: 'monospace', color: 'text.secondary' }}>{row.mobile}</TableCell>
                 <TableCell>
                     {row.enrollments.length > 0 ? (
                         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                             {row.enrollments.slice(0, 2).map(e => (
-                                <Chip key={e.subject} label={e.subject} size="small" sx={{ height: 20, fontSize: '0.7rem' }} />
+                                <Chip key={e.subject} label={e.subject} size="small" sx={{ height: 20, fontSize: '0.7rem', bgcolor: 'rgba(6, 182, 212, 0.1)', color: 'text.primary', border: '1px solid rgba(6, 182, 212, 0.3)' }} />
                             ))}
-                            {row.enrollments.length > 2 && <Chip label={`+${row.enrollments.length - 2}`} size="small" sx={{ height: 20, fontSize: '0.7rem' }} />}
+                            {row.enrollments.length > 2 && <Chip label={`+${row.enrollments.length - 2}`} size="small" sx={{ height: 20, fontSize: '0.7rem', bgcolor: 'rgba(255,255,255,0.1)', color: 'text.secondary' }} />}
                         </Box>
                     ) : (
                         <Typography variant="caption" color="text.secondary">None</Typography>
@@ -67,15 +69,13 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
                 <TableCell>
                     <IconButton
                         onClick={() => onEdit(row)}
-                        color="primary"
-                        sx={{ bgcolor: 'rgba(37, 99, 235, 0.1)', '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.2)' } }}
+                        sx={{ bgcolor: 'rgba(59, 130, 246, 0.1)', color: 'primary.main', '&:hover': { bgcolor: 'rgba(59, 130, 246, 0.2)' } }}
                     >
                         <Edit fontSize="small" />
                     </IconButton>
                     <IconButton
                         onClick={() => onDelete(row)}
-                        color="error"
-                        sx={{ ml: 1, bgcolor: 'rgba(239, 68, 68, 0.1)', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } }}
+                        sx={{ ml: 1, bgcolor: 'rgba(239, 68, 68, 0.1)', color: 'error.main', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } }}
                     >
                         <Delete fontSize="small" />
                     </IconButton>
@@ -84,7 +84,7 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
-                        <Box sx={{ m: 2, ml: 8, p: 2, bgcolor: 'rgba(255,255,255,0.5)', borderRadius: 4, border: '1px solid rgba(0,0,0,0.05)' }}>
+                        <Box sx={{ m: 2, ml: 8, p: 2, bgcolor: 'rgba(30, 41, 59, 0.6)', backdropFilter: 'blur(10px)', borderRadius: 4, border: '1px solid rgba(255,255,255,0.1)' }}>
                             <Typography variant="subtitle2" gutterBottom component="div" sx={{ fontWeight: 600, color: 'text.secondary' }}>
                                 Progress & Attendance Details
                             </Typography>
@@ -114,21 +114,28 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            sx={{ mb: 2, borderRadius: 4, boxShadow: 'var(--card-shadow)', border: '1px solid rgba(0,0,0,0.05)' }}
+            sx={{
+                mb: 2,
+                borderRadius: 4,
+                boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                bgcolor: 'rgba(30, 41, 59, 0.6)',
+                backdropFilter: 'blur(16px)'
+            }}
         >
             <CardContent sx={{ pb: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <Box sx={{ display: 'flex', gap: 2 }}>
-                        <Avatar sx={{ bgcolor: 'var(--primary-color)' }}>{row.name.charAt(0)}</Avatar>
+                        <Avatar sx={{ bgcolor: 'primary.main', fontWeight: 'bold' }}>{row.name.charAt(0)}</Avatar>
                         <Box>
-                            <Typography variant="h6" sx={{ fontWeight: 600 }}>{row.name}</Typography>
+                            <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>{row.name}</Typography>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                                <Chip label={`#${row.indexNumber}`} size="small" sx={{ borderRadius: 1.5, height: 24 }} />
+                                <Chip label={`#${row.indexNumber}`} size="small" sx={{ borderRadius: 1.5, height: 24, bgcolor: 'rgba(255,255,255,0.1)', color: 'text.secondary', border: '1px solid rgba(255,255,255,0.05)' }} />
                                 <Typography variant="caption" color="text.secondary">{row.grade}</Typography>
                             </Box>
                         </Box>
                     </Box>
-                    <IconButton onClick={() => onEdit(row)} size="small" sx={{ bgcolor: 'rgba(37, 99, 235, 0.1)', color: 'primary.main' }}>
+                    <IconButton onClick={() => onEdit(row)} size="small" sx={{ bgcolor: 'rgba(59, 130, 246, 0.1)', color: 'primary.main' }}>
                         <Edit fontSize="small" />
                     </IconButton>
                     <IconButton onClick={() => onDelete(row)} size="small" sx={{ ml: 1, bgcolor: 'rgba(239, 68, 68, 0.1)', color: 'error.main' }}>
@@ -138,7 +145,7 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
 
                 <Grid container spacing={1} sx={{ mt: 2, mb: 2 }}>
                     <Grid item xs={12}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', bgcolor: '#f8fafc', p: 1, borderRadius: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', bgcolor: 'rgba(0,0,0,0.2)', p: 1, borderRadius: 2 }}>
                             <Phone fontSize="small" />
                             <Typography variant="body2">{row.mobile}</Typography>
                         </Box>
@@ -149,7 +156,7 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
                     {row.enrollments.length > 0 ? (
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                             {row.enrollments.map(e => (
-                                <Chip key={e.subject} label={e.subject} size="small" variant="outlined" sx={{ bgcolor: 'white' }} />
+                                <Chip key={e.subject} label={e.subject} size="small" variant="outlined" sx={{ bgcolor: 'rgba(6, 182, 212, 0.1)', color: 'text.primary', borderColor: 'rgba(6, 182, 212, 0.3)' }} />
                             ))}
                         </Box>
                     ) : (
@@ -158,7 +165,7 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
                 </Box>
             </CardContent>
 
-            <Box sx={{ borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+            <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                 <Button
                     fullWidth
                     variant="text"
@@ -171,7 +178,7 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
             </Box>
 
             <Collapse in={expanded} timeout="auto" unmountOnExit>
-                <Box sx={{ p: 1, bgcolor: '#f8fafc' }}>
+                <Box sx={{ p: 1, bgcolor: 'rgba(0,0,0,0.2)' }}>
                     <SubjectGrid
                         studentId={row._id}
                         studentGrade={row.grade}
@@ -244,15 +251,16 @@ export default function StudentTable({ students, onUpdate, subjectColorMap }) {
                     elevation={0}
                     sx={{
                         borderRadius: 4,
-                        boxShadow: 'var(--card-shadow)',
-                        border: '1px solid rgba(0,0,0,0.05)',
-                        background: 'rgba(255,255,255,0.8)',
-                        backdropFilter: 'blur(20px)'
+                        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        bgcolor: 'rgba(30, 41, 59, 0.6)', // Dark Glass
+                        backdropFilter: 'blur(20px)',
+                        overflow: 'hidden'
                     }}
                 >
                     <Table aria-label="collapsible table" sx={{ minWidth: 650 }}>
                         <TableHead>
-                            <TableRow sx={{ bgcolor: 'rgba(37, 99, 235, 0.05)' }}>
+                            <TableRow sx={{ bgcolor: 'rgba(6, 182, 212, 0.1)' }}>
                                 <TableCell />
                                 <TableCell sx={{ color: 'text.primary', fontWeight: 'bold' }}>Name</TableCell>
                                 <TableCell sx={{ color: 'text.primary', fontWeight: 'bold' }}>Index Number</TableCell>

@@ -25,7 +25,8 @@ import {
     Divider,
     Chip,
     Avatar,
-    InputAdornment
+    InputAdornment,
+    alpha
 } from '@mui/material';
 import axios from 'axios';
 import {
@@ -224,15 +225,16 @@ export default function ClassReport() {
                 sx={{
                     mb: 2,
                     borderRadius: 3,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-                    background: 'rgba(255,255,255,0.7)',
+                    borderRadius: 3,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                    background: alpha(theme.palette.background.paper, 0.5),
                     backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255,255,255,0.2)',
+                    border: '1px solid rgba(255,255,255,0.1)',
                     overflow: 'hidden',
                     transition: 'transform 0.2s',
                     '&:hover': {
                         transform: 'translateY(-2px)',
-                        boxShadow: '0 6px 16px rgba(0,0,0,0.08)'
+                        boxShadow: '0 6px 16px rgba(0,0,0,0.3)'
                     }
                 }}
             >
@@ -404,16 +406,16 @@ export default function ClassReport() {
                     p: { xs: 2.5, md: 4 },
                     mb: 4,
                     borderRadius: 4,
-                    boxShadow: '0 10px 40px -10px rgba(0,0,0,0.05)',
-                    background: 'rgba(255,255,255,0.9)',
-                    backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255,255,255,0.5)'
+                    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
+                    background: alpha(theme.palette.background.paper, 0.6), // Dark Glass
+                    backdropFilter: 'blur(24px)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
                 }}
             >
                 <Grid container spacing={3} alignItems="center">
                     <Grid item xs={12}>
-                        <Typography variant="h6" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1, fontSize: '1.1rem', fontWeight: 600, color: '#334155' }}>
-                            <FilterList fontSize="small" /> Report Filters
+                        <Typography variant="h6" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1, fontSize: '1.1rem', fontWeight: 600, color: 'text.primary' }}>
+                            <FilterList fontSize="small" sx={{ color: 'primary.main' }} /> Report Filters
                         </Typography>
                     </Grid>
 
@@ -424,7 +426,14 @@ export default function ClassReport() {
                                 value={grade}
                                 label="Grade"
                                 onChange={(e) => setGrade(e.target.value)}
-                                sx={{ borderRadius: 2.5, bgcolor: '#f8fafc' }}
+                                sx={{
+                                    borderRadius: 2.5,
+                                    bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                    color: 'text.primary',
+                                    '& .MuiSvgIcon-root': { color: 'text.secondary' },
+                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
+                                }}
                                 startAdornment={
                                     <InputAdornment position="start">
                                         <Class color="action" fontSize="small" />
@@ -446,7 +455,14 @@ export default function ClassReport() {
                                 value={subject}
                                 label="Subject"
                                 onChange={(e) => setSubject(e.target.value)}
-                                sx={{ borderRadius: 2.5, bgcolor: '#f8fafc' }}
+                                sx={{
+                                    borderRadius: 2.5,
+                                    bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                    color: 'text.primary',
+                                    '& .MuiSvgIcon-root': { color: 'text.secondary' },
+                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
+                                }}
                                 startAdornment={
                                     <InputAdornment position="start">
                                         <Book color="action" fontSize="small" />
@@ -469,7 +485,14 @@ export default function ClassReport() {
                                 value={month}
                                 label="Month"
                                 onChange={(e) => setMonth(e.target.value)}
-                                sx={{ borderRadius: 2.5, bgcolor: '#f8fafc' }}
+                                sx={{
+                                    borderRadius: 2.5,
+                                    bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                    color: 'text.primary',
+                                    '& .MuiSvgIcon-root': { color: 'text.secondary' },
+                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
+                                }}
                                 startAdornment={
                                     <InputAdornment position="start">
                                         <CalendarToday color="action" fontSize="small" />
@@ -499,8 +522,9 @@ export default function ClassReport() {
                                 fontWeight: 600,
                                 textTransform: 'none',
                                 fontSize: '1rem',
-                                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)'
+                                background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
+                                boxShadow: '0 4px 12px rgba(6, 182, 212, 0.4)',
+                                border: '1px solid rgba(255,255,255,0.2)'
                             }}
                         >
                             {loading ? <CircularProgress size={24} color="inherit" /> : "Generate Report"}
@@ -549,7 +573,7 @@ export default function ClassReport() {
                     {isMobile ? (
                         <Box>
                             {reportData.length === 0 ? (
-                                <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 4, bgcolor: 'rgba(255,255,255,0.6)' }}>
+                                <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 4, bgcolor: alpha(theme.palette.background.paper, 0.6), backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
                                     <Typography color="text.secondary">No students found matching your criteria.</Typography>
                                 </Paper>
                             ) : (
@@ -567,20 +591,21 @@ export default function ClassReport() {
                             sx={{
                                 borderRadius: 4,
                                 overflow: 'hidden',
-                                boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
-                                border: '1px solid rgba(0,0,0,0.05)',
-                                bgcolor: 'white'
+                                boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                bgcolor: alpha(theme.palette.background.paper, 0.6), // Dark Glass
+                                backdropFilter: 'blur(20px)'
                             }}
                         >
                             <Table>
                                 <TableHead>
-                                    <TableRow sx={{ background: 'linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%)' }}>
-                                        <TableCell sx={{ color: '#475569', fontWeight: 700, py: 2.5, pl: 4 }}>Student Details</TableCell>
-                                        <TableCell sx={{ color: '#475569', fontWeight: 700 }}>Index No</TableCell>
-                                        <TableCell sx={{ color: '#475569', fontWeight: 700 }}>Mobile</TableCell>
-                                        <TableCell align="center" sx={{ color: '#475569', fontWeight: 700 }}>Attendance</TableCell>
-                                        <TableCell align="center" sx={{ color: '#475569', fontWeight: 700 }}>Fee Status</TableCell>
-                                        <TableCell align="center" sx={{ color: '#475569', fontWeight: 700 }}>Tutes</TableCell>
+                                    <TableRow sx={{ background: alpha(theme.palette.primary.main, 0.1) }}>
+                                        <TableCell sx={{ color: 'text.primary', fontWeight: 700, py: 2.5, pl: 4 }}>Student Details</TableCell>
+                                        <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Index No</TableCell>
+                                        <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Mobile</TableCell>
+                                        <TableCell align="center" sx={{ color: 'text.primary', fontWeight: 700 }}>Attendance</TableCell>
+                                        <TableCell align="center" sx={{ color: 'text.primary', fontWeight: 700 }}>Fee Status</TableCell>
+                                        <TableCell align="center" sx={{ color: 'text.primary', fontWeight: 700 }}>Tutes</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -604,8 +629,9 @@ export default function ClassReport() {
                                                 sx={{
                                                     '&:last-child td, &:last-child th': { border: 0 },
                                                     cursor: 'default',
-                                                    '&:hover': { bgcolor: '#f8fafc' },
-                                                    transition: 'background-color 0.2s'
+                                                    '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.05) },
+                                                    transition: 'background-color 0.2s',
+                                                    borderBottom: '1px solid rgba(255,255,255,0.05)'
                                                 }}
                                             >
                                                 <TableCell sx={{ pl: 4 }}>
@@ -620,11 +646,11 @@ export default function ClassReport() {
                                                         }}>
                                                             {row.name.charAt(0)}
                                                         </Avatar>
-                                                        <Typography fontWeight={600} color="#1e293b">{row.name}</Typography>
+                                                        <Typography fontWeight={600} color="text.primary">{row.name}</Typography>
                                                     </Box>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Chip label={row.indexNumber} size="small" sx={{ borderRadius: 1, bgcolor: '#f1f5f9', fontWeight: 600, color: '#475569' }} />
+                                                    <Chip label={row.indexNumber} size="small" sx={{ borderRadius: 1, bgcolor: alpha(theme.palette.background.paper, 0.4), fontWeight: 600, color: 'text.secondary', border: '1px solid rgba(255,255,255,0.1)' }} />
                                                 </TableCell>
                                                 <TableCell sx={{ fontFamily: 'monospace', color: '#64748b' }}>{row.mobile}</TableCell>
                                                 <TableCell align="center">
@@ -674,7 +700,4 @@ export default function ClassReport() {
     );
 }
 
-// Helper to make alpha work if not in theme utility yet
-function alpha(color, opacity) {
-    return color + Math.round(opacity * 255).toString(16).padStart(2, '0');
-}
+
