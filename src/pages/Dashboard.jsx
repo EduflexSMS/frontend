@@ -80,29 +80,24 @@ export default function Dashboard() {
             component={motion.div}
             whileHover={{
                 scale: 1.02,
-                translateY: -5,
-                boxShadow: `0 20px 40px -5px ${alpha(accentColor || theme.palette.primary.main, 0.3)}`
+                translateY: -4,
+                boxShadow: `0 20px 40px -5px ${alpha(accentColor || theme.palette.primary.main, 0.2)}`,
+                border: `1px solid ${accentColor || theme.palette.primary.main}`
             }}
             whileTap={onClick ? tapScale : undefined}
             onClick={onClick}
             sx={{
-                height: 200,
+                height: 180,
                 width: '100%',
-                borderRadius: '24px',
+                borderRadius: '16px', // Sharper corners
                 position: 'relative',
                 overflow: 'hidden',
                 cursor: onClick ? 'pointer' : 'default',
-                background: theme.palette.mode === 'dark'
-                    ? 'rgba(30, 41, 59, 0.4)'
-                    : 'rgba(255, 255, 255, 0.6)',
-                backdropFilter: 'blur(20px)',
+                background: alpha(theme.palette.background.paper, 0.6),
+                backdropFilter: 'blur(12px)',
                 border: '1px solid',
-                borderColor: theme.palette.mode === 'dark'
-                    ? 'rgba(255, 255, 255, 0.1)'
-                    : 'rgba(255, 255, 255, 0.4)',
-                boxShadow: theme.palette.mode === 'dark'
-                    ? '0 8px 32px 0 rgba(0, 0, 0, 0.2)'
-                    : '0 8px 32px 0 rgba(31, 38, 135, 0.05)',
+                borderColor: 'rgba(255, 255, 255, 0.08)',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
@@ -111,57 +106,64 @@ export default function Dashboard() {
             }}
             elevation={0}
         >
-            {/* Subtle Glow at top */}
+            {/* Tech Accent Bar on Left */}
             <Box sx={{
                 position: 'absolute',
-                top: 0, left: 0, right: 0,
-                height: '4px',
-                background: `linear-gradient(90deg, transparent, ${accentColor || theme.palette.primary.main}, transparent)`,
-                opacity: 0.8
+                left: 0, top: '15%', bottom: '15%',
+                width: '4px',
+                borderRadius: '0 4px 4px 0',
+                background: accentColor || theme.palette.primary.main,
+                boxShadow: `0 0 10px ${accentColor || theme.palette.primary.main}`
             }} />
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, pl: 2 }}>
                 <Box sx={{
                     p: 1.5,
-                    borderRadius: '14px',
+                    borderRadius: '12px',
                     bgcolor: alpha(accentColor || theme.palette.primary.main, 0.1),
                     color: accentColor || theme.palette.primary.main,
+                    border: '1px solid',
+                    borderColor: alpha(accentColor || theme.palette.primary.main, 0.2),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center'
                 }}>
                     {React.cloneElement(icon, { fontSize: 'medium' })}
                 </Box>
-                {/* Optional Orbit Icon in background */}
+                {/* Tech Background Icon */}
                 <Box sx={{
                     position: 'absolute',
                     right: -20,
-                    bottom: -20,
-                    opacity: 0.05,
+                    bottom: -30,
+                    opacity: 0.03, // Very subtle
                     color: 'text.primary',
-                    transform: 'rotate(-15deg)'
+                    transform: 'rotate(-10deg) scale(1.5)'
                 }}>
-                    {React.cloneElement(icon, { sx: { fontSize: 140 } })}
+                    {React.cloneElement(icon, { sx: { fontSize: 120 } })}
                 </Box>
             </Box>
 
-            <Typography variant="h3" sx={{
-                fontWeight: 800,
-                color: 'text.primary',
-                letterSpacing: '-0.03em',
-                mb: 0.5
-            }}>
-                {value}
-            </Typography>
-            <Typography variant="body2" sx={{
-                color: 'text.secondary',
-                fontWeight: 600,
-                letterSpacing: '0.02em',
-                textTransform: 'uppercase',
-                fontSize: '0.75rem'
-            }}>
-                {title}
-            </Typography>
+            <Box sx={{ pl: 2 }}>
+                <Typography variant="h3" sx={{
+                    fontWeight: 800,
+                    color: 'text.primary',
+                    letterSpacing: '-0.02em',
+                    mb: 0.5,
+                    fontFamily: "'Roboto', sans-serif"
+                }}>
+                    {value}
+                </Typography>
+                <Typography variant="body2" sx={{
+                    color: 'text.secondary',
+                    fontWeight: 600,
+                    letterSpacing: '0.05em',
+                    textTransform: 'uppercase',
+                    fontSize: '0.7rem',
+                    opacity: 0.8
+                }}>
+                    {title}
+                </Typography>
+            </Box>
         </Paper>
     );
 

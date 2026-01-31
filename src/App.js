@@ -60,83 +60,130 @@ function App() {
     () =>
       createTheme({
         palette: {
-          mode,
+          mode: 'dark', // FORCE DARK MODE for optimal Enterprise V4 look
           primary: {
-            main: '#4f46e5', // Indigo 600
-            light: '#818cf8',
-            dark: '#3730a3',
+            main: '#3b82f6', // Electric Blue (Professional Tech)
+            light: '#60a5fa',
+            dark: '#2563eb',
           },
           secondary: {
-            main: '#ec4899', // Pink 500
-            light: '#f472b6',
-            dark: '#db2777',
+            main: '#06b6d4', // Cyan/Teal (Accents)
+            light: '#22d3ee',
+            dark: '#0891b2',
           },
-          background: mode === 'dark'
-            ? {
-              default: '#030712', // Gray 950 (Rich Black)
-              paper: '#111827',   // Gray 900
-            }
-            : {
-              default: '#f8fafc', // Slate 50
-              paper: '#ffffff',
-            },
-          text: mode === 'dark'
-            ? {
-              primary: '#f8fafc',
-              secondary: '#94a3b8',
-            }
-            : {
-              primary: '#0f172a',
-              secondary: '#475569',
-            },
+          background: {
+            default: '#0f172a', // Slate 900 (Deep Enterprise Navy)
+            paper: '#1e293b',   // Slate 800
+          },
+          text: {
+            primary: '#f1f5f9', // Slate 100
+            secondary: '#94a3b8', // Slate 400
+          },
+          action: {
+            active: '#94a3b8',
+            hover: 'rgba(59, 130, 246, 0.08)',
+            selected: 'rgba(59, 130, 246, 0.16)',
+          },
         },
         typography: {
-          fontFamily: "'Inter', 'Poppins', sans-serif",
-          h1: { fontWeight: 800, letterSpacing: '-0.025em' },
-          h2: { fontWeight: 800, letterSpacing: '-0.025em' },
-          h3: { fontWeight: 700, letterSpacing: '-0.02em' },
-          h4: { fontWeight: 700, letterSpacing: '-0.02em' },
-          h5: { fontWeight: 600, letterSpacing: '-0.015em' },
-          h6: { fontWeight: 600, letterSpacing: '-0.01em' },
+          fontFamily: "'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif",
+          h1: { fontWeight: 800, letterSpacing: '-0.025em', color: '#f8fafc' },
+          h2: { fontWeight: 800, letterSpacing: '-0.025em', color: '#f8fafc' },
+          h3: { fontWeight: 700, letterSpacing: '-0.02em', color: '#f1f5f9' },
+          h4: { fontWeight: 700, letterSpacing: '-0.02em', color: '#f1f5f9' },
+          h5: { fontWeight: 600, letterSpacing: '-0.015em', color: '#e2e8f0' },
+          h6: { fontWeight: 600, letterSpacing: '-0.01em', color: '#e2e8f0' },
           button: { textTransform: 'none', fontWeight: 600, letterSpacing: '0.01em' },
+          body1: { letterSpacing: '0.01em', color: '#cbd5e1' },
+          body2: { letterSpacing: '0.01em', color: '#94a3b8' },
+        },
+        shape: {
+          borderRadius: 12, // Sharper, professional corners (down from 16/24)
         },
         components: {
+          MuiCssBaseline: {
+            styleOverrides: {
+              body: {
+                scrollbarColor: "#334155 #0f172a",
+                "&::-webkit-scrollbar, & *::-webkit-scrollbar": {
+                  backgroundColor: "#0f172a",
+                  width: '8px',
+                },
+                "&::-webkit-scrollbar-thumb, & *::-webkit-scrollbar-thumb": {
+                  borderRadius: 8,
+                  backgroundColor: "#334155", // Slate 700
+                  minHeight: 24,
+                  border: "2px solid #0f172a",
+                },
+              },
+            },
+          },
           MuiPaper: {
             styleOverrides: {
               root: {
                 backgroundImage: 'none',
-                borderRadius: 16,
+                backgroundColor: 'rgba(30, 41, 59, 0.6)', // Semi-transparent Slate 800
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255, 255, 255, 0.08)', // Thin crisp border
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
               },
             },
           },
           MuiButton: {
             styleOverrides: {
               root: {
-                borderRadius: 12,
+                borderRadius: 8, // Sharp buttons
                 boxShadow: 'none',
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  transform: 'translateY(-1px)',
+                },
               },
               contained: {
+                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                 '&:hover': {
-                  boxShadow: '0 10px 15px -3px rgba(79, 70, 229, 0.4)',
+                  boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.5)',
                 },
+              },
+              outlined: {
+                borderColor: 'rgba(59, 130, 246, 0.5)',
+                '&:hover': {
+                  borderColor: '#3b82f6',
+                  backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                },
+              },
+            },
+          },
+          MuiChip: {
+            styleOverrides: {
+              root: {
+                borderRadius: 6, // Very sharp chips
+                fontWeight: 600,
               },
             },
           },
           MuiCard: {
             styleOverrides: {
               root: {
-                borderRadius: 20,
-                boxShadow: mode === 'light'
-                  ? '0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.025)'
-                  : '0 10px 20px -5px rgba(0,0,0,0.3)',
-                border: mode === 'light' ? '1px solid rgba(226, 232, 240, 0.8)' : '1px solid rgba(30, 41, 59, 0.5)',
+                borderRadius: 16,
+                backgroundColor: 'rgba(30, 41, 59, 0.7)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(148, 163, 184, 0.1)',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.2)',
+                '&:hover': {
+                  borderColor: 'rgba(59, 130, 246, 0.4)', // Tech Blue border on hover
+                  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 0 10px rgba(59, 130, 246, 0.2)', // Glow
+                  transform: 'translateY(-2px)',
+                }
               },
             },
           },
         },
       }),
-    [mode],
+    [mode]
   );
+
 
   return (
     <ColorModeContext.Provider value={colorMode}>
