@@ -69,8 +69,8 @@ export default function Layout() {
                         sx={{
                             width: 48,
                             height: 48,
-                            border: '2px solid rgba(255,255,255,0.2)',
-                            boxShadow: '0 0 20px rgba(37, 99, 235, 0.5)'
+                            border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
+                            boxShadow: '0 0 20px rgba(37, 99, 235, 0.3)'
                         }}
                     >E</Avatar>
                 </motion.div>
@@ -78,13 +78,15 @@ export default function Layout() {
                     <Typography variant="h5" sx={{
                         fontWeight: 900,
                         letterSpacing: 1,
-                        background: 'linear-gradient(45deg, #fff, #60a5fa)',
+                        background: theme.palette.mode === 'dark'
+                            ? 'linear-gradient(45deg, #fff, #60a5fa)'
+                            : 'linear-gradient(45deg, #1e40af, #3b82f6)',
                         backgroundClip: 'text',
                         textFillColor: 'transparent',
                     }}>
                         EDUFLEX
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', letterSpacing: 2, fontSize: '0.65rem' }}>
+                    <Typography variant="caption" sx={{ color: theme.palette.text.secondary, letterSpacing: 2, fontSize: '0.65rem' }}>
                         INSTITUTE
                     </Typography>
                 </Box>
@@ -118,10 +120,11 @@ export default function Layout() {
                                     cursor: 'pointer',
                                     position: 'relative',
                                     overflow: 'hidden',
-                                    color: active ? 'white' : 'rgba(255,255,255,0.7)',
+                                    color: active ? 'white' : theme.palette.text.secondary,
                                     transition: 'color 0.3s ease',
                                     '&:hover': {
-                                        color: 'white'
+                                        color: active ? 'white' : theme.palette.primary.main,
+                                        bgcolor: active ? 'transparent' : alpha(theme.palette.primary.main, 0.05)
                                     }
                                 }}
                             >
@@ -133,7 +136,7 @@ export default function Layout() {
                                             position: 'absolute',
                                             inset: 0,
                                             borderRadius: '16px',
-                                            background: 'linear-gradient(90deg, rgba(37, 99, 235, 0.9) 0%, rgba(29, 78, 216, 0.8) 100%)',
+                                            background: 'linear-gradient(90deg, #4f46e5 0%, #3b82f6 100%)',
                                             boxShadow: '0 4px 15px rgba(37, 99, 235, 0.4)',
                                             zIndex: 0
                                         }}
@@ -180,9 +183,10 @@ export default function Layout() {
                         p: '14px 20px',
                         borderRadius: '16px',
                         cursor: 'pointer',
-                        color: '#f87171',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        border: '1px solid rgba(239, 68, 68, 0.1)',
+                        color: theme.palette.error.main,
+                        backgroundColor: alpha(theme.palette.error.main, 0.05),
+                        border: '1px solid',
+                        borderColor: alpha(theme.palette.error.main, 0.1),
                         transition: 'all 0.3s ease',
                     }}
                 >
@@ -196,8 +200,8 @@ export default function Layout() {
                 </Box>
             </Box>
 
-            <Box sx={{ p: 3, opacity: 0.4, textAlign: 'center' }}>
-                <Typography variant="caption" sx={{ color: 'white', letterSpacing: 1 }}>
+            <Box sx={{ p: 3, opacity: 0.6, textAlign: 'center' }}>
+                <Typography variant="caption" sx={{ color: theme.palette.text.disabled, letterSpacing: 1 }}>
                     v2.0 • 2026
                 </Typography>
             </Box>
