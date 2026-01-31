@@ -48,23 +48,15 @@ export default function Layout() {
                 display: 'flex',
                 flexDirection: 'column',
                 color: 'white',
-                background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
-                boxShadow: 'inset -1px 0 0 rgba(255, 255, 255, 0.1)',
+                background: 'transparent',
                 position: 'relative',
-                overflow: 'hidden'
+                overflowY: 'auto', // Scroll inside the rounded container
+                height: '100%',
+                '&::-webkit-scrollbar': { width: '4px' }, // Subtle scrollbar
+                '&::-webkit-scrollbar-thumb': { background: 'rgba(255,255,255,0.1)', borderRadius: '4px' }
             }}
         >
-            {/* Decorative blurs */}
-            <Box sx={{
-                position: 'absolute',
-                top: -100,
-                left: -100,
-                width: 200,
-                height: 200,
-                background: 'radial-gradient(circle, rgba(37,99,235,0.3) 0%, rgba(37,99,235,0) 70%)',
-                filter: 'blur(40px)',
-                zIndex: 0
-            }} />
+            {/* Removed manual blur div for cleaner glass effect */}
 
             <Box sx={{ p: 4, display: 'flex', alignItems: 'center', gap: 2, position: 'relative', zIndex: 1, mb: 2 }}>
                 <motion.div
@@ -215,15 +207,17 @@ export default function Layout() {
     return (
         <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'transparent' }}>
             <Background3D />
+            <div className="noise-overlay" />
             <CssBaseline />
 
-            {/* Sidebar Navigation - Fixed/Permanent on Desktop */}
+            {/* Sidebar Navigation - Floating Glass Panel */}
             <Box
                 component="nav"
                 sx={{
                     width: { md: drawerWidth },
                     flexShrink: { md: 0 },
-                    display: { xs: 'none', md: 'block' }
+                    display: { xs: 'none', md: 'block' },
+                    p: 2 // Outer padding for float effect
                 }}
             >
                 <Drawer
@@ -232,13 +226,16 @@ export default function Layout() {
                     PaperProps={{
                         sx: {
                             boxSizing: 'border-box',
-                            width: drawerWidth,
-                            background: 'transparent',
-                            border: 'none',
-                            position: 'fixed',
-                            height: '100vh',
-                            padding: '16px',
-                            zIndex: 1200
+                            width: drawerWidth - 32, // Adjust width to account for padding
+                            background: theme.palette.mode === 'dark' ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                            border: '1px solid',
+                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)',
+                            backdropFilter: 'blur(20px)',
+                            borderRadius: '24px',
+                            margin: '16px 0 16px 16px', // Floating margin (top, right, bottom, left)
+                            height: 'calc(100vh - 32px)',
+                            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+                            overflow: 'hidden' // Clean rounded corners
                         }
                     }}
                 >

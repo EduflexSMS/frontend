@@ -1,55 +1,34 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Stars } from '@react-three/drei';
+import { Sphere, MeshDistortMaterial, Float, Stars } from '@react-three/drei';
 import { useTheme } from '@mui/material/styles';
 
-function FloatingParticles({ count = 100, color }) {
-    const mesh = useRef();
-    const lightColor = useMemo(() => color, [color]);
-
-    const particles = useMemo(() => {
-        const temp = [];
-        for (let i = 0; i < count; i++) {
-            const t = Math.random() * 100;
-            const factor = 20 + Math.random() * 100;
-            const speed = 0.01 + Math.random() / 200;
-            const xFactor = -50 + Math.random() * 100;
-            const yFactor = -50 + Math.random() * 100;
-            const zFactor = -50 + Math.random() * 100;
-            temp.push({ t, factor, speed, xFactor, yFactor, zFactor, mx: 0, my: 0 });
-        }
-        return temp;
-    }, [count]);
-
-    useFrame((state) => {
-        if (!mesh.current) return;
-
-        // Iterate through particles and update positions
-        // Note: instanced mesh would be better for performance with high counts, 
-        // but for simple floating circles, simple mesh iteration or points is okay.
-        // For "modern 3D", let's actually just rotate the whole group or use Points.
-
-        // Actually, let's keep it simple: Just rotate the entire group slowly
-        mesh.current.rotation.x = state.clock.getElapsedTime() * 0.05;
-        mesh.current.rotation.y = state.clock.getElapsedTime() * 0.03;
-    });
-
+function MorphingBlob({ position, color, speed, distort, scale }) {
     return (
-        <group ref={mesh}>
-            {/* Use simple scattered spheres for "floating items" */}
-            {particles.map((data, i) => (
-                <mesh key={i} position={[data.xFactor, data.yFactor, data.zFactor]}>
-                    <sphereGeometry args={[0.2, 8, 8]} />
-                    <meshBasicMaterial color={lightColor} transparent opacity={0.6} />
-                </mesh>
-            ))}
-        </group>
+        <Float speed={2} rotationIntensity={1} floatIntensity={2}>
+            <Sphere args={[1, 64, 64]} position={position} scale={scale}>
+                <MeshDistortMaterial
+                    color={color}
+                    envMapIntensity={0.4}
+                    clearcoat={0.8}
+                    clearcoatRoughness={0}
+                    metalness={0.1}
+                    distort={distort}
+                    speed={speed}
+                />
+            </Sphere>
+        </Float>
     );
 }
 
 const Background3D = () => {
     const theme = useTheme();
     const isDark = theme.palette.mode === 'dark';
+
+    // Dynamic colors based on theme
+    const colors = isDark
+        ? { primary: '#4338ca', secondary: '#be185d', accent: '#0f766e' } // Deep indigo, pink, teal
+        : { primary: '#bfdbfe', secondary: '#fbcfe8', accent: '#99f6e4' }; // Pastels for light mode
 
     return (
         <div style={{
@@ -60,25 +39,50 @@ const Background3D = () => {
             height: '100vh',
             zIndex: -1,
             pointerEvents: 'none',
-            opacity: 0.6,
             background: isDark
-                ? 'radial-gradient(circle at 50% 50%, #111827 0%, #030712 100%)'
-                : 'radial-gradient(circle at 50% 50%, #f8fafc 0%, #e2e8f0 100%)'
+                ? 'radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%)' // Dark Slate
+                : 'radial-gradient(circle at 50% 50%, #f8fafc 0%, #e2e8f0 100%)',
+            overflow: 'hidden'
         }}>
-            <Canvas camera={{ position: [0, 0, 20], fov: 75 }}>
-                <ambientLight intensity={0.5} />
+            <Canvas camera={{ position: [0, 0, 8] }}>
+                <ambientLight intensity={0.8} />
+                <pointLight position={[10, 10, 10]} intensity={1.5} color={isDark ? "#818cf8" : "#ffffff"} />
+                <pointLight position={[-10, -10, -10]} intensity={0.5} color={colors.secondary} />
+
+                {/* Main huge morphing blob */}
+                <MorphingBlob
+                    position={[3, 0, -2]}
+                    scale={2.5}
+                    color={colors.primary}
+                    distort={0.4}
+                    speed={2}
+                />
+
+                {/* Secondary blobs */}
+                <MorphingBlob
+                    position={[-3, 2, -3]}
+                    scale={1.8}
+                    color={colors.secondary}
+                    distort={0.5}
+                    speed={3}
+                />
+
+                <MorphingBlob
+                    position={[-1, -2, -1]}
+                    scale={1.2}
+                    color={colors.accent}
+                    distort={0.3}
+                    speed={1.5}
+                />
+
                 <Stars
-                    radius={100}
+                    radius={50}
                     depth={50}
-                    count={5000}
+                    count={isDark ? 3000 : 500}
                     factor={4}
                     saturation={0}
                     fade
                     speed={1}
-                />
-                <FloatingParticles
-                    count={150}
-                    color={isDark ? '#4f46e5' : '#3b82f6'}
                 />
             </Canvas>
         </div>

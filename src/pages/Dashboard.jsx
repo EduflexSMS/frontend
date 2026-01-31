@@ -78,7 +78,12 @@ export default function Dashboard() {
     const StatCard = ({ title, value, icon, gradient1, gradient2, onClick }) => (
         <Paper
             component={motion.div}
-            whileHover={hoverScale}
+            whileHover={{
+                scale: 1.05,
+                rotateX: 5,
+                rotateY: 5,
+                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
+            }}
             whileTap={onClick ? tapScale : undefined}
             onClick={onClick}
             sx={{
@@ -93,21 +98,29 @@ export default function Dashboard() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'white'
+                color: 'white',
+                transformStyle: 'preserve-3d', // Enable 3D transform
+                perspective: '1000px'
             }}
             elevation={0}
         >
             {/* Decorative Circles */}
-            <Box sx={{
-                position: 'absolute',
-                top: -30,
-                right: -30,
-                width: 150,
-                height: 150,
-                borderRadius: '50%',
-                background: 'rgba(255,255,255,0.1)',
-                zIndex: 0
-            }} />
+            <Box
+                component={motion.div}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                sx={{
+                    position: 'absolute',
+                    top: -50,
+                    right: -50,
+                    width: 200,
+                    height: 200,
+                    borderRadius: '40%', // Squircle orbit
+                    border: '2px dashed rgba(255,255,255,0.1)',
+                    zIndex: 0
+                }}
+            />
+
             <Box sx={{
                 position: 'absolute',
                 bottom: -40,
@@ -116,10 +129,11 @@ export default function Dashboard() {
                 height: 180,
                 borderRadius: '50%',
                 background: 'rgba(255,255,255,0.08)',
-                zIndex: 0
+                zIndex: 0,
+                filter: 'blur(20px)'
             }} />
 
-            <CardContent sx={{ position: 'relative', zIndex: 1, width: '100%', p: 4 }}>
+            <CardContent sx={{ position: 'relative', zIndex: 1, width: '100%', p: 4, transform: 'translateZ(20px)' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <Box>
                         <Box sx={{
@@ -133,14 +147,14 @@ export default function Dashboard() {
                         }}>
                             {React.cloneElement(icon, { sx: { fontSize: 32, color: 'white' } })}
                         </Box>
-                        <Typography variant="h6" sx={{ opacity: 0.9, fontWeight: 600, fontSize: '1.1rem' }}>
+                        <Typography variant="h6" sx={{ opacity: 0.9, fontWeight: 600, fontSize: '1.1rem', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                             {title}
                         </Typography>
-                        <Typography variant="h2" sx={{ fontWeight: 800, mt: 1, letterSpacing: '-0.02em', fontSize: '3.5rem' }}>
+                        <Typography variant="h2" sx={{ fontWeight: 800, mt: 1, letterSpacing: '-0.02em', fontSize: '3.5rem', textShadow: '0 4px 8px rgba(0,0,0,0.2)' }}>
                             {value}
                         </Typography>
                     </Box>
-                    <Box sx={{ opacity: 0.3 }}>
+                    <Box sx={{ opacity: 0.3, transform: 'translateZ(-10px)' }}>
                         {React.cloneElement(icon, { sx: { fontSize: 100 } })}
                     </Box>
                 </Box>
