@@ -150,7 +150,7 @@ export default function ClassReport() {
         doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 55);
 
         // Table
-        const tableColumn = ["Index", "Name", "Mobile", "Attendance", "Fee Status", "Tutes"];
+        const tableColumn = ["Index", "Name", "Attendance", "Fee Status", "Tutes"];
         const tableRows = [];
 
         reportData.forEach(student => {
@@ -158,7 +158,6 @@ export default function ClassReport() {
             const studentData = [
                 student.indexNumber,
                 student.name,
-                student.mobile,
                 `${attendanceCount}/5`,
                 student.feePaid ? "Paid" : "Unpaid",
                 student.tutesGiven ? "Given" : "Pending"
@@ -179,10 +178,9 @@ export default function ClassReport() {
             columnStyles: {
                 0: { cellWidth: 30 }, // Index
                 1: { cellWidth: 'auto' }, // Name
-                2: { cellWidth: 30 }, // Mobile
-                3: { halign: 'center' }, // Attendance
-                4: { halign: 'center' }, // Fee
-                5: { halign: 'center' } // Tutes
+                2: { halign: 'center' }, // Attendance
+                3: { halign: 'center' }, // Fee
+                4: { halign: 'center' } // Tutes
             },
             alternateRowStyles: { fillColor: [245, 247, 250] },
             margin: { top: 60 }
