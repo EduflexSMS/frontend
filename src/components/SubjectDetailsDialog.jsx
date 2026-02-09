@@ -8,6 +8,7 @@ import axios from 'axios';
 import API_BASE_URL from '../config';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import StudentListDialog from './StudentListDialog';
 
 export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
@@ -93,6 +94,34 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
         }
     }
 
+    const [studentListOpen, setStudentListOpen] = useState(false);
+    const [selectedGradeData, setSelectedGradeData] = useState(null);
+    const [fetchingStudents, setFetchingStudents] = useState(false);
+
+    const handleGradeClick = async (grade) => {
+        try {
+            setFetchingStudents(true);
+            const { data: report } = await axios.get(`${API_BASE_URL}/api/reports/class-report`, {
+                params: {
+                    subject: subjectName,
+                    grade: grade,
+                    month: selectedMonth
+                }
+            });
+
+            setSelectedGradeData({
+                name: `${subjectName} - ${grade}`,
+                studentList: report
+            });
+            setStudentListOpen(true);
+        } catch (err) {
+            console.error("Failed to fetch student list", err);
+            alert("Failed to load student list");
+        } finally {
+            setFetchingStudents(false);
+        }
+    };
+
     const handleSaveFee = async () => {
         try {
             await axios.put(`${API_BASE_URL}/api/subjects/${encodeURIComponent(subjectName)}`, { fee: newFee });
@@ -163,7 +192,12 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                             </TableHead>
                             <TableBody>
                                 {details.map((row) => (
-                                    <TableRow key={row.grade}>
+                                    <TableRow
+                                        key={row.grade}
+                                        hover
+                                        onClick={() => handleGradeClick(row.grade)}
+                                        sx={{ cursor: 'pointer' }}
+                                    >
                                         <TableCell component="th" scope="row">
                                             {row.grade}
                                         </TableCell>
@@ -192,6 +226,12 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                 </Button>
                 <Button onClick={onClose}>Close</Button>
             </DialogActions>
+
+            <StudentListDialog
+                open={studentListOpen}
+                onClose={() => setStudentListOpen(false)}
+                classData={selectedGradeData}
+            />
         </Dialog>
     );
 }
