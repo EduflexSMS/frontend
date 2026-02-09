@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import API_BASE_URL from '../config';
 import { itemFadeUp, containerStagger, hoverScale } from '../utils/animations';
+import StudentListDialog from '../components/StudentListDialog';
 
 export default function TeacherDashboard() {
     const theme = useTheme();
@@ -13,6 +14,8 @@ export default function TeacherDashboard() {
     const [teacherData, setTeacherData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [selectedClass, setSelectedClass] = useState(null);
+    const [studentListOpen, setStudentListOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -51,7 +54,7 @@ export default function TeacherDashboard() {
 
                             // Corrected Fee Calculation: Using 1000 LKR as base based on user feedback (was 2000)
                             // Ideally this should be in the database per subject.
-                            const estimatedFee = 1000;
+                            const estimatedFee = subject.fee || 1000;
                             const collection = paidCount * estimatedFee;
 
                             totalStudents += studentCount;
@@ -62,6 +65,7 @@ export default function TeacherDashboard() {
                                 name: `${subject.name} - ${schedule.grade}`,
                                 students: studentCount,
                                 collection: collection,
+                                studentList: report, // Store full list for dialog
                                 activeRate: studentCount > 0 ? Math.round((paidCount / studentCount) * 100) : 0
                             };
                         } catch (e) {
@@ -104,6 +108,11 @@ export default function TeacherDashboard() {
     const handleLogout = () => {
         localStorage.removeItem('userInfo');
         window.location.href = '/login';
+    };
+
+    const handleClassClick = (cls) => {
+        setSelectedClass(cls);
+        setStudentListOpen(true);
     };
 
     if (loading) {
@@ -206,6 +215,7 @@ export default function TeacherDashboard() {
                                 component={motion.div}
                                 variants={itemFadeUp}
                                 whileHover={hoverScale}
+                                onClick={() => handleClassClick(cls)}
                                 elevation={0}
                                 sx={{
                                     p: 3,
@@ -242,6 +252,12 @@ export default function TeacherDashboard() {
                     ))}
                 </Grid>
             </motion.div>
+
+            <StudentListDialog
+                open={studentListOpen}
+                onClose={() => setStudentListOpen(false)}
+                classData={selectedClass}
+            />
         </Container>
     );
 }
