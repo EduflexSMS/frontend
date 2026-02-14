@@ -1,57 +1,60 @@
 import { createTheme, alpha } from '@mui/material/styles';
 
-// VOID GLASS THEME - 2026 Future Tech Style
+// MODERN EDUCATIONAL THEME - 2026 Professional Style
 const theme = createTheme({
     palette: {
-        mode: 'dark',
+        mode: 'dark', // Keeping dark mode but making it "Professional Dark"
         primary: {
-            main: '#00f7ff', // Neon Cyan
-            light: '#5ce1e6',
-            dark: '#00c4cc',
-            contrastText: '#000',
+            main: '#3b82f6', // Royal Blue - Trust & Intelligence
+            light: '#60a5fa',
+            dark: '#2563eb',
+            contrastText: '#ffffff',
         },
         secondary: {
-            main: '#d000ff', // Neon Purple
-            light: '#ea80fc',
-            dark: '#9c00c3',
-            contrastText: '#fff',
+            main: '#f59e0b', // Warm Amber/Gold - Achievement
+            light: '#fbbf24',
+            dark: '#d97706',
+            contrastText: '#000000',
         },
         background: {
-            default: '#050510', // Deep Space Black
-            paper: '#12122a',   // Dark detailed background
+            default: '#0f172a', // Slate 900 - Professional Dark Navy
+            paper: '#1e293b',   // Slate 800
         },
         text: {
-            primary: '#ffffff',
-            secondary: 'rgba(255, 255, 255, 0.7)',
+            primary: '#f8fafc', // Slate 50
+            secondary: '#cbd5e1', // Slate 300
         },
         error: {
-            main: '#ff2a2a', // Neon Red
+            main: '#ef4444', // Red 500
         },
         warning: {
-            main: '#ffcc00', // Neon Yellow
+            main: '#f59e0b', // Amber 500
         },
         success: {
-            main: '#00ff66', // Neon Green
+            main: '#10b981', // Emerald 500
         },
         info: {
-            main: '#2979ff',
+            main: '#0ea5e9', // Sky 500
         },
+        divider: 'rgba(148, 163, 184, 0.1)', // Slate 400 with opacity
     },
     typography: {
-        fontFamily: "'Outfit', 'Inter', sans-serif",
-        h1: { fontWeight: 800, letterSpacing: '-0.02em', textShadow: '0 0 20px rgba(0, 247, 255, 0.5)' },
-        h2: { fontWeight: 700, letterSpacing: '-0.01em', textShadow: '0 0 15px rgba(208, 0, 255, 0.5)' },
-        h3: { fontWeight: 700 },
-        h4: { fontWeight: 600 },
-        h5: { fontWeight: 600 },
-        h6: { fontWeight: 600 },
-        button: { textTransform: 'none', fontWeight: 600 },
+        fontFamily: "'Outfit', 'Inter', sans-serif", // Outfit is great for modern education
+        h1: { fontWeight: 800, letterSpacing: '-0.02em', color: '#f8fafc' },
+        h2: { fontWeight: 700, letterSpacing: '-0.01em', color: '#f8fafc' },
+        h3: { fontWeight: 700, color: '#f1f5f9' },
+        h4: { fontWeight: 600, color: '#f1f5f9' },
+        h5: { fontWeight: 600, color: '#f1f5f9' },
+        h6: { fontWeight: 600, color: '#f1f5f9' },
+        button: { textTransform: 'none', fontWeight: 600, letterSpacing: '0.01em' },
+        body1: { lineHeight: 1.7 },
+        body2: { lineHeight: 1.6 },
     },
     components: {
         MuiCssBaseline: {
             styleOverrides: {
                 body: {
-                    scrollbarColor: "#6b6b6b #2b2b2b",
+                    scrollbarColor: "#475569 #1e293b",
                     "&::-webkit-scrollbar, & *::-webkit-scrollbar": {
                         backgroundColor: "transparent",
                         width: '8px',
@@ -59,24 +62,24 @@ const theme = createTheme({
                     },
                     "&::-webkit-scrollbar-thumb, & *::-webkit-scrollbar-thumb": {
                         borderRadius: 8,
-                        backgroundColor: "#6b6b6b",
+                        backgroundColor: "#475569", // Slate 600
                         minHeight: 24,
                         border: "3px solid transparent",
                         backgroundClip: "content-box",
                     },
                     "&::-webkit-scrollbar-thumb:focus, & *::-webkit-scrollbar-thumb:focus": {
-                        backgroundColor: "#959595",
+                        backgroundColor: "#64748b", // Slate 500
                     },
                     "&::-webkit-scrollbar-thumb:active, & *::-webkit-scrollbar-thumb:active": {
-                        backgroundColor: "#959595",
+                        backgroundColor: "#64748b",
                     },
                     "&::-webkit-scrollbar-thumb:hover, & *::-webkit-scrollbar-thumb:hover": {
-                        backgroundColor: "#959595",
+                        backgroundColor: "#64748b",
                     },
                     "&::-webkit-scrollbar-corner, & *::-webkit-scrollbar-corner": {
-                        backgroundColor: "#2b2b2b",
+                        backgroundColor: "transparent",
                     },
-                    background: 'radial-gradient(circle at 50% 50%, #12122a 0%, #050510 100%)',
+                    background: '#0f172a', // Fallback
                     minHeight: '100vh',
                 },
             },
@@ -84,66 +87,92 @@ const theme = createTheme({
         MuiButton: {
             styleOverrides: {
                 root: {
-                    borderRadius: '12px',
-                    backdropFilter: 'blur(10px)',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    borderRadius: '10px', // Slightly less rounded for professional look
+                    transition: 'all 0.2s ease-in-out',
+                    textTransform: 'none',
                     '&:hover': {
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 0 20px rgba(0, 247, 255, 0.4)',
+                        transform: 'translateY(-1px)',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
                     },
                 },
                 containedPrimary: {
-                    background: 'linear-gradient(135deg, #00f7ff 0%, #0099ff 100%)',
-                    boxShadow: '0 4px 15px rgba(0, 247, 255, 0.3)',
-                    color: '#000',
-                    fontWeight: 800,
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                    boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.3)',
+                    '&:hover': {
+                        background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                        boxShadow: '0 10px 15px -3px rgba(59, 130, 246, 0.4)',
+                    }
                 },
                 containedSecondary: {
-                    background: 'linear-gradient(135deg, #d000ff 0%, #9c00c3 100%)',
-                    boxShadow: '0 4px 15px rgba(208, 0, 255, 0.3)',
+                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                    boxShadow: '0 4px 6px -1px rgba(245, 158, 11, 0.3)',
+                    color: '#fff',
+                    '&:hover': {
+                        background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
+                        boxShadow: '0 10px 15px -3px rgba(245, 158, 11, 0.4)',
+                    }
                 }
             },
         },
         MuiCard: {
             styleOverrides: {
                 root: {
-                    background: 'rgba(18, 18, 42, 0.6)', // Glass
-                    backdropFilter: 'blur(16px)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    borderRadius: '24px',
-                    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+                    background: 'rgba(30, 41, 59, 0.7)', // Slate 800 with opacity
+                    backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(148, 163, 184, 0.1)', // Slate 400
+                    borderRadius: '16px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
                 },
             },
         },
         MuiPaper: {
             styleOverrides: {
                 root: {
-                    background: 'rgba(18, 18, 42, 0.6)',
-                    backdropFilter: 'blur(16px)',
+                    background: 'rgba(30, 41, 59, 0.7)',
+                    backdropFilter: 'blur(12px)',
                 }
             }
         },
         MuiTableCell: {
             styleOverrides: {
                 root: {
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                    borderBottom: '1px solid rgba(148, 163, 184, 0.1)',
                 },
                 head: {
                     fontWeight: 700,
-                    color: '#00f7ff', // Neon Cyan Headers
-                    background: 'rgba(5, 5, 16, 0.8)',
+                    color: '#bae6fd', // Sky 200
+                    background: 'rgba(15, 23, 42, 0.9)', // Slate 900
                 }
             }
         },
         MuiDialog: {
             styleOverrides: {
                 paper: {
-                    background: 'rgba(18, 18, 42, 0.9)',
-                    backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(0, 247, 255, 0.2)',
-                    borderRadius: '24px',
-                    boxShadow: '0 0 50px rgba(0, 247, 255, 0.1)',
+                    background: 'rgba(30, 41, 59, 0.95)',
+                    backdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(148, 163, 184, 0.1)',
+                    borderRadius: '20px',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
                 }
+            }
+        },
+        MuiTextField: {
+            styleOverrides: {
+                root: {
+                    '& .MuiOutlinedInput-root': {
+                        borderRadius: '12px',
+                        backgroundColor: 'rgba(15, 23, 42, 0.3)',
+                        '& fieldset': {
+                            borderColor: 'rgba(148, 163, 184, 0.2)',
+                        },
+                        '&:hover fieldset': {
+                            borderColor: 'rgba(148, 163, 184, 0.4)',
+                        },
+                        '&.Mui-focused fieldset': {
+                            borderColor: '#3b82f6', // Primary Main
+                        },
+                    },
+                },
             }
         }
     },
