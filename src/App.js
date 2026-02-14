@@ -44,44 +44,40 @@ class ErrorBoundary extends React.Component {
 }
 
 function AnimatedRoutes() {
-  const location = useLocation();
-
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/login" element={
-          <PageTransition>
-            <LoginPage />
-          </PageTransition>
-        } />
+    <Routes>
+      <Route path="/login" element={
+        <PageTransition>
+          <LoginPage />
+        </PageTransition>
+      } />
 
-        {/* Protected Routes */}
-        <Route element={<PrivateRoute />}>
-          {/* Admin Routes */}
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="students" element={<ViewStudents />} />
-            <Route path="add-student" element={<AddStudent />} />
-            <Route path="add-subject" element={<AddSubject />} />
-            <Route path="reports" element={<ClassReport />} />
-          </Route>
-
-          {/* Role-Based Dashboards */}
-          <Route path="/student-dashboard" element={
-            <PageTransition>
-              <StudentDashboard />
-            </PageTransition>
-          } />
-          <Route path="/teacher-dashboard" element={
-            <PageTransition>
-              <TeacherDashboard />
-            </PageTransition>
-          } />
+      {/* Protected Routes */}
+      <Route element={<PrivateRoute />}>
+        {/* Admin Routes */}
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="students" element={<ViewStudents />} />
+          <Route path="add-student" element={<AddStudent />} />
+          <Route path="add-subject" element={<AddSubject />} />
+          <Route path="reports" element={<ClassReport />} />
         </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </AnimatePresence>
+        {/* Role-Based Dashboards */}
+        <Route path="/student-dashboard" element={
+          <PageTransition>
+            <StudentDashboard />
+          </PageTransition>
+        } />
+        <Route path="/teacher-dashboard" element={
+          <PageTransition>
+            <TeacherDashboard />
+          </PageTransition>
+        } />
+      </Route>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 
