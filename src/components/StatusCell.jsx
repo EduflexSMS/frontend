@@ -64,7 +64,7 @@ const StatusCell = ({ studentId, subject, monthIndex, weekIndex, type, initialSt
             setOpen(false);
 
             if (type === 'attendance') {
-                url = `${API_BASE_URL} /api/attendance / ${studentId} /${subject}/${monthIndex}/${weekIndex}`;
+                url = `${API_BASE_URL}/api/attendance/${studentId}/${subject}/${monthIndex}/${weekIndex}`;
                 body = { status: newStatus };
                 await axios.patch(url, body);
             } else {
