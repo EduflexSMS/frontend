@@ -1,10 +1,10 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, AppBar, Toolbar, Typography, CssBaseline, IconButton, Avatar, useTheme, useMediaQuery, InputBase, alpha, Button } from '@mui/material';
-import { Dashboard, People, Class, AddBox, Assessment, Menu as MenuIcon, NotificationsOutlined, Search as SearchIcon, SettingsOutlined, Logout as LogoutIcon, Brightness4, Brightness7, Language } from '@mui/icons-material';
+import { Dashboard, People, Class, AddBox, Assessment, Menu as MenuIcon, NotificationsOutlined, Search as SearchIcon, SettingsOutlined, Logout as LogoutIcon, Language } from '@mui/icons-material';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../assets/logo.jpg';
-import { ColorModeContext } from '../App';
+
 import { pageVariants, containerStagger, itemFadeUp, tapScale, springFast } from '../utils/animations';
 import { useTranslation } from 'react-i18next';
 import Background3D from './Background3D';
@@ -18,7 +18,7 @@ export default function Layout() {
     const location = useLocation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const colorMode = useContext(ColorModeContext);
+
     const { t, i18n } = useTranslation();
 
     const menuItems = [
@@ -337,9 +337,7 @@ export default function Layout() {
                                 {i18n.language === 'si' ? 'සිංහල' : 'English'}
                             </Button>
 
-                            <IconButton onClick={colorMode.toggleColorMode} sx={{ color: 'text.primary' }}>
-                                {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
-                            </IconButton>
+
 
                             <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'inline-flex' } }}>
                                 <NotificationsOutlined />
