@@ -224,7 +224,7 @@ export default function Dashboard() {
                             title={t('total_students')}
                             value={stats.totalStudents}
                             icon={<PeopleOutline />}
-                            accentColor="#00f7ff" // Neon Cyan
+                            accentColor={theme.palette.primary.main} // Royal Blue
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} component={motion.div} variants={itemFadeUp}>
@@ -232,7 +232,7 @@ export default function Dashboard() {
                             title={t('total_subjects')}
                             value={stats.totalSubjects}
                             icon={<MenuBook />}
-                            accentColor="#d000ff" // Neon Purple
+                            accentColor={theme.palette.secondary.main} // Gold
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} component={motion.div} variants={itemFadeUp}>
@@ -240,7 +240,7 @@ export default function Dashboard() {
                             title="New Teacher"
                             value="+"
                             icon={<SupervisedUserCircle />}
-                            accentColor="#00ff66" // Neon Green
+                            accentColor={theme.palette.info.main} // Sky Blue
                             onClick={() => setCreateTeacherOpen(true)}
                         />
                     </Grid>
@@ -249,7 +249,7 @@ export default function Dashboard() {
                             title="Teachers"
                             value={stats.teacherCount || "-"}
                             icon={<PeopleOutline />}
-                            accentColor="#ffcc00" // Neon Yellow
+                            accentColor={theme.palette.success.main} // Emerald
                             onClick={() => setTeacherListOpen(true)}
                         />
                     </Grid>

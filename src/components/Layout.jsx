@@ -5,10 +5,11 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../assets/logo.jpg';
 
-import { pageVariants, containerStagger, itemFadeUp, tapScale, springFast } from '../utils/animations';
+import { containerStagger, itemFadeUp, tapScale, springFast } from '../utils/animations';
 import { useTranslation } from 'react-i18next';
 import Background3D from './Background3D';
 import VoiceCommander from './VoiceCommander';
+import PageTransition from './PageTransition'; // Import the new component
 
 const drawerWidth = 280;
 
@@ -51,13 +52,12 @@ export default function Layout() {
                 color: 'white',
                 background: 'transparent',
                 position: 'relative',
-                overflowY: 'auto', // Scroll inside the rounded container
+                overflowY: 'auto',
                 height: '100%',
-                '&::-webkit-scrollbar': { width: '4px' }, // Subtle scrollbar
+                '&::-webkit-scrollbar': { width: '4px' },
                 '&::-webkit-scrollbar-thumb': { background: 'rgba(255,255,255,0.1)', borderRadius: '4px' }
             }}
         >
-            {/* Removed manual blur div for cleaner glass effect */}
 
             <Box sx={{ p: 4, display: 'flex', alignItems: 'center', gap: 2, position: 'relative', zIndex: 1, mb: 2 }}>
                 <motion.div
@@ -71,7 +71,7 @@ export default function Layout() {
                             width: 48,
                             height: 48,
                             border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
-                            boxShadow: '0 0 20px rgba(37, 99, 235, 0.3)'
+                            boxShadow: '0 0 20px rgba(15, 82, 186, 0.5)' // Primary glow
                         }}
                     >E</Avatar>
                 </motion.div>
@@ -79,15 +79,13 @@ export default function Layout() {
                     <Typography variant="h5" sx={{
                         fontWeight: 900,
                         letterSpacing: 1,
-                        background: theme.palette.mode === 'dark'
-                            ? 'linear-gradient(45deg, #fff, #60a5fa)'
-                            : 'linear-gradient(45deg, #1e40af, #3b82f6)',
+                        background: 'linear-gradient(45deg, #fff, #4c82ef)', // White to Light Blue
                         backgroundClip: 'text',
                         textFillColor: 'transparent',
                     }}>
                         EDUFLEX
                     </Typography>
-                    <Typography variant="caption" sx={{ color: theme.palette.text.secondary, letterSpacing: 2, fontSize: '0.65rem' }}>
+                    <Typography variant="caption" sx={{ color: theme.palette.secondary.main, letterSpacing: 3, fontSize: '0.65rem', fontWeight: 700 }}>
                         INSTITUTE
                     </Typography>
                 </Box>
@@ -124,8 +122,8 @@ export default function Layout() {
                                     color: active ? 'white' : theme.palette.text.secondary,
                                     transition: 'color 0.3s ease',
                                     '&:hover': {
-                                        color: active ? 'white' : theme.palette.primary.main,
-                                        bgcolor: active ? 'transparent' : alpha(theme.palette.primary.main, 0.05)
+                                        color: active ? 'white' : theme.palette.primary.light,
+                                        bgcolor: active ? 'transparent' : alpha(theme.palette.primary.main, 0.08)
                                     }
                                 }}
                             >
@@ -137,8 +135,8 @@ export default function Layout() {
                                             position: 'absolute',
                                             inset: 0,
                                             borderRadius: '16px',
-                                            background: 'linear-gradient(90deg, #4f46e5 0%, #3b82f6 100%)',
-                                            boxShadow: '0 4px 15px rgba(37, 99, 235, 0.4)',
+                                            background: 'linear-gradient(90deg, #0f52ba 0%, #002b8a 100%)', // Royal Blue Gradient
+                                            boxShadow: '0 4px 15px rgba(15, 82, 186, 0.4)',
                                             zIndex: 0
                                         }}
                                         transition={springFast}
@@ -146,7 +144,7 @@ export default function Layout() {
                                 )}
 
                                 <ListItemIcon sx={{
-                                    color: 'inherit',
+                                    color: active ? '#ffd700' : 'inherit', // Gold icon when active
                                     minWidth: 45,
                                     zIndex: 1,
                                     filter: active ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' : 'none'
@@ -231,7 +229,7 @@ export default function Layout() {
                         sx: {
                             boxSizing: 'border-box',
                             width: drawerWidth,
-                            background: theme.palette.mode === 'dark' ? alpha('#000000', 0.6) : alpha('#ffffff', 0.5),
+                            background: alpha('#0b1121', 0.6),
                             borderRight: '1px solid',
                             border: 'none',
                             borderColor: 'rgba(255,255,255,0.08)',
@@ -285,7 +283,7 @@ export default function Layout() {
                     elevation={0}
                     sx={{
                         borderRadius: { md: '20px' },
-                        bgcolor: theme.palette.mode === 'dark' ? alpha('#000000', 0.7) : alpha('#ffffff', 0.7),
+                        bgcolor: alpha('#151e32', 0.7), // Theme paper color with opacity
                         backdropFilter: 'blur(24px)',
                         border: '1px solid',
                         borderColor: 'rgba(255,255,255,0.08)',
@@ -294,7 +292,6 @@ export default function Layout() {
                         mb: { xs: 2, md: 4 },
                         width: '100%',
                         zIndex: 1100
-                        // Remove transition property from Sx to prevent conflict with framer motion if we were animating it
                     }}
                 >
                     <Toolbar sx={{ justifyContent: 'space-between' }}>
@@ -337,8 +334,6 @@ export default function Layout() {
                                 {i18n.language === 'si' ? 'සිංහල' : 'English'}
                             </Button>
 
-
-
                             <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'inline-flex' } }}>
                                 <NotificationsOutlined />
                             </IconButton>
@@ -358,16 +353,9 @@ export default function Layout() {
 
                 {/* Page Transitions with AnimatePresence */}
                 <AnimatePresence mode="wait">
-                    <motion.div
-                        key={location.pathname}
-                        variants={pageVariants}
-                        initial="initial"
-                        animate="animate"
-                        exit="exit"
-                        style={{ width: '100%', flexGrow: 1 }}
-                    >
+                    <PageTransition key={location.pathname}>
                         <Outlet />
-                    </motion.div>
+                    </PageTransition>
                 </AnimatePresence>
             </Box>
         </Box>

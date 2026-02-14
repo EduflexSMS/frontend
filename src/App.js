@@ -1,6 +1,7 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
+import { AnimatePresence } from 'framer-motion';
 import theme from './theme'; // Import the Void Glass Theme
 import Layout from './components/Layout';
 import ViewStudents from './pages/ViewStudents';
@@ -12,6 +13,7 @@ import AddStudent from './pages/AddStudent';
 import ClassReport from './pages/ClassReport';
 import AddSubject from './pages/AddSubject';
 import Dashboard from './pages/Dashboard';
+import PageTransition from './components/PageTransition';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -41,33 +43,55 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+function AnimatedRoutes() {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/login" element={
+          <PageTransition>
+            <LoginPage />
+          </PageTransition>
+        } />
+
+        {/* Protected Routes */}
+        <Route element={<PrivateRoute />}>
+          {/* Admin Routes */}
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="students" element={<ViewStudents />} />
+            <Route path="add-student" element={<AddStudent />} />
+            <Route path="add-subject" element={<AddSubject />} />
+            <Route path="reports" element={<ClassReport />} />
+          </Route>
+
+          {/* Role-Based Dashboards */}
+          <Route path="/student-dashboard" element={
+            <PageTransition>
+              <StudentDashboard />
+            </PageTransition>
+          } />
+          <Route path="/teacher-dashboard" element={
+            <PageTransition>
+              <TeacherDashboard />
+            </PageTransition>
+          } />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </AnimatePresence>
+  );
+}
+
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <ErrorBoundary>
         <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-
-            {/* Protected Routes */}
-            <Route element={<PrivateRoute />}>
-              {/* Admin Routes */}
-              <Route path="/" element={<Layout />}>
-                <Route index element={<Dashboard />} />
-                <Route path="students" element={<ViewStudents />} />
-                <Route path="add-student" element={<AddStudent />} />
-                <Route path="add-subject" element={<AddSubject />} />
-                <Route path="reports" element={<ClassReport />} />
-              </Route>
-
-              {/* Role-Based Dashboards */}
-              <Route path="/student-dashboard" element={<StudentDashboard />} />
-              <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
-            </Route>
-
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+          <AnimatedRoutes />
         </BrowserRouter>
       </ErrorBoundary>
     </ThemeProvider>
