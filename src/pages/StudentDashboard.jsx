@@ -17,7 +17,7 @@ export default function StudentDashboard() {
     useEffect(() => {
         const fetchStudentData = async () => {
             try {
-                const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+                const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
                 if (!userInfo || !userInfo.id) {
                     throw new Error("Student ID not found. Please login again.");
                 }

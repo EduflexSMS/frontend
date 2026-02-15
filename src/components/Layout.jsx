@@ -173,7 +173,8 @@ export default function Layout() {
                     whileTap={tapScale}
                     transition={springFast}
                     onClick={() => {
-                        localStorage.removeItem('userInfo');
+                        sessionStorage.removeItem('userInfo');
+                        localStorage.removeItem('userInfo'); // Double check clear
                         navigate('/login');
                     }}
                     sx={{

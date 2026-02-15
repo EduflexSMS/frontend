@@ -55,7 +55,16 @@ export default function LoginPage() {
 
     useEffect(() => {
         const checkAuth = () => {
-            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+            // Check sessionStorage primarily
+            let userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+
+            // Migration/Cleanup: Check if localStorage has it, if so, maybe we want to respect it one last time or just clear it?
+            // For security, if we want to enforce session only, we should probably ignore localStorage or clear it.
+            // Let's clear localStorage to ensure no old sessions persist if the user manually kept them.
+            if (localStorage.getItem('userInfo')) {
+                localStorage.removeItem('userInfo');
+            }
+
             if (userInfo) {
                 if (userInfo.role === 'student') window.location.href = '/student-dashboard';
                 else if (userInfo.role === 'teacher') window.location.href = '/teacher-dashboard';
@@ -114,7 +123,9 @@ export default function LoginPage() {
                 }
             }
 
-            localStorage.setItem('userInfo', JSON.stringify(userData));
+            sessionStorage.setItem('userInfo', JSON.stringify(userData));
+            // Ensure we don't leave traces in localStorage
+            localStorage.removeItem('userInfo');
             window.location.href = redirectUrl;
 
         } catch (err) {
@@ -261,7 +272,7 @@ export default function LoginPage() {
                                     delay={0.1}
                                 />
                             </Grid>
-                            <Grid item xs={12} md={4}>
+                            {/* <Grid item xs={12} md={4}>
                                 <RoleCard
                                     role="teacher"
                                     title={t('teacher_portal')}
@@ -278,7 +289,7 @@ export default function LoginPage() {
                                     icon={<School fontSize="inherit" />}
                                     delay={0.3}
                                 />
-                            </Grid>
+                            </Grid> */}
                         </Grid>
                     ) : (
                         <motion.div

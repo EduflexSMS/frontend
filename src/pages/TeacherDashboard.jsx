@@ -81,7 +81,8 @@ export default function TeacherDashboard() {
                 const flatClasses = results.flat().flat().filter(c => c !== null);
 
                 // Filter by assigned subject if it exists
-                const user = JSON.parse(localStorage.getItem('userInfo'));
+                const user = JSON.parse(sessionStorage.getItem('userInfo'));
+                if (!user || user.role !== 'teacher') throw new Error("Unauthorized");
                 const assignedSubject = user?.assignedSubject;
 
                 const filteredClasses = assignedSubject
@@ -106,6 +107,7 @@ export default function TeacherDashboard() {
     }, []);
 
     const handleLogout = () => {
+        sessionStorage.removeItem('userInfo');
         localStorage.removeItem('userInfo');
         window.location.href = '/login';
     };

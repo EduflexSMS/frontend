@@ -85,6 +85,7 @@ const VoiceCommander = () => {
         }
         // Actions
         else if (cmd.includes('logout') || cmd.includes('log out')) {
+            sessionStorage.removeItem('userInfo');
             localStorage.removeItem('userInfo');
             navigate('/login');
             setFeedback("Logging out...");
