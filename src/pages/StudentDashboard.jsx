@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import API_BASE_URL from '../config';
 import { itemFadeUp, containerStagger, hoverScale } from '../utils/animations';
+import QRCode from 'react-qr-code';
+import { Dialog, DialogContent, DialogTitle, Button } from '@mui/material';
 
 export default function StudentDashboard() {
     const theme = useTheme();
@@ -13,6 +15,7 @@ export default function StudentDashboard() {
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [qrOpen, setQrOpen] = useState(false);
 
     useEffect(() => {
         const fetchStudentData = async () => {
@@ -154,8 +157,33 @@ export default function StudentDashboard() {
                             <Chip label={student.id} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }} />
                             <Chip label={student.grade} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }} />
                         </Box>
+                        <Button
+                            variant="outlined"
+                            color="inherit"
+                            size="small"
+                            onClick={() => setQrOpen(true)}
+                            sx={{ mt: 2, bgcolor: 'rgba(255,255,255,0.1)', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}
+                        >
+                            Show QR Code
+                        </Button>
                     </Box>
                 </Paper>
+
+                <Dialog open={qrOpen} onClose={() => setQrOpen(false)}>
+                    <DialogTitle sx={{ textAlign: 'center' }}>My Attendance QR</DialogTitle>
+                    <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 4 }}>
+                        <div style={{ height: "auto", margin: "0 auto", maxWidth: 256, width: "100%" }}>
+                            <QRCode
+                                size={256}
+                                style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                                value={student.id}
+                                viewBox={`0 0 256 256`}
+                            />
+                        </div>
+                        <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold' }}>{student.id}</Typography>
+                        <Typography variant="body2" color="text.secondary">{student.name}</Typography>
+                    </DialogContent>
+                </Dialog>
 
                 <Grid container spacing={3}>
                     {/* Attendance Stats */}

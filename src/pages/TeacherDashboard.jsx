@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Container, Grid, Paper, Typography, Avatar, useTheme, alpha, IconButton, CircularProgress, Alert } from '@mui/material';
 import { motion } from 'framer-motion';
-import { Class, People, MonetizationOn, ArrowForwardIos } from '@mui/icons-material';
+import { Class, People, MonetizationOn, ArrowForwardIos, QrCodeScanner } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import API_BASE_URL from '../config';
 import { itemFadeUp, containerStagger, hoverScale } from '../utils/animations';
@@ -11,6 +12,7 @@ import StudentListDialog from '../components/StudentListDialog';
 export default function TeacherDashboard() {
     const theme = useTheme();
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const [teacherData, setTeacherData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -157,6 +159,26 @@ export default function TeacherDashboard() {
                             <path d="M17 7L15.59 8.41L18.17 11H8V13H18.17L15.59 15.58L17 17L22 12L17 7ZM4 5H12V3H4C2.9 3 2 3.9 2 5V19C2 20.1 2.9 21 4 21H12V19H4V5Z" fill="currentColor" />
                         </svg>
                     </IconButton>
+                </Box>
+
+                <Box sx={{ mb: 4 }}>
+                    <Button
+                        variant="contained"
+                        size="large"
+                        startIcon={<QrCodeScanner />}
+                        onClick={() => navigate('/qr-scanner')}
+                        sx={{
+                            borderRadius: '16px',
+                            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                            boxShadow: '0 8px 16px rgba(245, 158, 11, 0.3)',
+                            fontSize: '1.1rem',
+                            fontWeight: 'bold',
+                            py: 1.5,
+                            px: 4
+                        }}
+                    >
+                        Scan Attendance
+                    </Button>
                 </Box>
 
                 {/* Stats Overview */}

@@ -14,6 +14,7 @@ import ClassReport from './pages/ClassReport';
 import AddSubject from './pages/AddSubject';
 import Dashboard from './pages/Dashboard';
 import PageTransition from './components/PageTransition';
+import QRScanner from './pages/QRScanner';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -72,6 +73,11 @@ function AnimatedRoutes() {
         <Route path="/teacher-dashboard" element={
           <PageTransition>
             <TeacherDashboard />
+          </PageTransition>
+        } />
+        <Route path="/qr-scanner" element={
+          <PageTransition>
+            <QRScanner />
           </PageTransition>
         } />
       </Route>
