@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Grid, Typography, CircularProgress, Paper, LinearProgress, Button, Container, alpha, useTheme, IconButton, Tooltip } from '@mui/material';
-import { MenuBook, Assessment, PeopleOutline, SupervisedUserCircle, VerifiedUser, Refresh, AutoFixHigh } from '@mui/icons-material';
+import { MenuBook, Assessment, PeopleOutline, SupervisedUserCircle, VerifiedUser, Refresh, AutoFixHigh, QrCodeScanner } from '@mui/icons-material';
 import axios from 'axios';
 import API_BASE_URL from '../config';
+import { useNavigate } from 'react-router-dom';
 import ReportDialog from '../components/ReportDialog';
 import SubjectDetailsDialog from '../components/SubjectDetailsDialog';
 import CreateTeacherDialog from '../components/CreateTeacherDialog';
@@ -32,8 +33,10 @@ export default function Dashboard() {
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [createTeacherOpen, setCreateTeacherOpen] = useState(false);
     const [teacherListOpen, setTeacherListOpen] = useState(false);
+    const [teacherListOpen, setTeacherListOpen] = useState(false);
     const [selectedSubject, setSelectedSubject] = useState(null);
     const { t } = useTranslation();
+    const navigate = useNavigate();
 
     const fetchStats = async () => {
         try {
@@ -213,6 +216,27 @@ export default function Dashboard() {
                             }}
                         >
                             {t('generate_report')}
+                            {t('generate_report')}
+                        </Button>
+                        <Button
+                            component={motion.button}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={tapScale}
+                            variant="contained"
+                            startIcon={<QrCodeScanner />}
+                            onClick={() => navigate('/qr-scanner')}
+                            sx={{
+                                borderRadius: '12px',
+                                textTransform: 'none',
+                                fontSize: '1rem',
+                                fontWeight: 700,
+                                padding: '10px 24px',
+                                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                                boxShadow: '0 0 20px rgba(245, 158, 11, 0.4)',
+                                color: '#fff'
+                            }}
+                        >
+                            Scan
                         </Button>
                     </Box>
                 </Box>
