@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Container, Grid, Paper, Typography, Avatar, useTheme, alpha, IconButton, CircularProgress, Alert } from '@mui/material';
+import { Box, Container, Grid, Paper, Typography, Avatar, useTheme, alpha, IconButton, CircularProgress, Alert, Button } from '@mui/material';
 import { motion } from 'framer-motion';
 import { Class, People, MonetizationOn, ArrowForwardIos, QrCodeScanner } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
