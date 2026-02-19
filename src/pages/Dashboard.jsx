@@ -33,7 +33,7 @@ export default function Dashboard() {
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [createTeacherOpen, setCreateTeacherOpen] = useState(false);
     const [teacherListOpen, setTeacherListOpen] = useState(false);
-    const [teacherListOpen, setTeacherListOpen] = useState(false);
+
     const [selectedSubject, setSelectedSubject] = useState(null);
     const { t } = useTranslation();
     const navigate = useNavigate();
