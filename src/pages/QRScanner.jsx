@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Box, Container, Paper, Typography, MenuItem, Select, FormControl, InputLabel, Button, Alert, Snackbar } from '@mui/material';
-import { QrCodeScanner, ArrowBack } from '@mui/icons-material';
-import QrReader from 'react-qr-scanner';
+import { QrCodeScanner, ArrowBack, CheckCircleOutline } from '@mui/icons-material';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 import axios from 'axios';
 import API_BASE_URL from '../config';
 import { useNavigate } from 'react-router-dom';
@@ -9,14 +9,26 @@ import { useNavigate } from 'react-router-dom';
 export default function QRScanner() {
     const [subjects, setSubjects] = useState([]);
     const [selectedSubject, setSelectedSubject] = useState('');
-    const [scanResult, setScanResult] = useState('');
     const [message, setMessage] = useState({ type: '', text: '' });
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [lastScanned, setLastScanned] = useState('');
+    const [showSuccessMark, setShowSuccessMark] = useState(false);
+
+    // Use refs to access latest state in the scan callback without recreating scanner
+    const selectedSubjectRef = useRef(selectedSubject);
+    const lastScannedRef = useRef(lastScanned);
+
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Fetch subjects for the teacher
+        selectedSubjectRef.current = selectedSubject;
+    }, [selectedSubject]);
+
+    useEffect(() => {
+        lastScannedRef.current = lastScanned;
+    }, [lastScanned]);
+
+    useEffect(() => {
         const fetchSubjects = async () => {
             try {
                 const user = JSON.parse(sessionStorage.getItem('userInfo'));
@@ -26,7 +38,6 @@ export default function QRScanner() {
                 }
 
                 const { data } = await axios.get(`${API_BASE_URL}/api/subjects`);
-                // Filter if teacher is assigned to specific subject, or show all
                 const assigned = user.assignedSubject;
                 if (assigned) {
                     setSubjects(data.filter(s => s.name === assigned));
@@ -41,28 +52,55 @@ export default function QRScanner() {
         fetchSubjects();
     }, [navigate]);
 
-    const handleScan = async (data) => {
-        if (data && data.text && data.text !== lastScanned) {
-            setLastScanned(data.text);
-            const indexNumber = data.text;
+    const playBeep = () => {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
 
-            if (!selectedSubject) {
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.type = 'sine';
+            oscillator.frequency.value = 800;
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+
+            oscillator.start();
+            setTimeout(() => {
+                oscillator.stop();
+                audioCtx.close();
+            }, 150);
+        } catch (e) {
+            console.error("Audio Context failed", e);
+        }
+    };
+
+    const handleScanSuccess = useCallback(async (decodedText, decodedResult) => {
+        if (decodedText && decodedText !== lastScannedRef.current) {
+            setLastScanned(decodedText);
+            const indexNumber = decodedText;
+            const currentSubject = selectedSubjectRef.current;
+
+            if (!currentSubject) {
                 setMessage({ type: 'warning', text: 'Please select a subject first' });
                 setOpenSnackbar(true);
                 return;
             }
 
             try {
-                // Play beep sound
-                const audio = new Audio('/beep.mp3'); // Ensure beep.mp3 exists or remove
-                if (audio) audio.play().catch(e => console.log('Audio play failed', e));
-
                 const response = await axios.post(`${API_BASE_URL}/api/attendance/qr`, {
                     indexNumber: indexNumber,
-                    subject: selectedSubject
+                    subject: currentSubject
                 });
 
                 const { student, week, status } = response.data;
+
+                playBeep();
+                setShowSuccessMark(true);
+                setTimeout(() => setShowSuccessMark(false), 1500);
 
                 if (status === 'already_marked') {
                     setMessage({ type: 'info', text: `Already Marked: ${student}` });
@@ -71,23 +109,68 @@ export default function QRScanner() {
                 }
                 setOpenSnackbar(true);
 
-                // Reset last scanned after delay to allow re-scanning same code if needed (e.g. mistake)
-                // But for now, we keep it to prevent double hits
+                // Allow re-scanning same code after 3s
                 setTimeout(() => setLastScanned(''), 3000);
 
             } catch (error) {
                 console.error("Scan Error", error);
+
+                // Play beep to acknowledge scan even if it failed? (Optional, maybe not for failure)
+                // Let's add a lower beep for failure
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    oscillator.type = 'sawtooth';
+                    oscillator.frequency.value = 200;
+                    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    oscillator.start();
+                    setTimeout(() => {
+                        oscillator.stop();
+                        audioCtx.close();
+                    }, 300);
+                } catch (e) { }
+
                 const errMsg = error.response?.data?.message || "Scan Failed";
                 setMessage({ type: 'error', text: errMsg });
                 setOpenSnackbar(true);
+
                 setTimeout(() => setLastScanned(''), 3000);
             }
         }
+    }, []);
+
+    const handleScanFailure = (error) => {
+        // Ignored to avoid cluttering console with continuous normal failures
     };
 
-    const handleError = (err) => {
-        console.error(err);
-    };
+    useEffect(() => {
+        if (!selectedSubject) return;
+
+        const scannerId = "qr-reader";
+        let html5QrcodeScanner;
+
+        const timer = setTimeout(() => {
+            html5QrcodeScanner = new Html5QrcodeScanner(
+                scannerId,
+                { fps: 10, qrbox: { width: 250, height: 250 }, rememberLastUsedCamera: true },
+                /* verbose= */ false
+            );
+
+            html5QrcodeScanner.render(handleScanSuccess, handleScanFailure);
+        }, 300);
+
+        return () => {
+            clearTimeout(timer);
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear().catch(error => {
+                    console.error("Failed to clear html5QrcodeScanner. ", error);
+                });
+            }
+        };
+    }, [selectedSubject, handleScanSuccess]);
 
     const handleCloseSnackbar = () => {
         setOpenSnackbar(false);
@@ -99,7 +182,7 @@ export default function QRScanner() {
                 Back to Dashboard
             </Button>
 
-            <Paper sx={{ p: 4, borderRadius: '24px', textAlign: 'center' }}>
+            <Paper sx={{ p: 4, borderRadius: '24px', textAlign: 'center', position: 'relative' }}>
                 <Typography variant="h4" gutterBottom fontWeight="bold">
                     <QrCodeScanner sx={{ mr: 1, verticalAlign: 'middle' }} />
                     Attendance Scanner
@@ -123,27 +206,63 @@ export default function QRScanner() {
                 {selectedSubject && (
                     <Box sx={{
                         mt: 2,
-                        border: '2px dashed #ccc',
                         borderRadius: '16px',
                         overflow: 'hidden',
                         maxWidth: '500px',
                         margin: '0 auto',
-                        bgcolor: '#000'
+                        position: 'relative',
+                        border: '2px dashed #999',
+                        bgcolor: '#fafafa'
                     }}>
-                        {/* Note: react-qr-scanner might need legacy Mode or specific styling */}
-                        <QrReader
-                            delay={300}
-                            style={{ width: '100%' }}
-                            onError={handleError}
-                            onScan={handleScan}
-                            constraints={{
-                                audio: false,
-                                video: { facingMode: "environment" }
-                            }}
-                        />
-                        <Typography variant="caption" sx={{ color: 'white', display: 'block', p: 1 }}>
-                            Point camera at student QR code
-                        </Typography>
+                        <div id="qr-reader" style={{ width: '100%' }}></div>
+
+                        {showSuccessMark && (
+                            <Box sx={{
+                                position: 'absolute',
+                                top: 0, left: 0, right: 0, bottom: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                zIndex: 10,
+                                animation: 'fadeInOut 1.5s ease-in-out'
+                            }}>
+                                <CheckCircleOutline sx={{ fontSize: 120, color: '#4caf50' }} />
+                            </Box>
+                        )}
+                        <style>
+                            {`
+                                @keyframes fadeInOut {
+                                    0% { opacity: 0; transform: scale(0.5); }
+                                    20% { opacity: 1; transform: scale(1.2); }
+                                    30% { transform: scale(1); }
+                                    80% { opacity: 1; transform: scale(1); }
+                                    100% { opacity: 0; transform: scale(1.5); }
+                                }
+                                #qr-reader {
+                                    border: none !important;
+                                }
+                                #qr-reader button {
+                                    padding: 8px 16px;
+                                    margin: 10px;
+                                    background: #1976d2;
+                                    color: white;
+                                    border: none;
+                                    border-radius: 6px;
+                                    cursor: pointer;
+                                    font-weight: bold;
+                                }
+                                #qr-reader select {
+                                    padding: 8px;
+                                    margin: 10px;
+                                    border-radius: 4px;
+                                }
+                                #qr-reader a {
+                                    color: #1976d2;
+                                    text-decoration: none;
+                                }
+                            `}
+                        </style>
                     </Box>
                 )}
 
@@ -156,7 +275,7 @@ export default function QRScanner() {
 
             <Snackbar
                 open={openSnackbar}
-                autoHideDuration={3000}
+                autoHideDuration={4000}
                 onClose={handleCloseSnackbar}
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
