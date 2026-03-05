@@ -13,6 +13,7 @@ export default function QRScanner() {
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [lastScanned, setLastScanned] = useState('');
     const [showSuccessMark, setShowSuccessMark] = useState(false);
+    const audioCtxRef = useRef(null);
 
     // Use refs to access latest state in the scan callback without recreating scanner
     const selectedSubjectRef = useRef(selectedSubject);
@@ -52,27 +53,33 @@ export default function QRScanner() {
         fetchSubjects();
     }, [navigate]);
 
-    const playBeep = () => {
+    const initAudio = () => {
+        if (!audioCtxRef.current) {
+            audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtxRef.current.state === 'suspended') {
+            audioCtxRef.current.resume();
+        }
+    };
+
+    const playBeep = (type = 'success') => {
         try {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            initAudio();
+            const audioCtx = audioCtxRef.current;
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
 
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
 
-            oscillator.type = 'sine';
-            oscillator.frequency.value = 800;
+            oscillator.type = type === 'success' ? 'sine' : 'sawtooth';
+            oscillator.frequency.value = type === 'success' ? 800 : 200;
             gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
 
             oscillator.start();
             setTimeout(() => {
                 oscillator.stop();
-                audioCtx.close();
-            }, 150);
+            }, type === 'success' ? 150 : 300);
         } catch (e) {
             console.error("Audio Context failed", e);
         }
@@ -117,21 +124,7 @@ export default function QRScanner() {
 
                 // Play beep to acknowledge scan even if it failed? (Optional, maybe not for failure)
                 // Let's add a lower beep for failure
-                try {
-                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    const oscillator = audioCtx.createOscillator();
-                    const gainNode = audioCtx.createGain();
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    oscillator.type = 'sawtooth';
-                    oscillator.frequency.value = 200;
-                    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                    oscillator.start();
-                    setTimeout(() => {
-                        oscillator.stop();
-                        audioCtx.close();
-                    }, 300);
-                } catch (e) { }
+                playBeep('error');
 
                 const errMsg = error.response?.data?.message || "Scan Failed";
                 setMessage({ type: 'error', text: errMsg });
@@ -183,7 +176,7 @@ export default function QRScanner() {
             </Button>
 
             <Paper sx={{ p: 4, borderRadius: '24px', textAlign: 'center', position: 'relative' }}>
-                <Typography variant="h4" gutterBottom fontWeight="bold">
+                <Typography variant="h4" gutterBottom fontWeight="bold" onClick={initAudio}>
                     <QrCodeScanner sx={{ mr: 1, verticalAlign: 'middle' }} />
                     Attendance Scanner
                 </Typography>
@@ -193,7 +186,10 @@ export default function QRScanner() {
                     <Select
                         value={selectedSubject}
                         label="Select Subject to Mark Attendance"
-                        onChange={(e) => setSelectedSubject(e.target.value)}
+                        onChange={(e) => {
+                            initAudio(); // Initialize audio on user interaction
+                            setSelectedSubject(e.target.value);
+                        }}
                     >
                         {subjects.map((sub) => (
                             <MenuItem key={sub._id} value={sub.name}>
