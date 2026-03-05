@@ -1,18 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Collapse, Box, Typography,
     useTheme, useMediaQuery, Card, CardContent, Button, Grid, Chip, Avatar, Tooltip
 } from '@mui/material';
-import { KeyboardArrowDown, KeyboardArrowUp, Edit, Phone, Delete, OpenInNew } from '@mui/icons-material';
+import { KeyboardArrowDown, KeyboardArrowUp, Edit, Phone, Delete, OpenInNew, Print } from '@mui/icons-material';
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import API_BASE_URL from '../config';
 import SubjectGrid from './SubjectGrid';
 import EditStudentDialog from '../components/EditStudentDialog';
 import { motion, AnimatePresence } from 'framer-motion';
+import html2canvas from 'html2canvas';
+import StudentIdCard from './StudentIdCard';
 
 function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
     const [open, setOpen] = useState(false);
     const theme = useTheme();
+    const idCardRef = useRef(null);
+
+    const handlePrintId = async () => {
+        if (!idCardRef.current) return;
+
+        try {
+            // Temporarily make it visible but absolute positioned off-screen to capture
+            idCardRef.current.style.display = 'flex';
+
+            const canvas = await html2canvas(idCardRef.current, {
+                scale: 3, // High quality 300dpi equivalent
+                useCORS: true,
+                backgroundColor: null,
+            });
+
+            // Hide it again
+            idCardRef.current.style.display = 'none';
+
+            const image = canvas.toDataURL('image/png', 1.0);
+            const link = document.createElement('a');
+            link.download = `ID_Card_${row.indexNumber}_${row.name.replace(/\s+/g, '_')}.png`;
+            link.href = image;
+            link.click();
+        } catch (error) {
+            console.error("Error generating ID Card:", error);
+            alert("Could not generate ID card. Please try again.");
+            if (idCardRef.current) idCardRef.current.style.display = 'none';
+        }
+    };
 
     return (
         <React.Fragment>
@@ -109,11 +140,19 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
                     )}
                 </TableCell>
                 <TableCell>
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', opacity: 0.7, '&:hover': { opacity: 1 } }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', opacity: 0.7, '&:hover': { opacity: 1 }, gap: 1 }}>
+                        <Tooltip title="Download ID Card">
+                            <IconButton
+                                onClick={(e) => { e.stopPropagation(); handlePrintId(); }}
+                                sx={{ '&:hover': { color: theme.palette.primary.main } }}
+                            >
+                                <Print fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
                         <Tooltip title="Edit Student">
                             <IconButton
                                 onClick={(e) => { e.stopPropagation(); onEdit(row); }}
-                                sx={{ mr: 1, '&:hover': { color: '#00f7ff' } }}
+                                sx={{ '&:hover': { color: '#00f7ff' } }}
                             >
                                 <Edit fontSize="small" />
                             </IconButton>
@@ -160,6 +199,13 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
                             />
                         </Box>
                     </Collapse>
+
+                    {/* Hidden high-res ID Card for capturing rendering */}
+                    <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+                        <div ref={idCardRef} style={{ display: 'none' }}>
+                            <StudentIdCard student={row} />
+                        </div>
+                    </div>
                 </TableCell>
             </TableRow>
         </React.Fragment>
@@ -169,6 +215,33 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
 function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
     const [expanded, setExpanded] = useState(false);
     const theme = useTheme();
+    const idCardRef = useRef(null);
+
+    const handlePrintId = async () => {
+        if (!idCardRef.current) return;
+
+        try {
+            idCardRef.current.style.display = 'flex';
+
+            const canvas = await html2canvas(idCardRef.current, {
+                scale: 3,
+                useCORS: true,
+                backgroundColor: null,
+            });
+
+            idCardRef.current.style.display = 'none';
+
+            const image = canvas.toDataURL('image/png', 1.0);
+            const link = document.createElement('a');
+            link.download = `ID_Card_${row.indexNumber}_${row.name.replace(/\s+/g, '_')}.png`;
+            link.href = image;
+            link.click();
+        } catch (error) {
+            console.error("Error generating ID Card:", error);
+            alert("Could not generate ID card. Please try again.");
+            if (idCardRef.current) idCardRef.current.style.display = 'none';
+        }
+    };
 
     return (
         <Card
@@ -215,6 +288,16 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
                         </Box>
                     </Box>
                     <Box>
+                        {/* Mobile ID Card Print Tool */}
+                        <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+                            <div ref={idCardRef} style={{ display: 'none' }}>
+                                <StudentIdCard student={row} />
+                            </div>
+                        </div>
+
+                        <IconButton onClick={handlePrintId} size="small" sx={{ color: 'text.secondary', '&:hover': { color: theme.palette.primary.main } }}>
+                            <Print fontSize="small" />
+                        </IconButton>
                         <IconButton onClick={() => onEdit(row)} size="small" sx={{ color: 'text.secondary', '&:hover': { color: '#00f7ff' } }}>
                             <Edit fontSize="small" />
                         </IconButton>
