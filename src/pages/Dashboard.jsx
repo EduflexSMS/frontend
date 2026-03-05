@@ -15,7 +15,7 @@ import AnalyticsChart from '../components/AnalyticsChart';
 
 // Counting Animation Component
 const AnimatedNumber = ({ value }) => {
-    const spring = useSpring(0, { bounce: 0, duration: 2000 });
+    const spring = useSpring(0, { bounce: 0, duration: 600 });
     const display = useTransform(spring, (current) => Math.round(current));
 
     useEffect(() => {
@@ -179,7 +179,7 @@ export default function Dashboard() {
                 }}>
                     <Box>
                         <Typography variant="h3" fontWeight="900" sx={{
-                            background: 'linear-gradient(45deg, #fff, #a5f3fc)',
+                            background: theme.palette.mode === 'dark' ? 'linear-gradient(45deg, #fff, #a5f3fc)' : 'linear-gradient(45deg, #0f52ba, #00c4cc)',
                             backgroundClip: 'text',
                             textFillColor: 'transparent',
                             letterSpacing: '-1px',

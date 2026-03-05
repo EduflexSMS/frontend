@@ -20,7 +20,7 @@ export default function QRScanner() {
         const fetchSubjects = async () => {
             try {
                 const user = JSON.parse(sessionStorage.getItem('userInfo'));
-                if (!user || user.role !== 'teacher') {
+                if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
                     navigate('/login');
                     return;
                 }
