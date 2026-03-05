@@ -168,10 +168,10 @@ export default function ViewStudents() {
                             onClick={handleBack}
                             sx={{
                                 color: 'text.primary',
-                                bgcolor: alpha(theme.palette.background.paper, 0.3),
+                                bgcolor: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(17, 24, 39, 0.6)',
                                 backdropFilter: 'blur(10px)',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2), transform: 'scale(1.1)' },
+                                border: `1px solid ${theme.palette.divider}`,
+                                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.1), transform: 'scale(1.1)' },
                                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                             }}
                         >
@@ -185,12 +185,12 @@ export default function ViewStudents() {
                         key={viewMode}
                     >
                         <Typography variant="h3" sx={{
-                            fontWeight: 900,
+                            fontWeight: 800,
                             color: 'text.primary',
                             letterSpacing: '-1.5px',
                             display: 'flex', alignItems: 'center', gap: 2,
                             fontSize: { xs: '1.75rem', md: '2.5rem' },
-                            textShadow: '0 0 20px rgba(59, 130, 246, 0.5)' // Neon Glow Title
+                            textShadow: theme.palette.mode === 'dark' ? '0 0 30px rgba(59, 130, 246, 0.15)' : 'none'
                         }}>
                             {/* Breadcrumb-style Header */}
                             {viewMode === 'grades' && 'Select Grade'}
@@ -223,24 +223,24 @@ export default function ViewStudents() {
                         <Grid item xs={12} sm={6} md={3} component={motion.div} variants={itemVariants}>
                             <Card
                                 component={motion.div}
-                                whileHover={{ y: -10, boxShadow: '0 0 30px rgba(59, 130, 246, 0.6)' }}
+                                whileHover={{ y: -8, boxShadow: theme.palette.mode === 'dark' ? '0 0 30px rgba(59, 130, 246, 0.2)' : '0 12px 40px -8px rgba(59, 130, 246, 0.3)' }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={handleAllStudentsClick}
                                 sx={{
                                     height: '100%', minHeight: 240,
                                     cursor: 'pointer', borderRadius: '24px',
-                                    background: 'rgba(59, 130, 246, 0.2)', // Semi-transparent Blue
+                                    background: theme.palette.mode === 'light' ? 'linear-gradient(135deg, #eff6ff 0%, #ffffff 100%)' : 'rgba(59, 130, 246, 0.1)',
                                     backdropFilter: 'blur(20px)',
-                                    border: '1px solid rgba(59, 130, 246, 0.4)',
+                                    border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
                                     padding: 4, position: 'relative', overflow: 'hidden',
                                     display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'
                                 }}
                             >
-                                <PeopleAltIcon sx={{ fontSize: 64, color: '#60a5fa', mb: 2, zIndex: 1, filter: 'drop-shadow(0 0 10px #3b82f6)' }} />
-                                <Typography variant="h5" fontWeight="800" color="text.primary" align="center" sx={{ zIndex: 1 }}>
+                                <PeopleAltIcon sx={{ fontSize: 64, color: theme.palette.primary.main, mb: 2, zIndex: 1, filter: theme.palette.mode === 'dark' ? 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.5))' : 'none' }} />
+                                <Typography variant="h5" fontWeight="700" color="text.primary" align="center" sx={{ zIndex: 1 }}>
                                     View All Students
                                 </Typography>
-                                <Paper sx={{ mt: 2, px: 2, py: 0.5, borderRadius: '20px', bgcolor: 'rgba(0,0,0,0.3)', color: 'text.secondary', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                <Paper sx={{ mt: 2, px: 2, py: 0.5, borderRadius: '20px', bgcolor: theme.palette.mode === 'light' ? '#f8fafc' : 'rgba(0,0,0,0.3)', color: 'text.secondary', border: `1px solid ${theme.palette.divider}`, boxShadow: 'none' }}>
                                     <Typography variant="caption" fontWeight="bold">Total Records</Typography>
                                 </Paper>
                             </Card>
@@ -251,8 +251,8 @@ export default function ViewStudents() {
                                 <Card
                                     component={motion.div}
                                     whileHover={{
-                                        y: -10, scale: 1.02,
-                                        boxShadow: '0 0 25px rgba(6, 182, 212, 0.4)', // Cyan Neon Glow
+                                        y: -8, scale: 1.02,
+                                        boxShadow: theme.palette.mode === 'dark' ? '0 0 25px rgba(6, 182, 212, 0.15)' : '0 12px 30px -8px rgba(6, 182, 212, 0.2)',
                                         borderColor: '#06b6d4'
                                     }}
                                     whileTap={{ scale: 0.97 }}
@@ -261,24 +261,20 @@ export default function ViewStudents() {
                                         height: '100%', minHeight: 240,
                                         p: 4, borderRadius: '24px',
                                         cursor: 'pointer',
-                                        bgcolor: 'rgba(30, 41, 59, 0.6)', // Dark Glass
-                                        backdropFilter: 'blur(16px)',
-                                        border: '1px solid rgba(255, 255, 255, 0.08)',
                                         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                                         position: 'relative', overflow: 'hidden',
-                                        transition: 'border-color 0.3s'
                                     }}
                                 >
                                     <Box sx={{
                                         width: 80, height: 80, borderRadius: '50%',
-                                        background: 'rgba(6, 182, 212, 0.1)',
+                                        background: theme.palette.mode === 'light' ? 'rgba(6, 182, 212, 0.05)' : 'rgba(6, 182, 212, 0.1)',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         mb: 3, border: '1px solid rgba(6, 182, 212, 0.3)'
                                     }}>
-                                        <SchoolIcon sx={{ fontSize: 40, color: '#22d3ee' }} />
+                                        <SchoolIcon sx={{ fontSize: 40, color: theme.palette.mode === 'light' ? '#0891b2' : '#22d3ee' }} />
                                     </Box>
 
-                                    <Typography variant="h5" fontWeight="800" color="text.primary">
+                                    <Typography variant="h5" fontWeight="700" color="text.primary">
                                         {grade}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -317,29 +313,25 @@ export default function ViewStudents() {
                                 <Grid item xs={12} sm={6} md={3} key={subject._id} component={motion.div} variants={itemVariants}>
                                     <Card
                                         component={motion.div}
-                                        whileHover={{ y: -8, scale: 1.02, boxShadow: `0 0 20px ${isActiveColor}66`, borderColor: isActiveColor }}
+                                        whileHover={{ y: -8, scale: 1.02, boxShadow: theme.palette.mode === 'dark' ? `0 0 20px ${isActiveColor}33` : `0 12px 30px -8px ${isActiveColor}44`, borderColor: isActiveColor }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => handleSubjectClick(subject.name)}
                                         sx={{
                                             height: '100%', minHeight: 240,
                                             borderRadius: '24px', p: 4,
                                             cursor: 'pointer',
-                                            bgcolor: 'rgba(30, 41, 59, 0.6)', // Dark Glass
-                                            backdropFilter: 'blur(16px)',
-                                            border: '1px solid rgba(255, 255, 255, 0.08)',
                                             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
                                             position: 'relative', overflow: 'hidden',
-                                            transition: 'border-color 0.3s'
                                         }}
                                     >
                                         <Box sx={{
                                             p: 2.5, borderRadius: '20px',
-                                            bgcolor: `${isActiveColor}22`,
+                                            bgcolor: `${isActiveColor}15`,
                                             color: isActiveColor,
                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                                             transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                                             zIndex: 1,
-                                            border: `1px solid ${isActiveColor}44`,
+                                            border: `1px solid ${isActiveColor}33`,
                                             '.MuiCard-root:hover &': { transform: 'scale(1.1) rotate(-5deg)' }
                                         }}>
                                             <MenuBookIcon sx={{ fontSize: 36 }} />
@@ -396,9 +388,8 @@ export default function ViewStudents() {
                         ) : (
                             <Paper elevation={0} sx={{
                                 borderRadius: '24px', overflow: 'hidden',
-                                border: '1px solid rgba(255, 255, 255, 0.08)',
-                                bgcolor: 'rgba(30, 41, 59, 0.6)',
-                                backdropFilter: 'blur(16px)'
+                                border: `1px solid ${theme.palette.divider}`,
+                                bgcolor: theme.palette.background.paper,
                             }}>
                                 <StudentTable
                                     students={students}

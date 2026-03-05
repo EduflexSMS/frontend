@@ -232,10 +232,8 @@ export default function Layout() {
                         sx: {
                             boxSizing: 'border-box',
                             width: drawerWidth,
-                            background: alpha('#0b1121', 0.6),
-                            borderRight: '1px solid',
-                            border: 'none',
-                            borderColor: 'rgba(255,255,255,0.08)',
+                            background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(17, 24, 39, 0.8)',
+                            borderRight: `1px solid ${theme.palette.divider}`,
                             backdropFilter: 'blur(40px)', // Crystal Blur
                             height: '100vh',
                             boxShadow: 'none',
