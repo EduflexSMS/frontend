@@ -114,16 +114,16 @@ export default function Layout() {
                                 sx={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    p: '14px 20px',
-                                    borderRadius: '16px',
+                                    p: '10px 16px',
+                                    borderRadius: '8px',
                                     cursor: 'pointer',
                                     position: 'relative',
                                     overflow: 'hidden',
-                                    color: active ? (theme.palette.mode === 'light' ? '#fff' : '#000') : theme.palette.text.secondary,
-                                    transition: 'color 0.3s ease',
+                                    color: active ? theme.palette.primary.main : theme.palette.text.secondary,
+                                    transition: 'all 0.2s ease',
                                     '&:hover': {
-                                        color: active ? (theme.palette.mode === 'light' ? '#fff' : '#000') : theme.palette.primary.main,
-                                        bgcolor: active ? 'transparent' : alpha(theme.palette.primary.main, 0.08)
+                                        color: theme.palette.primary.main,
+                                        bgcolor: active ? 'transparent' : alpha(theme.palette.primary.main, 0.05)
                                     }
                                 }}
                             >
@@ -134,9 +134,9 @@ export default function Layout() {
                                         sx={{
                                             position: 'absolute',
                                             inset: 0,
-                                            borderRadius: '16px',
-                                            background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
-                                            boxShadow: `0 4px 15px ${alpha(theme.palette.primary.main, 0.4)}`,
+                                            borderRadius: '8px',
+                                            background: active ? (theme.palette.mode === 'light' ? '#ffffff' : 'rgba(255, 255, 255, 0.1)') : 'transparent',
+                                            boxShadow: active && theme.palette.mode === 'light' ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' : 'none',
                                             zIndex: 0
                                         }}
                                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -144,10 +144,10 @@ export default function Layout() {
                                 )}
 
                                 <ListItemIcon sx={{
-                                    color: active ? 'inherit' : 'inherit',
-                                    minWidth: 45,
+                                    color: active ? theme.palette.primary.main : 'inherit',
+                                    minWidth: 40,
                                     zIndex: 1,
-                                    filter: active ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' : 'none'
+                                    filter: 'none'
                                 }}>
                                     {item.icon}
                                 </ListItemIcon>
@@ -180,8 +180,8 @@ export default function Layout() {
                     sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        p: '14px 20px',
-                        borderRadius: '16px',
+                        p: '12px 16px',
+                        borderRadius: '8px',
                         cursor: 'pointer',
                         color: theme.palette.error.main,
                         backgroundColor: alpha(theme.palette.error.main, 0.05),
@@ -232,10 +232,10 @@ export default function Layout() {
                             width: drawerWidth - 32, // Accommodate padding
                             margin: '16px', // Floating effect
                             height: 'calc(100vh - 32px)',
-                            background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(15, 15, 15, 0.5)',
-                            border: `1px solid ${theme.palette.mode === 'light' ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.08)'}`,
-                            borderRadius: '32px', // Rounder curves
-                            backdropFilter: 'blur(40px)',
+                            background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(30, 41, 59, 0.7)',
+                            border: `1px solid ${theme.palette.mode === 'light' ? 'rgba(226, 232, 240, 0.8)' : 'rgba(255, 255, 255, 0.08)'}`,
+                            borderRadius: '16px', // Sleeker curves
+                            backdropFilter: 'blur(24px)',
                             boxShadow: theme.palette.mode === 'light' ? '0 10px 40px rgba(0,0,0,0.05)' : '0 20px 40px rgba(0,0,0,0.4)',
                             overflow: 'hidden'
                         }
