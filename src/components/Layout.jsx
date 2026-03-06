@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
-import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, AppBar, Toolbar, Typography, CssBaseline, IconButton, Avatar, useTheme, useMediaQuery, InputBase, alpha, Button } from '@mui/material';
-import { Dashboard, People, Class, AddBox, Assessment, Menu as MenuIcon, NotificationsOutlined, Search as SearchIcon, SettingsOutlined, Logout as LogoutIcon, Language, Brightness4, Brightness7 } from '@mui/icons-material';
+import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, AppBar, Toolbar, Typography, CssBaseline, IconButton, Avatar, useTheme, useMediaQuery, InputBase, alpha, Button, Switch, Divider } from '@mui/material';
+import { Dashboard, People, Class, AddBox, Assessment, Menu as MenuIcon, NotificationsOutlined, Search as SearchIcon, SettingsOutlined, Logout as LogoutIcon, Language, Brightness4, Brightness7, Close, NotificationsActive, Speed } from '@mui/icons-material';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../assets/logo.jpg';
@@ -15,6 +15,7 @@ const drawerWidth = 280;
 
 export default function Layout() {
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [settingsOpen, setSettingsOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
     const theme = useTheme();
@@ -343,7 +344,7 @@ export default function Layout() {
                             <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', md: 'inline-flex' }, '&:hover': { color: 'primary.main' } }}>
                                 <NotificationsOutlined />
                             </IconButton>
-                            <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', md: 'inline-flex' }, '&:hover': { color: 'primary.main' } }}>
+                            <IconButton size="small" onClick={() => setSettingsOpen(true)} sx={{ color: 'text.secondary', display: { xs: 'none', md: 'inline-flex' }, '&:hover': { color: 'primary.main', transform: 'rotate(90deg)', transition: 'transform 0.3s' } }}>
                                 <SettingsOutlined />
                             </IconButton>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: { xs: 0, sm: 1 }, p: 0.5, pr: { xs: 0.5, sm: 1.5 }, borderRadius: '24px', border: { xs: 'none', sm: `1px solid ${theme.palette.divider}` }, bgcolor: theme.palette.mode === 'light' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.2)' }}>
@@ -363,6 +364,89 @@ export default function Layout() {
                         <Outlet />
                     </PageTransition>
                 </AnimatePresence>
+
+                {/* Settings Drawer */}
+                <Drawer
+                    anchor="right"
+                    open={settingsOpen}
+                    onClose={() => setSettingsOpen(false)}
+                    PaperProps={{
+                        sx: {
+                            width: { xs: '100%', sm: 340 },
+                            background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(15, 15, 15, 0.95)',
+                            backdropFilter: 'blur(40px)',
+                            borderLeft: `1px solid ${theme.palette.divider}`
+                        }
+                    }}
+                >
+                    <Box sx={{ p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${theme.palette.divider}` }}>
+                        <Typography variant="h6" fontWeight={800} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <SettingsOutlined color="primary" /> {t('settings') || 'Settings'}
+                        </Typography>
+                        <IconButton onClick={() => setSettingsOpen(false)}>
+                            <Close />
+                        </IconButton>
+                    </Box>
+                    <Box sx={{ p: 3 }}>
+                        <Typography variant="overline" color="text.secondary" fontWeight={800} sx={{ mb: 2, display: 'block' }}>App Preferences</Typography>
+
+                        {/* Theme Toggle in Settings */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, p: 2, bgcolor: alpha(theme.palette.primary.main, 0.05), borderRadius: 3 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                {theme.palette.mode === 'dark' ? <Brightness7 color="warning" /> : <Brightness4 color="secondary" />}
+                                <Box>
+                                    <Typography variant="body1" fontWeight={700}>Dark Mode</Typography>
+                                    <Typography variant="caption" color="text.secondary">Toggle app appearance</Typography>
+                                </Box>
+                            </Box>
+                            <Switch checked={theme.palette.mode === 'dark'} onChange={toggleColorMode} color="primary" />
+                        </Box>
+
+                        {/* Language Toggle in Settings */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, p: 2, bgcolor: alpha(theme.palette.primary.main, 0.05), borderRadius: 3 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Language color="info" />
+                                <Box>
+                                    <Typography variant="body1" fontWeight={700}>Language</Typography>
+                                    <Typography variant="caption" color="text.secondary">{i18n.language === 'si' ? 'Sinhala' : 'English'}</Typography>
+                                </Box>
+                            </Box>
+                            <Button variant="outlined" size="small" onClick={toggleLanguage} sx={{ borderRadius: 2 }}>
+                                {i18n.language === 'si' ? 'SWITCH EN' : 'SWITCH SI'}
+                            </Button>
+                        </Box>
+
+                        <Divider sx={{ my: 3 }} />
+                        <Typography variant="overline" color="text.secondary" fontWeight={800} sx={{ mb: 2, display: 'block' }}>Features & Alerts</Typography>
+
+                        {/* Notifications Toggle */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, p: 2, bgcolor: alpha(theme.palette.primary.main, 0.05), borderRadius: 3 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <NotificationsActive color="error" />
+                                <Box>
+                                    <Typography variant="body1" fontWeight={700}>Email Alerts</Typography>
+                                    <Typography variant="caption" color="text.secondary">Daily summary reports</Typography>
+                                </Box>
+                            </Box>
+                            <Switch defaultChecked color="success" />
+                        </Box>
+
+                        {/* Compact mode / performance */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, p: 2, bgcolor: alpha(theme.palette.primary.main, 0.05), borderRadius: 3 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Speed color="success" />
+                                <Box>
+                                    <Typography variant="body1" fontWeight={700}>Animations</Typography>
+                                    <Typography variant="caption" color="text.secondary">UI spring physics</Typography>
+                                </Box>
+                            </Box>
+                            <Switch defaultChecked color="primary" />
+                        </Box>
+                    </Box>
+                    <Box sx={{ mt: 'auto', p: 3, borderTop: `1px solid ${theme.palette.divider}`, textAlign: 'center' }}>
+                        <Typography variant="caption" color="text.secondary">Eduflex Version 2.0.1</Typography>
+                    </Box>
+                </Drawer>
             </Box>
         </Box>
     );
