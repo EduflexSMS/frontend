@@ -7,6 +7,7 @@ import API_BASE_URL from '../config';
 import { useTranslation } from 'react-i18next';
 
 import logo from '../assets/logo.jpg';
+import aiJellyImage from '../assets/abstract_jelly_ai.png';
 
 export default function LoginPage() {
     const [selectedRole, setSelectedRole] = useState(null); // 'admin', 'teacher', 'student'
@@ -189,8 +190,35 @@ export default function LoginPage() {
                     justifyContent: 'center',
                     alignItems: 'center',
                     p: { xs: 3, sm: 6, lg: 8 },
-                    zIndex: 10
+                    zIndex: 10,
+                    position: 'relative'
                 }}>
+                    {/* Floating Decorative AI Image */}
+                    <Box
+                        component={motion.img}
+                        src={aiJellyImage}
+                        alt="Abstract AI Shape"
+                        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                        animate={{ opacity: 0.6, scale: 1, y: [0, -20, 0] }}
+                        transition={{
+                            opacity: { duration: 1 },
+                            scale: { duration: 1 },
+                            y: { duration: 8, repeat: Infinity, ease: "easeInOut" }
+                        }}
+                        sx={{
+                            position: 'absolute',
+                            top: '5%',
+                            right: { md: '-20%', lg: '-10%' },
+                            width: { md: '350px', lg: '450px' },
+                            height: 'auto',
+                            zIndex: -1,
+                            filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))',
+                            display: { xs: 'none', md: 'block' },
+                            pointerEvents: 'none',
+                            transform: 'rotate(-5deg)'
+                        }}
+                    />
+
                     <motion.div
                         initial={{ opacity: 0, x: 50 }}
                         animate={{ opacity: 1, x: 0 }}
