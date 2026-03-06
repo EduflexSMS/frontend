@@ -206,14 +206,16 @@ export default function LoginPage() {
                             y: { duration: 6, repeat: Infinity, ease: "easeInOut" }
                         }}
                         sx={{
-                            display: { xs: 'none', md: 'block' },
-                            position: 'absolute',
-                            right: { md: '-25%', lg: '-15%' },
+                            display: { xs: 'none', lg: 'block' },
+                            position: 'fixed',
+                            right: '-5%',
                             top: '50%',
                             transform: 'translateY(-50%)',
-                            width: { md: '450px', lg: '550px' },
+                            width: '700px',
                             height: 'auto',
-                            zIndex: -1,
+                            zIndex: 0,
+                            mixBlendMode: theme.palette.mode === 'light' ? 'multiply' : 'lighten',
+                            opacity: theme.palette.mode === 'light' ? 0.9 : 0.8,
                             filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.12))',
                             pointerEvents: 'none'
                         }}
