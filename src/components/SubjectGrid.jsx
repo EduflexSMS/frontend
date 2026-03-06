@@ -44,8 +44,8 @@ const SubjectGrid = ({ studentId, studentGrade, enrollments, onUpdate, subjectCo
                         <Typography variant="h6" gutterBottom sx={{
                             fontSize: isMobile ? '1.1rem' : '1.3rem',
                             fontWeight: 700,
-                            color: color,
-                            textShadow: `0 0 20px ${alpha(color, 0.5)}`,
+                            color: theme.palette.mode === 'light' ? theme.palette.text.primary : color,
+                            textShadow: theme.palette.mode === 'dark' ? `0 0 20px ${alpha(color, 0.5)}` : 'none',
                             mb: 3,
                             display: 'flex', alignItems: 'center', gap: 1.5,
                             pl: 1
@@ -65,7 +65,7 @@ const SubjectGrid = ({ studentId, studentGrade, enrollments, onUpdate, subjectCo
                             gap: 2,
                             scrollbarWidth: 'thin',
                             '&::-webkit-scrollbar': { height: '8px' },
-                            '&::-webkit-scrollbar-track': { background: 'rgba(255,255,255,0.02)', borderRadius: '4px' },
+                            '&::-webkit-scrollbar-track': { background: theme.palette.mode === 'light' ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)', borderRadius: '4px' },
                             '&::-webkit-scrollbar-thumb': {
                                 background: `linear-gradient(90deg, ${alpha(color, 0.2)} 0%, ${alpha(color, 0.5)} 100%)`,
                                 borderRadius: '4px',
@@ -87,18 +87,18 @@ const SubjectGrid = ({ studentId, studentGrade, enrollments, onUpdate, subjectCo
                                         transition={{ delay: 0.2 + (rIndex * 0.05) }}
                                         sx={{
                                             border: '1px solid',
-                                            borderColor: 'rgba(255,255,255,0.08)',
+                                            borderColor: theme.palette.mode === 'light' ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.08)',
                                             minWidth: 170,
                                             p: 2.5,
                                             textAlign: 'center',
-                                            bgcolor: 'rgba(255,255,255,0.015)',
+                                            bgcolor: theme.palette.mode === 'light' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.015)',
                                             borderRadius: '20px',
                                             flexShrink: 0,
                                             transition: 'all 0.3s ease',
                                             '&:hover': {
                                                 borderColor: alpha(color, 0.4),
                                                 transform: 'translateY(-4px)',
-                                                bgcolor: 'rgba(255,255,255,0.03)',
+                                                bgcolor: theme.palette.mode === 'light' ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.03)',
                                                 boxShadow: `0 10px 20px -5px ${alpha(color, 0.15)}`
                                             }
                                         }}
@@ -108,7 +108,7 @@ const SubjectGrid = ({ studentId, studentGrade, enrollments, onUpdate, subjectCo
                                             mb: 2,
                                             textTransform: 'uppercase',
                                             letterSpacing: 3,
-                                            color: 'text.secondary',
+                                            color: theme.palette.mode === 'light' ? '#000000' : 'text.secondary',
                                             fontSize: '0.75rem'
                                         }}>
                                             {months[record.monthIndex]}
@@ -137,10 +137,10 @@ const SubjectGrid = ({ studentId, studentGrade, enrollments, onUpdate, subjectCo
                                             display: 'flex',
                                             justifyContent: 'center',
                                             gap: 0.5,
-                                            bgcolor: 'rgba(0,0,0,0.2)',
+                                            bgcolor: theme.palette.mode === 'light' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.2)',
                                             p: 1.5,
                                             borderRadius: '16px',
-                                            border: '1px solid rgba(255,255,255,0.02)'
+                                            border: theme.palette.mode === 'light' ? '1px solid rgba(0,0,0,0.03)' : '1px solid rgba(255,255,255,0.02)'
                                         }}>
                                             {slots.map((_, idx) => {
                                                 return (

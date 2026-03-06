@@ -26,19 +26,19 @@ const StatusCell = ({ studentId, subject, monthIndex, weekIndex, type, initialSt
         const commonSx = { transition: 'all 0.3s ease', filter: 'drop-shadow(0 0 5px rgba(0,0,0,0.3))' };
 
         if (type === 'attendance') {
-            if (currentStatus === 'present') return <CheckCircle sx={{ color: '#00ff66', ...commonSx, filter: 'drop-shadow(0 0 8px #00ff66)' }} />;
-            if (currentStatus === 'absent') return <Cancel sx={{ color: '#ff2a2a', ...commonSx, filter: 'drop-shadow(0 0 8px #ff2a2a)' }} />;
-            return <RadioButtonUnchecked sx={{ color: alpha(theme.palette.text.secondary, 0.3), ...commonSx, '&:hover': { color: theme.palette.primary.main, transform: 'scale(1.2)' } }} />;
+            if (currentStatus === 'present') return <CheckCircle sx={{ color: theme.palette.mode === 'light' ? '#00cc52' : '#00ff66', ...commonSx, filter: theme.palette.mode === 'dark' ? 'drop-shadow(0 0 8px #00ff66)' : 'none' }} />;
+            if (currentStatus === 'absent') return <Cancel sx={{ color: theme.palette.mode === 'light' ? '#e60000' : '#ff2a2a', ...commonSx, filter: theme.palette.mode === 'dark' ? 'drop-shadow(0 0 8px #ff2a2a)' : 'none' }} />;
+            return <RadioButtonUnchecked sx={{ color: alpha(theme.palette.text.secondary, theme.palette.mode === 'light' ? 0.4 : 0.3), ...commonSx, '&:hover': { color: theme.palette.primary.main, transform: 'scale(1.2)' } }} />;
         } else if (type === 'fee') {
             const isDone = currentStatus === 'present';
             return isDone
-                ? <MonetizationOn sx={{ color: '#ffd700', ...commonSx, filter: 'drop-shadow(0 0 8px #ffd700)' }} />
-                : <MonetizationOn sx={{ color: alpha(theme.palette.text.secondary, 0.2), ...commonSx, '&:hover': { color: '#ffd700', transform: 'scale(1.1)' } }} />;
+                ? <MonetizationOn sx={{ color: theme.palette.mode === 'light' ? '#d4b300' : '#ffd700', ...commonSx, filter: theme.palette.mode === 'dark' ? 'drop-shadow(0 0 8px #ffd700)' : 'none' }} />
+                : <MonetizationOn sx={{ color: alpha(theme.palette.text.secondary, theme.palette.mode === 'light' ? 0.3 : 0.2), ...commonSx, '&:hover': { color: theme.palette.mode === 'light' ? '#d4b300' : '#ffd700', transform: 'scale(1.1)' } }} />;
         } else if (type === 'tute') {
             const isDone = currentStatus === 'present';
             return isDone
-                ? <Book sx={{ color: '#00f7ff', ...commonSx, filter: 'drop-shadow(0 0 8px #00f7ff)' }} />
-                : <Book sx={{ color: alpha(theme.palette.text.secondary, 0.2), ...commonSx, '&:hover': { color: '#00f7ff', transform: 'scale(1.1)' } }} />;
+                ? <Book sx={{ color: theme.palette.mode === 'light' ? '#00b3b8' : '#00f7ff', ...commonSx, filter: theme.palette.mode === 'dark' ? 'drop-shadow(0 0 8px #00f7ff)' : 'none' }} />
+                : <Book sx={{ color: alpha(theme.palette.text.secondary, theme.palette.mode === 'light' ? 0.3 : 0.2), ...commonSx, '&:hover': { color: theme.palette.mode === 'light' ? '#00b3b8' : '#00f7ff', transform: 'scale(1.1)' } }} />;
         }
     };
 
