@@ -7,6 +7,7 @@ import API_BASE_URL from '../config';
 import { useTranslation } from 'react-i18next';
 
 import logo from '../assets/logo.jpg';
+import educationalHero from '../assets/educational_hero.png';
 
 export default function LoginPage() {
     const [selectedRole, setSelectedRole] = useState(null); // 'admin', 'teacher', 'student'
@@ -192,47 +193,31 @@ export default function LoginPage() {
                     zIndex: 10,
                     position: 'relative'
                 }}>
-                    {/* Floating Decorative CSS Jelly Orbs */}
-                    <Box sx={{ display: { xs: 'none', md: 'block' }, position: 'absolute', inset: 0, overflow: 'hidden', zIndex: -1, pointerEvents: 'none' }}>
-                        <Box
-                            component={motion.div}
-                            animate={{ y: [-20, 20, -20], rotate: [0, 5, -5, 0], scale: [1, 1.05, 1] }}
-                            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                            sx={{
-                                position: 'absolute', top: '10%', right: '-10%',
-                                width: '300px', height: '300px',
-                                background: 'radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.4), rgba(37, 99, 235, 0.1) 60%, transparent 80%)',
-                                borderRadius: '50%', filter: 'blur(20px)',
-                                mixBlendMode: theme.palette.mode === 'light' ? 'multiply' : 'screen',
-                            }}
-                        />
-                        <Box
-                            component={motion.div}
-                            animate={{ y: [20, -20, 20], rotate: [0, -10, 10, 0], scale: [1, 1.1, 1] }}
-                            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                            sx={{
-                                position: 'absolute', bottom: '20%', right: '10%',
-                                width: '250px', height: '250px',
-                                background: 'radial-gradient(circle at 70% 30%, rgba(244, 63, 94, 0.3), rgba(225, 29, 72, 0.1) 60%, transparent 80%)',
-                                borderRadius: '50%', filter: 'blur(25px)',
-                                mixBlendMode: theme.palette.mode === 'light' ? 'multiply' : 'screen',
-                            }}
-                        />
-                        <Box
-                            component={motion.div}
-                            animate={{ y: [-15, 15, -15], rotate: [0, 15, -15, 0] }}
-                            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-                            sx={{
-                                position: 'absolute', top: '25%', right: '5%',
-                                width: '200px', height: '200px',
-                                background: 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.05) 100%)',
-                                backdropFilter: 'blur(10px)',
-                                borderRadius: '40% 60% 70% 30% / 40% 50% 60% 50%',
-                                border: '1px solid rgba(255,255,255,0.3)',
-                                boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-                            }}
-                        />
-                    </Box>
+                    {/* Educational 3D Hero Image */}
+                    <Box
+                        component={motion.img}
+                        src={educationalHero}
+                        alt="Eduflex Modern Education Platform"
+                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: [0, -10, 0] }}
+                        transition={{
+                            opacity: { duration: 0.8 },
+                            scale: { duration: 0.8 },
+                            y: { duration: 6, repeat: Infinity, ease: "easeInOut" }
+                        }}
+                        sx={{
+                            display: { xs: 'none', md: 'block' },
+                            position: 'absolute',
+                            right: { md: '-25%', lg: '-15%' },
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            width: { md: '450px', lg: '550px' },
+                            height: 'auto',
+                            zIndex: -1,
+                            filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.12))',
+                            pointerEvents: 'none'
+                        }}
+                    />
 
                     <motion.div
                         initial={{ opacity: 0, x: 50 }}
