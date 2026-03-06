@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Collapse, Box, Typography,
-    useTheme, useMediaQuery, Card, CardContent, Button, Grid, Chip, Avatar, Tooltip
+    useTheme, useMediaQuery, Card, CardContent, Button, Grid, Chip, Avatar, Tooltip, alpha
 } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp, Edit, Phone, Delete, OpenInNew, Print } from '@mui/icons-material';
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
@@ -125,15 +125,16 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
                                         size="small"
                                         sx={{
                                             height: 20, fontSize: '0.65rem',
-                                            bgcolor: `${color}15`,
-                                            color: color,
-                                            border: `1px solid ${color}40`,
-                                            borderRadius: '6px'
+                                            bgcolor: theme.palette.mode === 'light' ? alpha(color, 0.2) : `${color}15`,
+                                            color: theme.palette.mode === 'light' ? '#000000' : color,
+                                            border: theme.palette.mode === 'light' ? `1px solid ${alpha(color, 0.4)}` : `1px solid ${color}40`,
+                                            borderRadius: '6px',
+                                            fontWeight: theme.palette.mode === 'light' ? 600 : 500
                                         }}
                                     />
                                 );
                             })}
-                            {row.enrollments.length > 2 && <Chip label={`+${row.enrollments.length - 2}`} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: 'rgba(255,255,255,0.05)', color: 'text.secondary' }} />}
+                            {row.enrollments.length > 2 && <Chip label={`+${row.enrollments.length - 2}`} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: theme.palette.mode === 'light' ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)', color: theme.palette.mode === 'light' ? '#000' : 'text.secondary' }} />}
                         </Box>
                     ) : (
                         <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.5 }}>None</Typography>
@@ -331,9 +332,10 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
                                         variant="outlined"
                                         sx={{
                                             fontSize: '0.7rem',
-                                            bgcolor: `${color}10`,
-                                            color: color,
-                                            borderColor: `${color}30`
+                                            bgcolor: theme.palette.mode === 'light' ? alpha(color, 0.1) : `${color}10`,
+                                            color: theme.palette.mode === 'light' ? '#000000' : color,
+                                            borderColor: theme.palette.mode === 'light' ? alpha(color, 0.4) : `${color}30`,
+                                            fontWeight: theme.palette.mode === 'light' ? 600 : 500
                                         }}
                                     />
                                 );
