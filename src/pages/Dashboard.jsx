@@ -191,9 +191,9 @@ export default function Dashboard() {
                             {t('dashboard_subtitle')}
                         </Typography>
                     </Box>
-                    <Box sx={{ display: 'flex', gap: 2 }}>
+                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', width: { xs: '100%', sm: 'auto' } }}>
                         <Tooltip title="Fix Data Inconsistencies">
-                            <IconButton onClick={handleFixData} sx={{ bgcolor: alpha(theme.palette.warning.main, 0.1), color: theme.palette.warning.main, '&:hover': { bgcolor: alpha(theme.palette.warning.main, 0.2) } }}>
+                            <IconButton onClick={handleFixData} sx={{ bgcolor: alpha(theme.palette.warning.main, 0.1), color: theme.palette.warning.main, '&:hover': { bgcolor: alpha(theme.palette.warning.main, 0.2) }, flexShrink: 0 }}>
                                 <AutoFixHigh />
                             </IconButton>
                         </Tooltip>
@@ -204,18 +204,19 @@ export default function Dashboard() {
                             variant="contained"
                             startIcon={<Assessment />}
                             onClick={() => setReportOpen(true)}
+                            fullWidth={false}
                             sx={{
                                 borderRadius: '12px',
                                 textTransform: 'none',
-                                fontSize: '1rem',
+                                fontSize: { xs: '0.9rem', sm: '1rem' },
                                 fontWeight: 700,
-                                padding: '10px 24px',
+                                padding: { xs: '8px 16px', sm: '10px 24px' },
                                 background: 'linear-gradient(135deg, #00f7ff 0%, #0099ff 100%)',
                                 boxShadow: '0 0 20px rgba(0, 247, 255, 0.4)',
-                                color: '#000'
+                                color: '#000',
+                                flex: { xs: 1, sm: 'none' }
                             }}
                         >
-                            {t('generate_report')}
                             {t('generate_report')}
                         </Button>
                         <Button
@@ -225,15 +226,17 @@ export default function Dashboard() {
                             variant="contained"
                             startIcon={<QrCodeScanner />}
                             onClick={() => navigate('/qr-scanner')}
+                            fullWidth={false}
                             sx={{
                                 borderRadius: '12px',
                                 textTransform: 'none',
-                                fontSize: '1rem',
+                                fontSize: { xs: '0.9rem', sm: '1rem' },
                                 fontWeight: 700,
-                                padding: '10px 24px',
+                                padding: { xs: '8px 16px', sm: '10px 24px' },
                                 background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                                 boxShadow: '0 0 20px rgba(245, 158, 11, 0.4)',
-                                color: '#fff'
+                                color: '#fff',
+                                flex: { xs: 1, sm: 'none' }
                             }}
                         >
                             Scan

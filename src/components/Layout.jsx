@@ -313,40 +313,41 @@ export default function Layout() {
                         </Box>
 
                         {/* Voice Commander (Center-Right) */}
-                        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
+                        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', minWidth: { xs: '80px', sm: 'auto' } }}>
                             <VoiceCommander />
                         </Box>
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 } }}>
                             <Button
-                                startIcon={<Language />}
+                                startIcon={<Language sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
                                 onClick={toggleLanguage}
                                 sx={{
                                     color: 'text.primary',
                                     fontWeight: 600,
                                     bgcolor: alpha(theme.palette.primary.main, 0.1),
                                     borderRadius: '12px',
-                                    px: 2,
+                                    px: { xs: 1, sm: 2 },
+                                    minWidth: { xs: 'auto', sm: '64px' },
                                     '&:hover': {
                                         bgcolor: alpha(theme.palette.primary.main, 0.2)
                                     }
                                 }}
                             >
-                                {i18n.language === 'si' ? 'සිංහල' : 'English'}
+                                {i18n.language === 'si' ? 'සිං' : 'EN'}
                             </Button>
 
                             <IconButton onClick={toggleColorMode} sx={{ color: 'text.secondary', bgcolor: alpha(theme.palette.primary.main, 0.1), '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) } }}>
                                 {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
                             </IconButton>
 
-                            <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'inline-flex' } }}>
+                            <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', md: 'inline-flex' } }}>
                                 <NotificationsOutlined />
                             </IconButton>
-                            <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'inline-flex' } }}>
+                            <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', md: 'inline-flex' } }}>
                                 <SettingsOutlined />
                             </IconButton>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 1, p: 0.5, pr: 1.5, borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
-                                <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.9rem' }}>A</Avatar>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: { xs: 0, sm: 1 }, p: 0.5, pr: { xs: 0.5, sm: 1.5 }, borderRadius: '20px', border: { xs: 'none', sm: '1px solid' }, borderColor: 'divider' }}>
+                                <Avatar sx={{ width: { xs: 28, sm: 32 }, height: { xs: 28, sm: 32 }, bgcolor: 'primary.main', fontSize: '0.9rem' }}>A</Avatar>
                                 <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
                                     <Typography variant="subtitle2" sx={{ lineHeight: 1.2, color: 'text.primary' }}>{t('admin_user')}</Typography>
                                     <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1 }}>{t('administrator')}</Typography>

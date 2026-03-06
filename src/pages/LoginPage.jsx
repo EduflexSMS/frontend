@@ -251,11 +251,12 @@ export default function LoginPage() {
                         backgroundClip: 'text',
                         textFillColor: 'transparent',
                         letterSpacing: '-0.02em',
-                        mb: 1
+                        mb: 1,
+                        fontSize: { xs: '3rem', sm: '3.75rem', md: '4rem' }
                     }}>
                         EDUFLEX
                     </Typography>
-                    <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                    <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400, letterSpacing: '0.1em', textTransform: 'uppercase', fontSize: { xs: '0.8rem', sm: '1.25rem' } }}>
                         Institute Management System
                     </Typography>
                 </Box>
@@ -304,7 +305,7 @@ export default function LoginPage() {
                                 sx={{
                                     maxWidth: 480,
                                     mx: 'auto',
-                                    p: { xs: 4, sm: 6 },
+                                    p: { xs: 3, sm: 6 },
                                     borderRadius: '40px',
                                     bgcolor: 'rgba(255, 255, 255, 0.02)',
                                     backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%)',
