@@ -26,7 +26,10 @@ import {
     Chip,
     Avatar,
     InputAdornment,
-    alpha
+    alpha,
+    Tabs,
+    Tab,
+    TextField
 } from '@mui/material';
 import axios from 'axios';
 import {
@@ -69,11 +72,14 @@ const itemVariants = {
 };
 
 export default function ClassReport() {
+    const [tabIndex, setTabIndex] = useState(0);
     const [grade, setGrade] = useState('');
     const [subject, setSubject] = useState('');
     const [month, setMonth] = useState('');
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [subjectsList, setSubjectsList] = useState([]);
     const [reportData, setReportData] = useState(null);
+    const [dailySummary, setDailySummary] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -97,23 +103,46 @@ export default function ClassReport() {
         fetchSubjects();
     }, []);
 
+    const handleTabChange = (event, newValue) => {
+        setTabIndex(newValue);
+        setReportData(null);
+        setDailySummary(null);
+        setError(null);
+    };
+
     const handleGenerate = async () => {
-        if (!grade || !subject || month === '') {
-            setError("Please select all fields");
-            return;
+        if (tabIndex === 0) {
+            if (!grade || !subject || month === '') {
+                setError("Please select Grade, Subject and Month");
+                return;
+            }
+        } else {
+            if (!grade || !subject || !date) {
+                setError("Please select Grade, Subject and Date");
+                return;
+            }
         }
         setError(null);
         setLoading(true);
+        setDailySummary(null);
         // Simulate a small delay for animation feel if network is too fast
         setTimeout(async () => {
             try {
-                const response = await axios.get(`${API_BASE_URL}/api/reports/class-report`, {
-                    params: { grade, subject, month }
-                });
-                setReportData(response.data);
+                if (tabIndex === 0) {
+                    const response = await axios.get(`${API_BASE_URL}/api/reports/class-report`, {
+                        params: { grade, subject, month }
+                    });
+                    setReportData(response.data);
+                } else {
+                    const response = await axios.get(`${API_BASE_URL}/api/reports/daily`, {
+                        params: { grade, subject, date }
+                    });
+                    setReportData(response.data.data);
+                    setDailySummary(response.data.summary);
+                }
             } catch (err) {
                 console.error("Error fetching report", err);
-                setError("Failed to fetch report");
+                setError(err.response?.data?.message || "Failed to fetch report");
                 setReportData(null);
             } finally {
                 setLoading(false);
@@ -273,35 +302,41 @@ export default function ClassReport() {
 
                         <Grid item xs={6}>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <EventAvailable fontSize="small" sx={{ fontSize: '14px' }} /> Attendance
+                                <EventAvailable fontSize="small" sx={{ fontSize: '14px' }} /> {tabIndex === 0 ? "Attendance" : "Attended Today"}
                             </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="body2" fontWeight="bold" color={attendanceCount >= 4 ? "success.main" : "text.primary"}>
-                                    {attendanceCount}/{maxDays}
-                                </Typography>
-                                <CircularProgress
-                                    variant="determinate"
-                                    value={(attendanceCount / maxDays) * 100}
-                                    size={14}
-                                    color={attendanceCount >= 4 ? "success" : "primary"}
-                                    thickness={6}
-                                />
-                            </Box>
+                            {tabIndex === 0 ? (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <Typography variant="body2" fontWeight="bold" color={attendanceCount >= 4 ? "success.main" : "text.primary"}>
+                                        {attendanceCount}/{maxDays}
+                                    </Typography>
+                                    <CircularProgress
+                                        variant="determinate"
+                                        value={(attendanceCount / maxDays) * 100}
+                                        size={14}
+                                        color={attendanceCount >= 4 ? "success" : "primary"}
+                                        thickness={6}
+                                    />
+                                </Box>
+                            ) : (
+                                <Chip label={row.attended ? "Present" : "Absent"} color={row.attended ? "success" : "default"} variant={row.attended ? "filled" : "outlined"} size="small" sx={{ fontWeight: 700, borderRadius: 1.5 }} />
+                            )}
                         </Grid>
 
-                        <Grid item xs={12}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1, p: 1.5, bgcolor: alpha(theme.palette.secondary.main, 0.05), borderRadius: 2 }}>
-                                <Book fontSize="small" color="secondary" />
-                                <Typography variant="body2" sx={{ flexGrow: 1, fontWeight: 500, color: 'text.secondary' }}>Tutes Status</Typography>
-                                <Chip
-                                    label={row.tutesGiven ? "Collected" : "Pending"}
-                                    color={row.tutesGiven ? "success" : "warning"}
-                                    size="small"
-                                    variant="filled"
-                                    sx={{ borderRadius: 1.5, height: 24 }}
-                                />
-                            </Box>
-                        </Grid>
+                        {tabIndex === 0 && (
+                            <Grid item xs={12}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1, p: 1.5, bgcolor: alpha(theme.palette.secondary.main, 0.05), borderRadius: 2 }}>
+                                    <Book fontSize="small" color="secondary" />
+                                    <Typography variant="body2" sx={{ flexGrow: 1, fontWeight: 500, color: 'text.secondary' }}>Tutes Status</Typography>
+                                    <Chip
+                                        label={row.tutesGiven ? "Collected" : "Pending"}
+                                        color={row.tutesGiven ? "success" : "warning"}
+                                        size="small"
+                                        variant="filled"
+                                        sx={{ borderRadius: 1.5, height: 24 }}
+                                    />
+                                </Box>
+                            </Grid>
+                        )}
                     </Grid>
                 </CardContent>
             </Card>
@@ -401,134 +436,159 @@ export default function ClassReport() {
                 elevation={0}
                 variants={itemVariants}
                 sx={{
-                    p: { xs: 2.5, md: 4 },
                     mb: 4,
                     borderRadius: 4,
                     boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
                     background: alpha(theme.palette.background.paper, 0.6), // Dark Glass
                     backdropFilter: 'blur(24px)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    overflow: 'hidden'
                 }}
             >
-                <Grid container spacing={3} alignItems="center">
-                    <Grid item xs={12}>
-                        <Typography variant="h6" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1, fontSize: '1.1rem', fontWeight: 600, color: 'text.primary' }}>
-                            <FilterList fontSize="small" sx={{ color: 'primary.main' }} /> Report Filters
-                        </Typography>
-                    </Grid>
+                <Tabs value={tabIndex} onChange={handleTabChange} variant="fullWidth" sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: alpha(theme.palette.background.paper, 0.4) }}>
+                    <Tab label="Monthly Overview" sx={{ fontWeight: 700, py: 2 }} />
+                    <Tab label="Daily Attendance & Fees" sx={{ fontWeight: 700, py: 2 }} />
+                </Tabs>
+                <Box sx={{ p: { xs: 2.5, md: 4 } }}>
+                    <Grid container spacing={3} alignItems="center">
+                        <Grid item xs={12}>
+                            <Typography variant="h6" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1, fontSize: '1.1rem', fontWeight: 600, color: 'text.primary' }}>
+                                <FilterList fontSize="small" sx={{ color: 'primary.main' }} /> Report Filters
+                            </Typography>
+                        </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
-                        <FormControl fullWidth size="small" variant="outlined">
-                            <InputLabel>Grade</InputLabel>
-                            <Select
-                                value={grade}
-                                label="Grade"
-                                onChange={(e) => setGrade(e.target.value)}
+                        <Grid item xs={12} sm={6} md={3}>
+                            <FormControl fullWidth size="small" variant="outlined">
+                                <InputLabel>Grade</InputLabel>
+                                <Select
+                                    value={grade}
+                                    label="Grade"
+                                    onChange={(e) => setGrade(e.target.value)}
+                                    sx={{
+                                        borderRadius: 2.5,
+                                        bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                        color: 'text.primary',
+                                        '& .MuiSvgIcon-root': { color: 'text.secondary' },
+                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
+                                    }}
+                                    startAdornment={
+                                        <InputAdornment position="start">
+                                            <Class color="action" fontSize="small" />
+                                        </InputAdornment>
+                                    }
+                                >
+                                    {[...Array(13)].map((_, i) => {
+                                        const gradeNum = (i + 1).toString().padStart(2, '0');
+                                        return <MenuItem key={gradeNum} value={`Grade ${gradeNum}`}>Grade {gradeNum}</MenuItem>;
+                                    })}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+
+                        <Grid item xs={12} sm={6} md={3}>
+                            <FormControl fullWidth size="small">
+                                <InputLabel>Subject</InputLabel>
+                                <Select
+                                    value={subject}
+                                    label="Subject"
+                                    onChange={(e) => setSubject(e.target.value)}
+                                    sx={{
+                                        borderRadius: 2.5,
+                                        bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                        color: 'text.primary',
+                                        '& .MuiSvgIcon-root': { color: 'text.secondary' },
+                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
+                                    }}
+                                    startAdornment={
+                                        <InputAdornment position="start">
+                                            <Book color="action" fontSize="small" />
+                                        </InputAdornment>
+                                    }
+                                >
+                                    {subjectsList.map((sub) => (
+                                        <MenuItem key={sub._id} value={sub.name}>
+                                            {sub.name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+
+                        <Grid item xs={12} sm={6} md={3}>
+                            {tabIndex === 0 ? (
+                                <FormControl fullWidth size="small">
+                                    <InputLabel>Month</InputLabel>
+                                    <Select
+                                        value={month}
+                                        label="Month"
+                                        onChange={(e) => setMonth(e.target.value)}
+                                        sx={{
+                                            borderRadius: 2.5,
+                                            bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                            color: 'text.primary',
+                                            '& .MuiSvgIcon-root': { color: 'text.secondary' },
+                                            '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
+                                            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
+                                        }}
+                                        startAdornment={
+                                            <InputAdornment position="start">
+                                                <CalendarToday color="action" fontSize="small" />
+                                            </InputAdornment>
+                                        }
+                                    >
+                                        {months.map((m, index) => (
+                                            <MenuItem key={index} value={index}>{m}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            ) : (
+                                <TextField
+                                    fullWidth
+                                    type="date"
+                                    size="small"
+                                    label="Date"
+                                    value={date}
+                                    onChange={(e) => setDate(e.target.value)}
+                                    InputLabelProps={{ shrink: true }}
+                                    sx={{
+                                        bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                        borderRadius: 2.5,
+                                        '& .MuiOutlinedInput-root': { borderRadius: 2.5 },
+                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
+                                    }}
+                                />
+                            )}
+                        </Grid>
+
+                        <Grid item xs={12} sm={6} md={3}>
+                            <Button
+                                component={motion.button}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                variant="contained"
+                                onClick={handleGenerate}
+                                disabled={loading}
+                                fullWidth
+                                startIcon={!loading && <Search />}
                                 sx={{
-                                    borderRadius: 2.5,
-                                    bgcolor: alpha(theme.palette.background.paper, 0.4),
-                                    color: 'text.primary',
-                                    '& .MuiSvgIcon-root': { color: 'text.secondary' },
-                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
-                                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
+                                    height: 44,
+                                    borderRadius: 3,
+                                    fontWeight: 600,
+                                    textTransform: 'none',
+                                    fontSize: '1rem',
+                                    background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
+                                    boxShadow: '0 4px 12px rgba(6, 182, 212, 0.4)',
+                                    border: '1px solid rgba(255,255,255,0.2)'
                                 }}
-                                startAdornment={
-                                    <InputAdornment position="start">
-                                        <Class color="action" fontSize="small" />
-                                    </InputAdornment>
-                                }
                             >
-                                {[...Array(13)].map((_, i) => {
-                                    const gradeNum = (i + 1).toString().padStart(2, '0');
-                                    return <MenuItem key={gradeNum} value={`Grade ${gradeNum}`}>Grade {gradeNum}</MenuItem>;
-                                })}
-                            </Select>
-                        </FormControl>
+                                {loading ? <CircularProgress size={24} color="inherit" /> : "Generate Report"}
+                            </Button>
+                        </Grid>
                     </Grid>
-
-                    <Grid item xs={12} sm={6} md={3}>
-                        <FormControl fullWidth size="small">
-                            <InputLabel>Subject</InputLabel>
-                            <Select
-                                value={subject}
-                                label="Subject"
-                                onChange={(e) => setSubject(e.target.value)}
-                                sx={{
-                                    borderRadius: 2.5,
-                                    bgcolor: alpha(theme.palette.background.paper, 0.4),
-                                    color: 'text.primary',
-                                    '& .MuiSvgIcon-root': { color: 'text.secondary' },
-                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
-                                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
-                                }}
-                                startAdornment={
-                                    <InputAdornment position="start">
-                                        <Book color="action" fontSize="small" />
-                                    </InputAdornment>
-                                }
-                            >
-                                {subjectsList.map((sub) => (
-                                    <MenuItem key={sub._id} value={sub.name}>
-                                        {sub.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </Grid>
-
-                    <Grid item xs={12} sm={6} md={3}>
-                        <FormControl fullWidth size="small">
-                            <InputLabel>Month</InputLabel>
-                            <Select
-                                value={month}
-                                label="Month"
-                                onChange={(e) => setMonth(e.target.value)}
-                                sx={{
-                                    borderRadius: 2.5,
-                                    bgcolor: alpha(theme.palette.background.paper, 0.4),
-                                    color: 'text.primary',
-                                    '& .MuiSvgIcon-root': { color: 'text.secondary' },
-                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
-                                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
-                                }}
-                                startAdornment={
-                                    <InputAdornment position="start">
-                                        <CalendarToday color="action" fontSize="small" />
-                                    </InputAdornment>
-                                }
-                            >
-                                {months.map((m, index) => (
-                                    <MenuItem key={index} value={index}>{m}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </Grid>
-
-                    <Grid item xs={12} sm={6} md={3}>
-                        <Button
-                            component={motion.button}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            variant="contained"
-                            onClick={handleGenerate}
-                            disabled={loading}
-                            fullWidth
-                            startIcon={!loading && <Search />}
-                            sx={{
-                                height: 44,
-                                borderRadius: 3,
-                                fontWeight: 600,
-                                textTransform: 'none',
-                                fontSize: '1rem',
-                                background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
-                                boxShadow: '0 4px 12px rgba(6, 182, 212, 0.4)',
-                                border: '1px solid rgba(255,255,255,0.2)'
-                            }}
-                        >
-                            {loading ? <CircularProgress size={24} color="inherit" /> : "Generate Report"}
-                        </Button>
-                    </Grid>
-                </Grid>
+                </Box>
             </MotionPaper>
 
             <AnimatePresence>
@@ -568,6 +628,35 @@ export default function ClassReport() {
                         </Typography>
                     </Box>
 
+                    {tabIndex === 1 && dailySummary && (
+                        <Grid container spacing={2} sx={{ mb: 3 }}>
+                            <Grid item xs={6} md={3}>
+                                <Paper sx={{ p: 2, borderRadius: 3, bgcolor: alpha(theme.palette.info.main, 0.1), border: `1px solid ${alpha(theme.palette.info.main, 0.3)}`, textAlign: 'center' }}>
+                                    <Typography variant="h4" color="info.main" fontWeight={800}>{dailySummary.totalEnrolled}</Typography>
+                                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Total Enrolled</Typography>
+                                </Paper>
+                            </Grid>
+                            <Grid item xs={6} md={3}>
+                                <Paper sx={{ p: 2, borderRadius: 3, bgcolor: alpha(theme.palette.success.main, 0.1), border: `1px solid ${alpha(theme.palette.success.main, 0.3)}`, textAlign: 'center' }}>
+                                    <Typography variant="h4" color="success.main" fontWeight={800}>{dailySummary.totalAttended}</Typography>
+                                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Total Attended Today</Typography>
+                                </Paper>
+                            </Grid>
+                            <Grid item xs={6} md={3}>
+                                <Paper sx={{ p: 2, borderRadius: 3, bgcolor: alpha(theme.palette.success.light, 0.1), border: `1px solid ${alpha(theme.palette.success.main, 0.3)}`, textAlign: 'center' }}>
+                                    <Typography variant="h4" color="success.main" fontWeight={800}>{dailySummary.totalPaid}</Typography>
+                                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Fees Paid (Month)</Typography>
+                                </Paper>
+                            </Grid>
+                            <Grid item xs={6} md={3}>
+                                <Paper sx={{ p: 2, borderRadius: 3, bgcolor: alpha(theme.palette.error.main, 0.1), border: `1px solid ${alpha(theme.palette.error.main, 0.3)}`, textAlign: 'center' }}>
+                                    <Typography variant="h4" color="error.main" fontWeight={800}>{dailySummary.totalUnpaid}</Typography>
+                                    <Typography variant="caption" color="text.secondary" fontWeight={600}>Fees Unpaid</Typography>
+                                </Paper>
+                            </Grid>
+                        </Grid>
+                    )}
+
                     {isMobile ? (
                         <Box>
                             {reportData.length === 0 ? (
@@ -601,9 +690,9 @@ export default function ClassReport() {
                                         <TableCell sx={{ color: 'text.primary', fontWeight: 700, py: 2.5, pl: 4 }}>Student Details</TableCell>
                                         <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Index No</TableCell>
                                         <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Mobile</TableCell>
-                                        <TableCell align="center" sx={{ color: 'text.primary', fontWeight: 700 }}>Attendance</TableCell>
+                                        <TableCell align="center" sx={{ color: 'text.primary', fontWeight: 700 }}>{tabIndex === 0 ? "Attendance" : "Attended Today"}</TableCell>
                                         <TableCell align="center" sx={{ color: 'text.primary', fontWeight: 700 }}>Fee Status</TableCell>
-                                        <TableCell align="center" sx={{ color: 'text.primary', fontWeight: 700 }}>Tutes</TableCell>
+                                        {tabIndex === 0 && <TableCell align="center" sx={{ color: 'text.primary', fontWeight: 700 }}>Tutes</TableCell>}
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -652,20 +741,24 @@ export default function ClassReport() {
                                                 </TableCell>
                                                 <TableCell sx={{ fontFamily: 'monospace', color: '#64748b' }}>{row.mobile}</TableCell>
                                                 <TableCell align="center">
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
-                                                        <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-                                                            <CircularProgress
-                                                                variant="determinate"
-                                                                value={(countAttendance(row.attendance) / 5) * 100}
-                                                                size={28}
-                                                                thickness={5}
-                                                                sx={{ color: countAttendance(row.attendance) >= 4 ? '#22c55e' : '#3b82f6' }}
-                                                            />
+                                                    {tabIndex === 0 ? (
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
+                                                            <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+                                                                <CircularProgress
+                                                                    variant="determinate"
+                                                                    value={(countAttendance(row.attendance) / 5) * 100}
+                                                                    size={28}
+                                                                    thickness={5}
+                                                                    sx={{ color: countAttendance(row.attendance) >= 4 ? '#22c55e' : '#3b82f6' }}
+                                                                />
+                                                            </Box>
+                                                            <Typography fontWeight={700} color={countAttendance(row.attendance) >= 4 ? "success.main" : "text.secondary"}>
+                                                                {countAttendance(row.attendance)}/5
+                                                            </Typography>
                                                         </Box>
-                                                        <Typography fontWeight={700} color={countAttendance(row.attendance) >= 4 ? "success.main" : "text.secondary"}>
-                                                            {countAttendance(row.attendance)}/5
-                                                        </Typography>
-                                                    </Box>
+                                                    ) : (
+                                                        <Chip label={row.attended ? "Present" : "Absent"} color={row.attended ? "success" : "default"} variant={row.attended ? "filled" : "outlined"} size="small" sx={{ fontWeight: 700, borderRadius: 1.5 }} />
+                                                    )}
                                                 </TableCell>
                                                 <TableCell align="center">
                                                     <Chip
@@ -676,15 +769,17 @@ export default function ClassReport() {
                                                         sx={{ minWidth: 80, fontWeight: 700, borderRadius: 1.5 }}
                                                     />
                                                 </TableCell>
-                                                <TableCell align="center">
-                                                    <Chip
-                                                        label={row.tutesGiven ? "Given" : "Pending"}
-                                                        color={row.tutesGiven ? "success" : "warning"}
-                                                        variant="outlined"
-                                                        size="small"
-                                                        sx={{ minWidth: 80, fontWeight: 600, border: '1px solid', borderRadius: 1.5 }}
-                                                    />
-                                                </TableCell>
+                                                {tabIndex === 0 && (
+                                                    <TableCell align="center">
+                                                        <Chip
+                                                            label={row.tutesGiven ? "Given" : "Pending"}
+                                                            color={row.tutesGiven ? "success" : "warning"}
+                                                            variant="outlined"
+                                                            size="small"
+                                                            sx={{ minWidth: 80, fontWeight: 600, border: '1px solid', borderRadius: 1.5 }}
+                                                        />
+                                                    </TableCell>
+                                                )}
                                             </MotionTableRow>
                                         ))
                                     )}
