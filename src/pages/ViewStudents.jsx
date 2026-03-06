@@ -228,10 +228,10 @@ export default function ViewStudents() {
                                 onClick={handleAllStudentsClick}
                                 sx={{
                                     height: '100%', minHeight: 240,
-                                    cursor: 'pointer', borderRadius: '24px',
-                                    background: theme.palette.mode === 'light' ? 'linear-gradient(135deg, #eff6ff 0%, #ffffff 100%)' : 'rgba(59, 130, 246, 0.1)',
-                                    backdropFilter: 'blur(20px)',
-                                    border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                                    cursor: 'pointer', borderRadius: '32px',
+                                    background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(15, 15, 15, 0.4)',
+                                    backdropFilter: 'blur(40px)',
+                                    border: theme.palette.mode === 'light' ? `1px solid rgba(255, 255, 255, 0.8)` : `1px solid rgba(255, 255, 255, 0.08)`,
                                     padding: 4, position: 'relative', overflow: 'hidden',
                                     display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'
                                 }}
@@ -259,8 +259,11 @@ export default function ViewStudents() {
                                     onClick={() => handleGradeClick(grade)}
                                     sx={{
                                         height: '100%', minHeight: 240,
-                                        p: 4, borderRadius: '24px',
+                                        p: 4, borderRadius: '32px',
                                         cursor: 'pointer',
+                                        background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(15, 15, 15, 0.4)',
+                                        backdropFilter: 'blur(40px)',
+                                        border: theme.palette.mode === 'light' ? `1px solid rgba(255, 255, 255, 0.8)` : `1px solid rgba(255, 255, 255, 0.08)`,
                                         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                                         position: 'relative', overflow: 'hidden',
                                     }}
@@ -318,7 +321,10 @@ export default function ViewStudents() {
                                         onClick={() => handleSubjectClick(subject.name)}
                                         sx={{
                                             height: '100%', minHeight: 240,
-                                            borderRadius: '24px', p: 4,
+                                            borderRadius: '32px', p: 4,
+                                            background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(15, 15, 15, 0.4)',
+                                            backdropFilter: 'blur(40px)',
+                                            border: theme.palette.mode === 'light' ? `1px solid rgba(255, 255, 255, 0.8)` : `1px solid rgba(255, 255, 255, 0.08)`,
                                             cursor: 'pointer',
                                             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
                                             position: 'relative', overflow: 'hidden',
@@ -363,11 +369,11 @@ export default function ViewStudents() {
                             sx={{
                                 mb: 4,
                                 '& .MuiOutlinedInput-root': {
-                                    borderRadius: '16px',
-                                    bgcolor: 'rgba(30, 41, 59, 0.6)',
-                                    backdropFilter: 'blur(10px)',
+                                    borderRadius: '24px',
+                                    bgcolor: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(15, 15, 15, 0.4)',
+                                    backdropFilter: 'blur(40px)',
                                     color: 'text.primary',
-                                    '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.1)' },
+                                    '& fieldset': { borderColor: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.1)' },
                                     '&:hover fieldset': { borderColor: theme.palette.primary.main },
                                 },
                                 '& .MuiInputLabel-root': { color: 'text.secondary' }
@@ -387,9 +393,10 @@ export default function ViewStudents() {
                             </Box>
                         ) : (
                             <Paper elevation={0} sx={{
-                                borderRadius: '24px', overflow: 'hidden',
-                                border: `1px solid ${theme.palette.divider}`,
-                                bgcolor: theme.palette.background.paper,
+                                borderRadius: '32px', overflow: 'hidden',
+                                border: theme.palette.mode === 'light' ? `1px solid rgba(255, 255, 255, 0.8)` : `1px solid rgba(255, 255, 255, 0.08)`,
+                                bgcolor: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(15, 15, 15, 0.4)',
+                                backdropFilter: 'blur(40px)'
                             }}>
                                 <StudentTable
                                     students={students}

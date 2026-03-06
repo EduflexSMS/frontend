@@ -173,9 +173,10 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
                     <Collapse in={open} timeout="auto" unmountOnExit>
                         <Box sx={{
                             m: 2, ml: 4, mr: 4, p: 3,
-                            background: theme.palette.mode === 'light' ? '#f1f5f9' : 'rgba(15, 23, 42, 0.4)',
-                            borderRadius: '16px',
-                            border: `1px solid ${theme.palette.divider}`,
+                            background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.4)' : 'rgba(15, 15, 15, 0.4)',
+                            backdropFilter: 'blur(20px)',
+                            borderRadius: '24px',
+                            border: `1px solid ${theme.palette.mode === 'light' ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.05)'}`,
                         }}>
                             <Typography variant="subtitle2" gutterBottom component="div" sx={{
                                 fontWeight: 700,
@@ -251,9 +252,10 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
             transition={{ delay: index * 0.05 }}
             sx={{
                 mb: 2,
-                borderRadius: '20px',
-                border: `1px solid ${theme.palette.divider}`,
-                background: theme.palette.background.paper,
+                borderRadius: '32px',
+                border: theme.palette.mode === 'light' ? '1px solid rgba(255,255,255,0.8)' : '1px solid rgba(255,255,255,0.08)',
+                background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(15, 15, 15, 0.4)',
+                backdropFilter: 'blur(40px)',
                 overflow: 'visible'
             }}
         >
@@ -433,11 +435,11 @@ export default function StudentTable({ students, onUpdate, subjectColorMap }) {
                     component={Paper}
                     elevation={0}
                     sx={{
-                        borderRadius: '24px',
-                        boxShadow: '0 20px 50px -10px rgba(0, 0, 0, 0.5)',
-                        border: '1px solid rgba(255, 255, 255, 0.05)',
-                        bgcolor: 'rgba(12, 12, 24, 0.6)',
-                        backdropFilter: 'blur(30px)',
+                        borderRadius: '32px',
+                        boxShadow: theme.palette.mode === 'light' ? '0 20px 50px -10px rgba(0, 0, 0, 0.05)' : '0 20px 50px -10px rgba(0, 0, 0, 0.5)',
+                        border: theme.palette.mode === 'light' ? '1px solid rgba(255,255,255,0.8)' : '1px solid rgba(255, 255, 255, 0.05)',
+                        bgcolor: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(12, 12, 24, 0.3)',
+                        backdropFilter: 'blur(40px)',
                         overflow: 'hidden'
                     }}
                 >

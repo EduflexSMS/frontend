@@ -90,12 +90,12 @@ export default function AddSubject() {
                 variants={itemVariants}
                 sx={{
                     p: { xs: 3, md: 6 },
-                    borderRadius: 4,
+                    borderRadius: 8,
                     width: '100%',
-                    background: alpha(theme.palette.background.paper, 0.6), // Dark Glass
-                    backdropFilter: 'blur(24px)',
-                    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(15, 15, 15, 0.4)',
+                    backdropFilter: 'blur(40px)',
+                    boxShadow: theme.palette.mode === 'light' ? '0 20px 40px rgba(0, 0, 0, 0.05)' : '0 20px 40px rgba(0, 0, 0, 0.3)',
+                    border: theme.palette.mode === 'light' ? '1px solid rgba(255, 255, 255, 0.8)' : '1px solid rgba(255, 255, 255, 0.08)',
                     position: 'relative',
                     overflow: 'hidden'
                 }}
@@ -204,10 +204,10 @@ export default function AddSubject() {
                                             }}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
-                                                    borderRadius: 2,
-                                                    bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                                    borderRadius: 8,
+                                                    bgcolor: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.4)' : alpha(theme.palette.background.paper, 0.4),
                                                     color: 'text.primary',
-                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                    border: theme.palette.mode === 'light' ? '1px solid rgba(255,255,255,0.8)' : '1px solid rgba(255,255,255,0.1)',
                                                     '&:hover fieldset': { borderColor: 'primary.main' },
                                                 },
                                                 '& .MuiInputLabel-root': { color: 'text.secondary' }
@@ -224,11 +224,11 @@ export default function AddSubject() {
                                         sx={{
                                             p: 3,
                                             height: '100%',
-                                            borderRadius: 3,
-                                            bgcolor: alpha(formData.color, 0.2), // More transparent
+                                            borderRadius: 6,
+                                            bgcolor: alpha(formData.color, 0.1), // More transparent
                                             border: '1px dashed',
-                                            borderColor: 'rgba(255,255,255,0.2)',
-                                            backdropFilter: 'blur(10px)',
+                                            borderColor: formData.color,
+                                            backdropFilter: 'blur(20px)',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             alignItems: 'center',
@@ -264,12 +264,13 @@ export default function AddSubject() {
                                             sx={{
                                                 mt: 3,
                                                 p: 2,
-                                                bgcolor: 'rgba(0,0,0,0.4)',
-                                                borderRadius: 2,
-                                                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)',
+                                                bgcolor: theme.palette.mode === 'light' ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)',
+                                                borderRadius: 4,
+                                                boxShadow: theme.palette.mode === 'light' ? 'none' : 'inset 0 2px 4px rgba(0,0,0,0.5)',
                                                 width: '100%',
                                                 textAlign: 'center',
-                                                border: '1px solid rgba(255,255,255,0.05)'
+                                                border: theme.palette.mode === 'light' ? '1px solid rgba(0,0,0,0.05)' : '1px solid rgba(255,255,255,0.05)',
+                                                backdropFilter: 'blur(10px)'
                                             }}
                                         >
                                             <Typography variant="caption" display="block" color="text.secondary">Preview</Typography>

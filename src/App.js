@@ -114,6 +114,19 @@ function App() {
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
+        {/* Animated Aurora Background Layers */}
+        <div style={{
+          position: 'fixed', top: '-50%', left: '-20%', width: '80%', height: '80%',
+          background: 'radial-gradient(circle, var(--aurora-cyan) 0%, transparent 60%)',
+          opacity: mode === 'light' ? 0.3 : 0.15, filter: 'blur(100px)', zIndex: -1,
+          animation: 'aurora-shift 25s infinite ease-in-out alternate'
+        }} />
+        <div style={{
+          position: 'fixed', bottom: '-40%', right: '-10%', width: '70%', height: '70%',
+          background: 'radial-gradient(circle, var(--aurora-magenta) 0%, transparent 50%)',
+          opacity: mode === 'light' ? 0.2 : 0.15, filter: 'blur(120px)', zIndex: -1,
+          animation: 'aurora-shift 20s infinite ease-in-out alternate-reverse'
+        }} />
         <ErrorBoundary>
           <BrowserRouter>
             <AnimatedRoutes />

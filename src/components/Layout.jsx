@@ -7,9 +7,8 @@ import logo from '../assets/logo.jpg';
 
 import { containerStagger, itemFadeUp, tapScale, springFast } from '../utils/animations';
 import { useTranslation } from 'react-i18next';
-import Background3D from './Background3D';
 import VoiceCommander from './VoiceCommander';
-import PageTransition from './PageTransition'; // Import the new component
+import PageTransition from './PageTransition';
 import { ColorModeContext } from '../App';
 
 const drawerWidth = 280;
@@ -19,7 +18,7 @@ export default function Layout() {
     const navigate = useNavigate();
     const location = useLocation();
     const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isMobile = useMediaQuery(theme.breakpoints.down('md')); // Adjusted breakpoint
     const { toggleColorMode } = useContext(ColorModeContext);
 
     const { t, i18n } = useTranslation();
@@ -51,16 +50,14 @@ export default function Layout() {
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                color: 'white',
+                color: theme.palette.text.primary,
                 background: 'transparent',
                 position: 'relative',
                 overflowY: 'auto',
-                height: '100%',
                 '&::-webkit-scrollbar': { width: '4px' },
                 '&::-webkit-scrollbar-thumb': { background: 'rgba(255,255,255,0.1)', borderRadius: '4px' }
             }}
         >
-
             <Box sx={{ p: 4, display: 'flex', alignItems: 'center', gap: 2, position: 'relative', zIndex: 1, mb: 2 }}>
                 <motion.div
                     whileHover={{ scale: 1.1, rotate: 5 }}
@@ -70,24 +67,24 @@ export default function Layout() {
                     <Avatar
                         src={logo}
                         sx={{
-                            width: 48,
-                            height: 48,
-                            border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
-                            boxShadow: '0 0 20px rgba(15, 82, 186, 0.5)' // Primary glow
+                            width: 56,
+                            height: 56,
+                            border: `2px solid ${alpha(theme.palette.primary.main, 0.5)}`,
+                            boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.4)}`
                         }}
-                    >E</Avatar>
+                    />
                 </motion.div>
                 <Box>
                     <Typography variant="h5" sx={{
                         fontWeight: 900,
                         letterSpacing: 1,
-                        background: 'linear-gradient(45deg, #fff, #4c82ef)', // White to Light Blue
+                        background: theme.palette.mode === 'light' ? 'linear-gradient(45deg, #0f172a, #3b82f6)' : 'linear-gradient(45deg, #fff, var(--aurora-cyan))',
                         backgroundClip: 'text',
                         textFillColor: 'transparent',
                     }}>
                         EDUFLEX
                     </Typography>
-                    <Typography variant="caption" sx={{ color: theme.palette.secondary.main, letterSpacing: 3, fontSize: '0.65rem', fontWeight: 700 }}>
+                    <Typography variant="caption" sx={{ color: theme.palette.secondary.main, letterSpacing: 2, fontSize: '0.65rem', fontWeight: 800 }}>
                         INSTITUTE
                     </Typography>
                 </Box>
@@ -102,7 +99,7 @@ export default function Layout() {
                             variants={itemFadeUp}
                             key={item.text}
                             disablePadding
-                            sx={{ mb: 1, display: 'block' }}
+                            sx={{ mb: 1.5, display: 'block' }}
                         >
                             <Box
                                 component={motion.div}
@@ -121,10 +118,10 @@ export default function Layout() {
                                     cursor: 'pointer',
                                     position: 'relative',
                                     overflow: 'hidden',
-                                    color: active ? 'white' : theme.palette.text.secondary,
+                                    color: active ? (theme.palette.mode === 'light' ? '#fff' : '#000') : theme.palette.text.secondary,
                                     transition: 'color 0.3s ease',
                                     '&:hover': {
-                                        color: active ? 'white' : theme.palette.primary.light,
+                                        color: active ? (theme.palette.mode === 'light' ? '#fff' : '#000') : theme.palette.primary.main,
                                         bgcolor: active ? 'transparent' : alpha(theme.palette.primary.main, 0.08)
                                     }
                                 }}
@@ -137,16 +134,16 @@ export default function Layout() {
                                             position: 'absolute',
                                             inset: 0,
                                             borderRadius: '16px',
-                                            background: 'linear-gradient(90deg, #0f52ba 0%, #002b8a 100%)', // Royal Blue Gradient
-                                            boxShadow: '0 4px 15px rgba(15, 82, 186, 0.4)',
+                                            background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
+                                            boxShadow: `0 4px 15px ${alpha(theme.palette.primary.main, 0.4)}`,
                                             zIndex: 0
                                         }}
-                                        transition={springFast}
+                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                     />
                                 )}
 
                                 <ListItemIcon sx={{
-                                    color: active ? '#ffd700' : 'inherit', // Gold icon when active
+                                    color: active ? 'inherit' : 'inherit',
                                     minWidth: 45,
                                     zIndex: 1,
                                     filter: active ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' : 'none'
@@ -157,7 +154,7 @@ export default function Layout() {
                                     primary={item.text}
                                     sx={{ zIndex: 1 }}
                                     primaryTypographyProps={{
-                                        fontWeight: active ? 700 : 500,
+                                        fontWeight: active ? 800 : 600,
                                         fontSize: '0.95rem',
                                     }}
                                 />
@@ -171,12 +168,12 @@ export default function Layout() {
                 <Box
                     component={motion.div}
                     variants={itemFadeUp}
-                    whileHover={{ scale: 1.02, backgroundColor: 'rgba(239, 68, 68, 0.15)' }}
+                    whileHover={{ scale: 1.02, backgroundColor: alpha(theme.palette.error.main, 0.15) }}
                     whileTap={tapScale}
                     transition={springFast}
                     onClick={() => {
                         sessionStorage.removeItem('userInfo');
-                        localStorage.removeItem('userInfo'); // Double check clear
+                        localStorage.removeItem('userInfo');
                         navigate('/login');
                     }}
                     sx={{
@@ -197,32 +194,32 @@ export default function Layout() {
                     </ListItemIcon>
                     <ListItemText
                         primary={t('logout')}
-                        primaryTypographyProps={{ fontWeight: 600, fontSize: '0.95rem' }}
+                        primaryTypographyProps={{ fontWeight: 700, fontSize: '0.95rem' }}
                     />
                 </Box>
             </Box>
 
             <Box sx={{ p: 3, opacity: 0.6, textAlign: 'center' }}>
-                <Typography variant="caption" sx={{ color: theme.palette.text.disabled, letterSpacing: 1 }}>
-                    v2.0 • 2026
+                <Typography variant="caption" sx={{ color: theme.palette.text.disabled, letterSpacing: 1, fontWeight: 700 }}>
+                    EDUFLEX v2.0
                 </Typography>
             </Box>
-        </Box >
+        </Box>
     );
 
     return (
         <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'transparent' }}>
-            <Background3D />
-            <div className="noise-overlay" />
             <CssBaseline />
 
-            {/* Sidebar Navigation - Floating Glass Panel */}
+            {/* Sidebar Navigation - Desktop Floating Island */}
             <Box
                 component="nav"
                 sx={{
                     width: { md: drawerWidth },
                     flexShrink: { md: 0 },
-                    display: { xs: 'none', md: 'block' }
+                    display: { xs: 'none', md: 'block' },
+                    p: 2, // Spacing to make it float
+                    zIndex: 1200
                 }}
             >
                 <Drawer
@@ -231,12 +228,14 @@ export default function Layout() {
                     PaperProps={{
                         sx: {
                             boxSizing: 'border-box',
-                            width: drawerWidth,
-                            background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(17, 24, 39, 0.8)',
-                            borderRight: `1px solid ${theme.palette.divider}`,
-                            backdropFilter: 'blur(40px)', // Crystal Blur
-                            height: '100vh',
-                            boxShadow: 'none',
+                            width: drawerWidth - 32, // Accommodate padding
+                            margin: '16px', // Floating effect
+                            height: 'calc(100vh - 32px)',
+                            background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(15, 15, 15, 0.5)',
+                            border: `1px solid ${theme.palette.mode === 'light' ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.08)'}`,
+                            borderRadius: '32px', // Rounder curves
+                            backdropFilter: 'blur(40px)',
+                            boxShadow: theme.palette.mode === 'light' ? '0 10px 40px rgba(0,0,0,0.05)' : '0 20px 40px rgba(0,0,0,0.4)',
                             overflow: 'hidden'
                         }
                     }}
@@ -256,9 +255,9 @@ export default function Layout() {
                     '& .MuiDrawer-paper': {
                         boxSizing: 'border-box',
                         width: drawerWidth,
-                        background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(17, 24, 39, 0.85)',
+                        background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(15, 15, 15, 0.9)',
                         borderRight: `1px solid ${theme.palette.divider}`,
-                        backdropFilter: 'blur(40px)', // Crystal Blur
+                        backdropFilter: 'blur(40px)',
                     },
                 }}
             >
@@ -270,33 +269,33 @@ export default function Layout() {
                 component="main"
                 sx={{
                     flexGrow: 1,
-                    p: { xs: 2, sm: 3 },
+                    p: { xs: 2, md: 3 },
                     width: { xs: '100%', md: `calc(100% - ${drawerWidth}px)` },
                     minHeight: '100vh',
                     display: 'flex',
                     flexDirection: 'column',
-                    // Improve overflow handling
-                    overflowX: 'hidden'
+                    overflowX: 'hidden',
+                    pt: { md: 2 } // Align with floating sidebar
                 }}
             >
-                {/* Header / AppBar - Now strictly inside the main content flow or sticky */}
+                {/* Floating Header / AppBar */}
                 <AppBar
                     position="sticky"
                     elevation={0}
                     sx={{
-                        borderRadius: { md: '20px' },
-                        bgcolor: alpha('#151e32', 0.7), // Theme paper color with opacity
+                        borderRadius: { xs: '16px', md: '24px' },
+                        bgcolor: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(20, 20, 20, 0.6)',
                         backdropFilter: 'blur(24px)',
-                        border: '1px solid',
-                        borderColor: 'rgba(255,255,255,0.08)',
+                        border: `1px solid ${theme.palette.mode === 'light' ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.08)'}`,
                         color: 'text.primary',
-                        top: { xs: 0, md: 16 }, // Add spacing from top on desktop
-                        mb: { xs: 2, md: 4 },
+                        top: { xs: 0, md: 0 },
+                        mb: { xs: 3, md: 4 },
                         width: '100%',
-                        zIndex: 1100
+                        zIndex: 1100,
+                        boxShadow: theme.palette.mode === 'light' ? '0 4px 20px rgba(0,0,0,0.03)' : '0 10px 30px rgba(0,0,0,0.2)'
                     }}
                 >
-                    <Toolbar sx={{ justifyContent: 'space-between' }}>
+                    <Toolbar sx={{ justifyContent: 'space-between', py: 0.5 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <IconButton
                                 color="inherit"
@@ -307,27 +306,27 @@ export default function Layout() {
                             >
                                 <MenuIcon />
                             </IconButton>
-                            <Box sx={{ display: { xs: 'none', lg: 'flex' }, alignItems: 'center', bgcolor: alpha(theme.palette.text.primary, 0.05), borderRadius: '12px', px: 2, py: 0.5 }}>
-                                <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
-                                <InputBase placeholder={t('search')} sx={{ fontSize: '0.9rem', color: 'text.primary' }} />
+                            <Box sx={{ display: { xs: 'none', lg: 'flex' }, alignItems: 'center', bgcolor: alpha(theme.palette.text.primary, 0.05), borderRadius: '16px', px: 2, py: 0.75 }}>
+                                <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 22 }} />
+                                <InputBase placeholder={t('search')} sx={{ fontSize: '0.95rem', color: 'text.primary', fontWeight: 500 }} />
                             </Box>
                         </Box>
 
-                        {/* Voice Commander (Center-Right) */}
+                        {/* Voice Commander */}
                         <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', minWidth: { xs: '80px', sm: 'auto' } }}>
                             <VoiceCommander />
                         </Box>
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 } }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1.5 } }}>
                             <Button
                                 startIcon={<Language sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
                                 onClick={toggleLanguage}
                                 sx={{
                                     color: 'text.primary',
-                                    fontWeight: 600,
+                                    fontWeight: 700,
                                     bgcolor: alpha(theme.palette.primary.main, 0.1),
                                     borderRadius: '12px',
-                                    px: { xs: 1, sm: 2 },
+                                    px: { xs: 1.5, sm: 2 },
                                     minWidth: { xs: 'auto', sm: '64px' },
                                     '&:hover': {
                                         bgcolor: alpha(theme.palette.primary.main, 0.2)
@@ -337,21 +336,21 @@ export default function Layout() {
                                 {i18n.language === 'si' ? 'සිං' : 'EN'}
                             </Button>
 
-                            <IconButton onClick={toggleColorMode} sx={{ color: 'text.secondary', bgcolor: alpha(theme.palette.primary.main, 0.1), '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) } }}>
+                            <IconButton onClick={toggleColorMode} sx={{ color: 'text.primary', bgcolor: alpha(theme.palette.primary.main, 0.1), '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2), color: 'primary.main' } }}>
                                 {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
                             </IconButton>
 
-                            <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', md: 'inline-flex' } }}>
+                            <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', md: 'inline-flex' }, '&:hover': { color: 'primary.main' } }}>
                                 <NotificationsOutlined />
                             </IconButton>
-                            <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', md: 'inline-flex' } }}>
+                            <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', md: 'inline-flex' }, '&:hover': { color: 'primary.main' } }}>
                                 <SettingsOutlined />
                             </IconButton>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: { xs: 0, sm: 1 }, p: 0.5, pr: { xs: 0.5, sm: 1.5 }, borderRadius: '20px', border: { xs: 'none', sm: '1px solid' }, borderColor: 'divider' }}>
-                                <Avatar sx={{ width: { xs: 28, sm: 32 }, height: { xs: 28, sm: 32 }, bgcolor: 'primary.main', fontSize: '0.9rem' }}>A</Avatar>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: { xs: 0, sm: 1 }, p: 0.5, pr: { xs: 0.5, sm: 1.5 }, borderRadius: '24px', border: { xs: 'none', sm: `1px solid ${theme.palette.divider}` }, bgcolor: theme.palette.mode === 'light' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.2)' }}>
+                                <Avatar sx={{ width: { xs: 32, sm: 36 }, height: { xs: 32, sm: 36 }, bgcolor: 'primary.main', fontSize: '1rem', fontWeight: 800, color: '#000' }}>A</Avatar>
                                 <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                                    <Typography variant="subtitle2" sx={{ lineHeight: 1.2, color: 'text.primary' }}>{t('admin_user')}</Typography>
-                                    <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1 }}>{t('administrator')}</Typography>
+                                    <Typography variant="subtitle2" sx={{ lineHeight: 1.2, color: 'text.primary', fontWeight: 800 }}>{t('admin_user')}</Typography>
+                                    <Typography variant="caption" sx={{ color: 'primary.main', lineHeight: 1, fontWeight: 700 }}>{t('administrator')}</Typography>
                                 </Box>
                             </Box>
                         </Box>

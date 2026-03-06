@@ -94,63 +94,71 @@ export default function Dashboard() {
         <Paper
             component={motion.div}
             whileHover={{
-                y: -5,
-                boxShadow: `0 0 30px ${alpha(accentColor || theme.palette.primary.main, 0.3)}`,
-                borderColor: accentColor || theme.palette.primary.main
+                y: -8,
+                boxShadow: theme.palette.mode === 'light' ? `0 20px 40px ${alpha(accentColor || theme.palette.primary.main, 0.15)}` : `0 20px 40px ${alpha(accentColor || theme.palette.primary.main, 0.3)}`,
+                borderColor: accentColor || theme.palette.primary.main,
+                scale: 1.02
             }}
             whileTap={onClick ? tapScale : undefined}
             onClick={onClick}
             sx={{
-                height: 180,
+                height: 200, // Slightly taller for bento feel
                 width: '100%',
-                borderRadius: '24px',
+                borderRadius: '32px', // Rounder corners
                 position: 'relative',
                 overflow: 'hidden',
                 cursor: onClick ? 'pointer' : 'default',
-                background: alpha(theme.palette.background.paper, 0.4),
-                backdropFilter: 'blur(20px)',
-                border: '1px solid',
-                borderColor: 'rgba(255, 255, 255, 0.08)',
+                background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(15, 15, 15, 0.4)',
+                backdropFilter: 'blur(40px)',
+                border: theme.palette.mode === 'light' ? '1px solid rgba(255, 255, 255, 0.8)' : '1px solid rgba(255, 255, 255, 0.08)',
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'center',
+                justifyContent: 'space-between',
                 p: 3,
-                transition: 'all 0.3s ease'
+                transition: 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)'
             }}
             elevation={0}
         >
-            <Box sx={{ position: 'absolute', top: -20, right: -20, opacity: 0.1, transform: 'rotate(15deg)' }}>
-                {React.cloneElement(icon, { sx: { fontSize: 150, color: accentColor } })}
+            {/* Animated Glow Backdrop */}
+            <Box sx={{
+                position: 'absolute', top: '-20%', right: '-20%', width: '150px', height: '150px',
+                background: `radial-gradient(circle, ${alpha(accentColor || theme.palette.primary.main, 0.3)} 0%, transparent 70%)`,
+                borderRadius: '50%', filter: 'blur(30px)', pointerEvents: 'none'
+            }} />
+
+            <Box sx={{ position: 'absolute', bottom: -30, right: -20, opacity: theme.palette.mode === 'light' ? 0.05 : 0.1, transform: 'rotate(-15deg) scale(1.2)' }}>
+                {React.cloneElement(icon, { sx: { fontSize: 160, color: accentColor || theme.palette.text.primary } })}
             </Box>
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, position: 'relative', zIndex: 1 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
                 <Box sx={{
                     p: 1.5,
-                    borderRadius: '16px',
+                    borderRadius: '20px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: accentColor || theme.palette.primary.main,
-                    bgcolor: alpha(accentColor || theme.palette.primary.main, 0.15),
-                    boxShadow: `0 0 20px ${alpha(accentColor || theme.palette.primary.main, 0.2)}`
+                    color: theme.palette.mode === 'light' ? '#fff' : (accentColor || theme.palette.primary.main),
+                    bgcolor: theme.palette.mode === 'light' ? (accentColor || theme.palette.primary.main) : alpha(accentColor || theme.palette.primary.main, 0.15),
+                    boxShadow: theme.palette.mode === 'light' ? `0 10px 20px ${alpha(accentColor || theme.palette.primary.main, 0.3)}` : `0 0 20px ${alpha(accentColor || theme.palette.primary.main, 0.2)}`
                 }}>
                     {React.cloneElement(icon, { fontSize: 'medium' })}
                 </Box>
             </Box>
 
-            <Box sx={{ pl: 1, position: 'relative', zIndex: 1 }}>
+            <Box sx={{ position: 'relative', zIndex: 1, mt: 2 }}>
                 <Typography variant="h2" sx={{
-                    fontWeight: 800,
+                    fontWeight: 900,
                     color: 'text.primary',
-                    letterSpacing: '-1px',
-                    mb: 0.5,
+                    letterSpacing: '-2px',
+                    lineHeight: 1,
+                    mb: 1,
                     fontFamily: "'Outfit', sans-serif"
                 }}>
                     {typeof value === 'number' ? <AnimatedNumber value={value} /> : value}
                 </Typography>
                 <Typography variant="body2" sx={{
                     color: 'text.secondary',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     fontSize: '0.85rem',
                     textTransform: 'uppercase',
                     letterSpacing: '1px'
@@ -300,31 +308,30 @@ export default function Dashboard() {
                             <Grid item xs={12} md={6} lg={4} key={sub.subject} component={motion.div} variants={itemFadeUp}>
                                 <Paper
                                     component={motion.div}
-                                    whileHover={{ y: -5, scale: 1.02 }}
+                                    whileHover={{ y: -8, scale: 1.02 }}
                                     onClick={() => handleSubjectClick(sub.subject)}
                                     sx={{
-                                        p: 3,
+                                        p: 4,
                                         height: '100%',
-                                        borderRadius: '20px',
-                                        background: alpha(theme.palette.background.paper, 0.4),
-                                        backdropFilter: 'blur(20px)',
-                                        border: '1px solid',
-                                        borderColor: 'rgba(255, 255, 255, 0.08)',
+                                        borderRadius: '32px',
+                                        background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(15, 15, 15, 0.4)',
+                                        backdropFilter: 'blur(40px)',
+                                        border: theme.palette.mode === 'light' ? '1px solid rgba(255, 255, 255, 0.8)' : '1px solid rgba(255, 255, 255, 0.08)',
                                         cursor: 'pointer',
-                                        transition: 'all 0.3s ease',
+                                        transition: 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
                                         position: 'relative',
                                         overflow: 'hidden',
                                         '&:hover': {
                                             borderColor: isGood ? '#00ff66' : '#ff2a2a',
-                                            boxShadow: `0 0 30px ${isGood ? 'rgba(0, 255, 102, 0.2)' : 'rgba(255, 42, 42, 0.2)'}`
+                                            boxShadow: isGood ? '0 20px 40px rgba(0, 255, 102, 0.15)' : '0 20px 40px rgba(255, 42, 42, 0.15)'
                                         }
                                     }}
                                 >
-                                    {/* Background Glow */}
+                                    {/* Aurora Background Glow */}
                                     <Box sx={{
-                                        position: 'absolute', top: 0, right: 0, width: '150px', height: '150px',
-                                        background: `radial-gradient(circle, ${isGood ? alpha('#00ff66', 0.1) : alpha('#ff2a2a', 0.1)} 0%, transparent 70%)`,
-                                        borderRadius: '50%', transform: 'translate(30%, -30%)', pointerEvents: 'none'
+                                        position: 'absolute', top: '-10%', right: '-10%', width: '200px', height: '200px',
+                                        background: `radial-gradient(circle, ${isGood ? alpha('#00ff66', 0.15) : alpha('#ff2a2a', 0.15)} 0%, transparent 70%)`,
+                                        borderRadius: '50%', filter: 'blur(30px)', pointerEvents: 'none'
                                     }} />
 
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, position: 'relative' }}>

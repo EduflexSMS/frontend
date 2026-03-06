@@ -111,11 +111,11 @@ export default function AddStudent() {
                 sx={{
                     p: { xs: 3, sm: 5 },
                     width: '100%',
-                    borderRadius: 4,
-                    background: alpha(theme.palette.background.paper, 0.6), // Dark Glass
-                    backdropFilter: 'blur(24px)',
-                    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: 8,
+                    background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(15, 15, 15, 0.4)',
+                    backdropFilter: 'blur(40px)',
+                    boxShadow: theme.palette.mode === 'light' ? '0 20px 40px rgba(0, 0, 0, 0.05)' : '0 20px 40px rgba(0, 0, 0, 0.3)',
+                    border: theme.palette.mode === 'light' ? '1px solid rgba(255, 255, 255, 0.8)' : '1px solid rgba(255, 255, 255, 0.08)',
                     overflow: 'hidden',
                     position: 'relative'
                 }}
@@ -185,10 +185,10 @@ export default function AddStudent() {
                                 }}
                                 sx={{
                                     '& .MuiOutlinedInput-root': {
-                                        borderRadius: 2,
-                                        bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                        borderRadius: 8,
+                                        bgcolor: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.4)' : alpha(theme.palette.background.paper, 0.4),
                                         color: 'text.primary',
-                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        border: theme.palette.mode === 'light' ? '1px solid rgba(255,255,255,0.8)' : '1px solid rgba(255,255,255,0.1)',
                                         '&:hover fieldset': { borderColor: 'primary.main' },
                                     },
                                     '& .MuiInputLabel-root': { color: 'text.secondary' }
@@ -216,12 +216,12 @@ export default function AddStudent() {
                                         />
                                     }
                                     sx={{
-                                        borderRadius: 2,
-                                        bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                        borderRadius: 8,
+                                        bgcolor: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.4)' : alpha(theme.palette.background.paper, 0.4),
                                         color: 'text.primary',
-                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        border: theme.palette.mode === 'light' ? '1px solid rgba(255,255,255,0.8)' : '1px solid rgba(255,255,255,0.1)',
                                         '& .MuiSvgIcon-root': { color: 'text.secondary' },
-                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
+                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.mode === 'light' ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.1)' },
                                         '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
                                     }}
                                 >
@@ -249,10 +249,10 @@ export default function AddStudent() {
                                 }}
                                 sx={{
                                     '& .MuiOutlinedInput-root': {
-                                        borderRadius: 2,
-                                        bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                        borderRadius: 8,
+                                        bgcolor: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.4)' : alpha(theme.palette.background.paper, 0.4),
                                         color: 'text.primary',
-                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        border: theme.palette.mode === 'light' ? '1px solid rgba(255,255,255,0.8)' : '1px solid rgba(255,255,255,0.1)',
                                         '&:hover fieldset': { borderColor: 'primary.main' },
                                     },
                                     '& .MuiInputLabel-root': { color: 'text.secondary' }
@@ -295,12 +295,12 @@ export default function AddStudent() {
                                         </Box>
                                     )}
                                     sx={{
-                                        borderRadius: 2,
-                                        bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                        borderRadius: 8,
+                                        bgcolor: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.4)' : alpha(theme.palette.background.paper, 0.4),
                                         color: 'text.primary',
-                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        border: theme.palette.mode === 'light' ? '1px solid rgba(255,255,255,0.8)' : '1px solid rgba(255,255,255,0.1)',
                                         '& .MuiSvgIcon-root': { color: 'text.secondary' },
-                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
+                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.mode === 'light' ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.1)' },
                                         '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
                                     }}
                                 >

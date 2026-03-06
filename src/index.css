@@ -1,13 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Premium Palette References */
-  --primary-color: #0f52ba;
-  --secondary-color: #ffd700;
+  /* Aurora Glassmorphism Palette */
+  --aurora-cyan: #00f2fe;
+  --aurora-blue: #4facfe;
+  --aurora-magenta: #fe0979;
+  --aurora-violet: #8e2de2;
 
-  /* Glassmorphism Variables */
-  --glass-border: rgba(255, 255, 255, 0.05);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  --bg-dark: #050505;
+  --bg-light: #ffffff;
+
+  /* Glass Effects */
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-bg-dark: rgba(10, 10, 10, 0.6);
+  --glass-bg-light: rgba(255, 255, 255, 0.6);
 }
 
 body {
@@ -18,8 +24,61 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  background-color: #0b1121 !important;
-  /* Matches theme default */
+  background-color: var(--bg-dark);
+  transition: background-color 0.5s ease;
+}
+
+/* Global Aurora Animation Keyframes */
+@keyframes aurora-shift {
+  0% {
+    transform: scale(1) translate(0px, 0px) rotate(0deg);
+    opacity: 0.15;
+  }
+
+  33% {
+    transform: scale(1.2) translate(50px, -50px) rotate(15deg);
+    opacity: 0.25;
+  }
+
+  66% {
+    transform: scale(1.1) translate(-30px, 40px) rotate(-5deg);
+    opacity: 0.2;
+  }
+
+  100% {
+    transform: scale(1) translate(0px, 0px) rotate(0deg);
+    opacity: 0.15;
+  }
+}
+
+@keyframes float-y {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+/* Base styles for scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Subtle Cinematic Noise Overlay */
@@ -31,23 +90,19 @@ body {
   height: 100%;
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.02;
-  /* Reduced opacity for cleaner look */
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
-/* Smooth Scrolling for the whole page */
 html {
   scroll-behavior: smooth;
 }
 
-/* Selection Color */
 ::selection {
-  background: rgba(15, 82, 186, 0.3);
-  color: #ffd700;
+  background: var(--aurora-cyan);
+  color: #000;
 }
