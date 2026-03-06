@@ -256,8 +256,9 @@ export default function Layout() {
                     '& .MuiDrawer-paper': {
                         boxSizing: 'border-box',
                         width: drawerWidth,
-                        background: 'transparent',
-                        border: 'none',
+                        background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(17, 24, 39, 0.85)',
+                        borderRight: `1px solid ${theme.palette.divider}`,
+                        backdropFilter: 'blur(40px)', // Crystal Blur
                     },
                 }}
             >
