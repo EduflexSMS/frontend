@@ -208,15 +208,15 @@ export default function LoginPage() {
                         sx={{
                             display: { xs: 'none', lg: 'block' },
                             position: 'fixed',
-                            right: '-5%',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            width: '700px',
+                            right: '5%',
+                            top: '45%',
+                            transform: 'translateY(-50%) scale(1.05)',
+                            width: '650px',
                             height: 'auto',
                             zIndex: 0,
                             mixBlendMode: theme.palette.mode === 'light' ? 'multiply' : 'lighten',
-                            opacity: theme.palette.mode === 'light' ? 0.9 : 0.8,
-                            filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.12))',
+                            opacity: theme.palette.mode === 'light' ? 0.95 : 0.8,
+                            filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))',
                             pointerEvents: 'none'
                         }}
                     />
