@@ -7,7 +7,6 @@ import API_BASE_URL from '../config';
 import { useTranslation } from 'react-i18next';
 
 import logo from '../assets/logo.jpg';
-import educationalHero from '../assets/educational_hero.png';
 
 export default function LoginPage() {
     const [selectedRole, setSelectedRole] = useState(null); // 'admin', 'teacher', 'student'
@@ -193,38 +192,6 @@ export default function LoginPage() {
                     zIndex: 10,
                     position: 'relative'
                 }}>
-                    {/* Educational 3D Hero Image */}
-                    <Box
-                        component={motion.img}
-                        src={educationalHero}
-                        alt="Eduflex Modern Education Platform"
-                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: [0, -10, 0] }}
-                        transition={{
-                            opacity: { duration: 0.8 },
-                            scale: { duration: 0.8 },
-                            y: { duration: 6, repeat: Infinity, ease: "easeInOut" }
-                        }}
-                        sx={{
-                            display: { xs: 'none', lg: 'block' },
-                            position: 'fixed',
-                            right: 0,
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            width: '50vw',
-                            maxWidth: '750px',
-                            maxHeight: '90vh',
-                            objectFit: 'contain',
-                            zIndex: 0,
-                            mixBlendMode: theme.palette.mode === 'light' ? 'multiply' : 'lighten',
-                            opacity: theme.palette.mode === 'light' ? 0.9 : 0.8,
-                            filter: theme.palette.mode === 'light'
-                                ? 'contrast(1.05) brightness(1.02) drop-shadow(0 20px 40px rgba(0,0,0,0.15))'
-                                : 'drop-shadow(0 20px 40px rgba(0,0,0,0.5))',
-                            pointerEvents: 'none'
-                        }}
-                    />
-
                     <motion.div
                         initial={{ opacity: 0, x: 50 }}
                         animate={{ opacity: 1, x: 0 }}
