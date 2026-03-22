@@ -3,12 +3,13 @@ import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Collapse, Box, Typography,
     useTheme, useMediaQuery, Card, CardContent, Button, Grid, Chip, Avatar, Tooltip
 } from '@mui/material';
-import { KeyboardArrowDown, KeyboardArrowUp, Edit, Phone, Delete, OpenInNew } from '@mui/icons-material';
+import { KeyboardArrowDown, KeyboardArrowUp, Edit, Phone, Delete, OpenInNew, FileDownload } from '@mui/icons-material';
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import API_BASE_URL from '../config';
 import SubjectGrid from './SubjectGrid';
 import EditStudentDialog from '../components/EditStudentDialog';
 import { motion, AnimatePresence } from 'framer-motion';
+import { generateFeeReport } from '../utils/generateFeeReport';
 
 function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
     const [open, setOpen] = useState(false);
@@ -112,6 +113,14 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
                 </TableCell>
                 <TableCell>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', opacity: 0.7, '&:hover': { opacity: 1 } }}>
+                        <Tooltip title="Download Fee Report">
+                            <IconButton
+                                onClick={(e) => { e.stopPropagation(); generateFeeReport(row, subjectColorMap); }}
+                                sx={{ mr: 1, '&:hover': { color: '#00ccff' } }}
+                            >
+                                <FileDownload fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
                         <Tooltip title="Edit Student">
                             <IconButton
                                 onClick={(e) => { e.stopPropagation(); onEdit(row); }}
@@ -219,6 +228,11 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
                         </Box>
                     </Box>
                     <Box>
+                        <Tooltip title="Download Fee Report">
+                            <IconButton onClick={(e) => { e.stopPropagation(); generateFeeReport(row, subjectColorMap); }} size="small" sx={{ color: 'text.secondary', '&:hover': { color: '#00ccff' } }}>
+                                <FileDownload fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
                         <IconButton onClick={() => onEdit(row)} size="small" sx={{ color: 'text.secondary', '&:hover': { color: '#00f7ff' } }}>
                             <Edit fontSize="small" />
                         </IconButton>
