@@ -5,7 +5,7 @@ import axios from 'axios';
 import API_BASE_URL from '../config';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const StatusCell = ({ studentId, subject, monthIndex, weekIndex, type, initialStatus, onUpdate }) => {
+const StatusCell = ({ student, fee, studentId, subject, monthIndex, weekIndex, type, initialStatus, onUpdate }) => {
     const theme = useTheme();
 
     const getNormalizedStatus = (status) => {
@@ -74,6 +74,31 @@ const StatusCell = ({ studentId, subject, monthIndex, weekIndex, type, initialSt
                 // For direct 'present'/'pending' setting, backend needs to support it or we just call toggle.
                 // Assuming toggle for fee/tute based on current click.
                 await axios.patch(url);
+                
+                // --- WHATSAPP NOTIFICATION ---
+                if (type === 'fee' && newStatus === 'present' && student && student.mobile) {
+                    let mobile = student.mobile.trim();
+                    if (mobile.startsWith('0')) {
+                        mobile = '94' + mobile.substring(1);
+                    } else if (mobile.startsWith('+')) {
+                        mobile = mobile.substring(1);
+                    } else if (!mobile.startsWith('94')) {
+                        // Assuming Sri Lanka by default if no code and doesn't start with 0
+                        mobile = '94' + mobile;
+                    }
+
+                    const monthsList = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                    const monthName = monthsList[monthIndex];
+                    const feeAmount = fee ? fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 0;
+                    
+                    const message = `Hello ${student.name},\n\nYour payment of Rs. ${feeAmount} for the *${subject}* class (${monthName}) has been received successfully.\n\nThank you!\nEduflex Institute`;
+                    
+                    const waUrl = `https://wa.me/${mobile}?text=${encodeURIComponent(message)}`;
+                    
+                    // Open in new tab. Some browsers might require this to be directly from user interaction,
+                    // but usually it works after a quick async await if the user initiated the flow.
+                    window.open(waUrl, '_blank');
+                }
             }
 
             if (onUpdate) onUpdate();

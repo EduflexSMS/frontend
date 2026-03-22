@@ -164,6 +164,7 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
                                 <OpenInNew sx={{ fontSize: 16 }} /> Progress & Attendance
                             </Typography>
                             <SubjectGrid
+                                student={row}
                                 studentId={row._id}
                                 studentGrade={row.grade}
                                 enrollments={row.enrollments}
@@ -298,6 +299,7 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
             <Collapse in={expanded} timeout="auto" unmountOnExit>
                 <Box sx={{ p: 1, pb: 3, bgcolor: 'rgba(0,0,0,0.1)' }}>
                     <SubjectGrid
+                        student={row}
                         studentId={row._id}
                         studentGrade={row.grade}
                         enrollments={row.enrollments}

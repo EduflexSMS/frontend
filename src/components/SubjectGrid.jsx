@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const SubjectGrid = ({ studentId, studentGrade, enrollments, onUpdate, subjectColorMap, isMobile }) => {
+const SubjectGrid = ({ student, studentId, studentGrade, enrollments, onUpdate, subjectColorMap, isMobile }) => {
     const theme = useTheme();
 
     return (
@@ -116,6 +116,8 @@ const SubjectGrid = ({ studentId, studentGrade, enrollments, onUpdate, subjectCo
 
                                         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 2.5 }}>
                                             <StatusCell
+                                                student={student}
+                                                fee={subjectData ? subjectData.fee : 0}
                                                 studentId={studentId}
                                                 subject={enrollment.subject}
                                                 monthIndex={record.monthIndex}
@@ -124,6 +126,8 @@ const SubjectGrid = ({ studentId, studentGrade, enrollments, onUpdate, subjectCo
                                                 onUpdate={onUpdate}
                                             />
                                             <StatusCell
+                                                student={student}
+                                                fee={subjectData ? subjectData.fee : 0}
                                                 studentId={studentId}
                                                 subject={enrollment.subject}
                                                 monthIndex={record.monthIndex}
@@ -146,6 +150,8 @@ const SubjectGrid = ({ studentId, studentGrade, enrollments, onUpdate, subjectCo
                                                 return (
                                                     <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                                         <StatusCell
+                                                            student={student}
+                                                            fee={subjectData ? subjectData.fee : 0}
                                                             studentId={studentId}
                                                             subject={enrollment.subject}
                                                             monthIndex={record.monthIndex}
