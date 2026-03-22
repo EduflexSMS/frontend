@@ -91,7 +91,7 @@ const StatusCell = ({ student, fee, studentId, subject, monthIndex, weekIndex, t
                     const monthName = monthsList[monthIndex];
                     const feeAmount = fee ? fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 0;
                     
-                    const message = `Hello ${student.name},\n\nYour payment of Rs. ${feeAmount} for the *${subject}* class (${monthName}) has been received successfully.\n\nThank you!\nEduflex Institute`;
+                    const message = `Hello ${student.name},\n\nYour payment of Rs. ${feeAmount} for the *${subject}* class (${monthName}) has been received successfully.\n\nThank you!\nEduflex Institute\nContact: +94789232752`;
                     
                     const waUrl = `https://wa.me/${mobile}?text=${encodeURIComponent(message)}`;
                     
