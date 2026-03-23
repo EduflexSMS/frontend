@@ -87,17 +87,11 @@ const StudentListDialog = ({ open, onClose, classData }) => {
 
             // Table Data Preparation
             const tableRows = filteredStudents.map(student => {
-                // Format Attendance
-                const attendance = [0, 1, 2, 3].map(i => {
-                    const status = getAttendanceStatus(student.attendance, i);
-                    return status === 'present' ? 'P' : status === 'absent' ? 'A' : '-';
-                }).join('  |  ');
-
                 return [
                     student.name,
                     student.indexNumber,
                     student.feePaid ? 'Paid' : 'Not Paid',
-                    attendance
+                    '' // Placeholder for graphical attendance
                 ];
             });
 
@@ -120,7 +114,7 @@ const StudentListDialog = ({ open, onClose, classData }) => {
                     0: { cellWidth: 60 },
                     1: { cellWidth: 40 },
                     2: { cellWidth: 30 },
-                    3: { cellWidth: 'auto' }
+                    3: { cellWidth: 50, halign: 'center' } // Fixed width for alignment of shapes
                 },
                 didParseCell: function (data) {
                     // Color code Fee Status
@@ -132,6 +126,49 @@ const StudentListDialog = ({ open, onClose, classData }) => {
                         } else {
                             data.cell.styles.textColor = [239, 68, 68]; // Red
                             data.cell.styles.fontStyle = 'bold';
+                        }
+                    }
+                },
+                didDrawCell: function (data) {
+                    // Draw Graphical Attendance
+                    if (data.section === 'body' && data.column.index === 3) {
+                        const student = filteredStudents[data.row.index];
+                        if (!student) return;
+
+                        const radius = 2.5;
+                        const spacing = 10;
+                        const totalWidth = 3 * spacing;
+                        const startX = data.cell.x + (data.cell.width - totalWidth) / 2;
+                        const startY = data.cell.y + data.cell.height / 2;
+
+                        for (let i = 0; i < 4; i++) {
+                            const status = getAttendanceStatus(student.attendance, i);
+                            const x = startX + (i * spacing);
+
+                            if (status === 'present' || status === true) {
+                                doc.setFillColor(16, 185, 129); // Green background
+                                doc.circle(x, startY, radius, 'F');
+                                
+                                // Tick mark
+                                doc.setDrawColor(255, 255, 255);
+                                doc.setLineWidth(0.5);
+                                doc.line(x - 1, startY + 0.2, x - 0.2, startY + 1.2);
+                                doc.line(x - 0.2, startY + 1.2, x + 1.2, startY - 0.8);
+                            } else if (status === 'absent') {
+                                doc.setFillColor(239, 68, 68); // Red background
+                                doc.circle(x, startY, radius, 'F');
+                                
+                                // Cross mark
+                                doc.setDrawColor(255, 255, 255);
+                                doc.setLineWidth(0.5);
+                                doc.line(x - 0.8, startY - 0.8, x + 0.8, startY + 0.8);
+                                doc.line(x + 0.8, startY - 0.8, x - 0.8, startY + 0.8);
+                            } else {
+                                // Default/Pending: Empty gray circle
+                                doc.setDrawColor(203, 213, 225); // Slate 300
+                                doc.setLineWidth(0.5);
+                                doc.circle(x, startY, radius, 'S');
+                            }
                         }
                     }
                 }
