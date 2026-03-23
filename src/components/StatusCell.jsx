@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, IconButton, Grow, Zoom, Box, alpha, useTheme } from '@mui/material';
-import { CheckCircle, RadioButtonUnchecked, MonetizationOn, Book, Cancel, HourglassEmpty } from '@mui/icons-material';
+import { CheckCircle, RadioButtonUnchecked, MonetizationOn, Book, Cancel, HourglassEmpty, WhatsApp } from '@mui/icons-material';
 import axios from 'axios';
 import API_BASE_URL from '../config';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -111,46 +111,101 @@ const StatusCell = ({ student, fee, studentId, subject, monthIndex, weekIndex, t
         }
     };
 
+    const handleNotifyWA = async () => {
+        if (!student || !student.mobile) return alert("Student mobile number not found!");
+        
+        try {
+            setLoading(true);
+            let mobile = student.mobile.trim();
+            if (mobile.startsWith('0')) mobile = '94' + mobile.substring(1);
+            else if (mobile.startsWith('+')) mobile = mobile.substring(1);
+            else if (!mobile.startsWith('94')) mobile = '94' + mobile;
+
+            const monthsList = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const monthName = monthsList[monthIndex];
+            
+            const isPresent = status === 'present';
+            const statusText = isPresent ? 'Present' : 'Absent';
+            
+            const message = `Hello ${student.name},\n\nThis is to notify that you were marked *${statusText}* for the *${subject}* class (Week ${weekIndex + 1}, ${monthName}).\n\nThank you,\nEduflex Institute`;
+
+            await axios.post(`${API_BASE_URL}/api/whatsapp/send`, { mobile, message });
+            
+            alert("WhatsApp message sent successfully via background!");
+            setOpen(false);
+        } catch (error) {
+            console.error("WhatsApp Send Error:", error);
+            alert("Failed to send WhatsApp message through backend.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const renderDialogContent = () => {
         if (type === 'attendance') {
             return (
-                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 2 }}>
-                    <Button
-                        variant={status === 'present' ? "contained" : "outlined"}
-                        onClick={() => handleUpdate('present')}
-                        startIcon={<CheckCircle />}
-                        sx={{
-                            borderRadius: '12px', textTransform: 'none', px: 3,
-                            bgcolor: status === 'present' ? '#00ff66' : 'transparent',
-                            color: status === 'present' ? '#000' : '#00ff66',
-                            borderColor: '#00ff66',
-                            '&:hover': { bgcolor: status === 'present' ? '#00cc52' : alpha('#00ff66', 0.1), borderColor: '#00ff66' }
-                        }}
-                    >
-                        Present
-                    </Button>
-                    <Button
-                        variant={status === 'absent' ? "contained" : "outlined"}
-                        onClick={() => handleUpdate('absent')}
-                        startIcon={<Cancel />}
-                        sx={{
-                            borderRadius: '12px', textTransform: 'none', px: 3,
-                            bgcolor: status === 'absent' ? '#ff2a2a' : 'transparent',
-                            color: status === 'absent' ? '#fff' : '#ff2a2a',
-                            borderColor: '#ff2a2a',
-                            '&:hover': { bgcolor: status === 'absent' ? '#d92020' : alpha('#ff2a2a', 0.1), borderColor: '#ff2a2a' }
-                        }}
-                    >
-                        Absent
-                    </Button>
-                    <Button
-                        variant="text"
-                        onClick={() => handleUpdate('pending')}
-                        startIcon={<HourglassEmpty />}
-                        sx={{ borderRadius: '12px', textTransform: 'none', color: 'text.secondary' }}
-                    >
-                        Clear
-                    </Button>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, mt: 2 }}>
+                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+                        <Button
+                            variant={status === 'present' ? "contained" : "outlined"}
+                            onClick={() => handleUpdate('present')}
+                            startIcon={<CheckCircle />}
+                            sx={{
+                                borderRadius: '12px', textTransform: 'none', px: 3,
+                                bgcolor: status === 'present' ? '#00ff66' : 'transparent',
+                                color: status === 'present' ? '#000' : '#00ff66',
+                                borderColor: '#00ff66',
+                                '&:hover': { bgcolor: status === 'present' ? '#00cc52' : alpha('#00ff66', 0.1), borderColor: '#00ff66' }
+                            }}
+                        >
+                            Present
+                        </Button>
+                        <Button
+                            variant={status === 'absent' ? "contained" : "outlined"}
+                            onClick={() => handleUpdate('absent')}
+                            startIcon={<Cancel />}
+                            sx={{
+                                borderRadius: '12px', textTransform: 'none', px: 3,
+                                bgcolor: status === 'absent' ? '#ff2a2a' : 'transparent',
+                                color: status === 'absent' ? '#fff' : '#ff2a2a',
+                                borderColor: '#ff2a2a',
+                                '&:hover': { bgcolor: status === 'absent' ? '#d92020' : alpha('#ff2a2a', 0.1), borderColor: '#ff2a2a' }
+                            }}
+                        >
+                            Absent
+                        </Button>
+                        <Button
+                            variant="text"
+                            onClick={() => handleUpdate('pending')}
+                            startIcon={<HourglassEmpty />}
+                            sx={{ borderRadius: '12px', textTransform: 'none', color: 'text.secondary', minWidth: 'auto', px: 1 }}
+                        >
+                            Clear
+                        </Button>
+                    </Box>
+
+                    {(status === 'present' || status === 'absent') && (
+                        <Button
+                            variant="contained"
+                            color="success"
+                            startIcon={<WhatsApp />}
+                            onClick={handleNotifyWA}
+                            disabled={loading}
+                            sx={{ 
+                                borderRadius: '12px', 
+                                textTransform: 'none', 
+                                px: 3, 
+                                py: 1,
+                                width: '100%', 
+                                maxWidth: '300px',
+                                boxShadow: '0 4px 15px rgba(37, 211, 102, 0.4)',
+                                background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                                fontWeight: 'bold'
+                            }}
+                        >
+                            {loading ? "Sending..." : "Notify via WhatsApp"}
+                        </Button>
+                    )}
                 </Box>
             );
         } else {
