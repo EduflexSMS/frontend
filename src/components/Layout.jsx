@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, AppBar, Toolbar, Typography, CssBaseline, IconButton, Avatar, useTheme, useMediaQuery, InputBase, alpha, Button } from '@mui/material';
-import { Dashboard, People, Class, AddBox, Assessment, Menu as MenuIcon, NotificationsOutlined, Search as SearchIcon, SettingsOutlined, Logout as LogoutIcon, Language } from '@mui/icons-material';
+import { Dashboard, People, Class, AddBox, Assessment, Menu as MenuIcon, NotificationsOutlined, Search as SearchIcon, SettingsOutlined, Logout as LogoutIcon, Language, Today } from '@mui/icons-material';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../assets/logo.jpg';
@@ -25,6 +25,7 @@ export default function Layout() {
     const menuItems = [
         { text: t('dashboard'), icon: <Dashboard />, path: '/' },
         { text: t('view_students'), icon: <People />, path: '/students' },
+        { text: 'Daily Report', icon: <Today />, path: '/daily-report' },
         { text: t('class_reports'), icon: <Assessment />, path: '/reports' },
         { text: t('add_student'), icon: <AddBox />, path: '/add-student' },
         { text: t('add_subject'), icon: <Class />, path: '/add-subject' },

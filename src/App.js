@@ -11,6 +11,7 @@ import StudentDashboard from './pages/StudentDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import AddStudent from './pages/AddStudent';
 import ClassReport from './pages/ClassReport';
+import DailyReport from './pages/DailyReport';
 import AddSubject from './pages/AddSubject';
 import Dashboard from './pages/Dashboard';
 import PageTransition from './components/PageTransition';
@@ -62,6 +63,7 @@ function AnimatedRoutes() {
           <Route path="add-student" element={<AddStudent />} />
           <Route path="add-subject" element={<AddSubject />} />
           <Route path="reports" element={<ClassReport />} />
+          <Route path="daily-report" element={<DailyReport />} />
         </Route>
 
         {/* Role-Based Dashboards */}
