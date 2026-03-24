@@ -315,7 +315,7 @@ export default function ClassReport() {
             initial="hidden"
             animate="visible"
             variants={containerVariants}
-            sx={{ py: 4, position: 'relative' }}
+            sx={{ py: { xs: 2, md: 4 }, position: 'relative' }}
         >
             {/* Background Decorations */}
             <Box

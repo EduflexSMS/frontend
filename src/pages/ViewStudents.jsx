@@ -158,7 +158,7 @@ export default function ViewStudents() {
             minHeight: '100vh',
             // TRANSPARENT BACKGROUND TO SHOW 3D HOLOGRAMS
             background: 'transparent',
-            pt: 4, pb: 8
+            pt: { xs: 2, md: 4 }, pb: { xs: 4, md: 8 }
         }}>
             <Container maxWidth="xl">
                 {/* Header Section */}
@@ -232,7 +232,7 @@ export default function ViewStudents() {
                                     background: 'rgba(59, 130, 246, 0.2)', // Semi-transparent Blue
                                     backdropFilter: 'blur(20px)',
                                     border: '1px solid rgba(59, 130, 246, 0.4)',
-                                    padding: 4, position: 'relative', overflow: 'hidden',
+                                    padding: { xs: 2, md: 4 }, position: 'relative', overflow: 'hidden',
                                     display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'
                                 }}
                             >
@@ -259,7 +259,7 @@ export default function ViewStudents() {
                                     onClick={() => handleGradeClick(grade)}
                                     sx={{
                                         height: '100%', minHeight: 240,
-                                        p: 4, borderRadius: '24px',
+                                        p: { xs: 2, md: 4 }, borderRadius: '24px',
                                         cursor: 'pointer',
                                         bgcolor: 'rgba(30, 41, 59, 0.6)', // Dark Glass
                                         backdropFilter: 'blur(16px)',
@@ -322,7 +322,7 @@ export default function ViewStudents() {
                                         onClick={() => handleSubjectClick(subject.name)}
                                         sx={{
                                             height: '100%', minHeight: 240,
-                                            borderRadius: '24px', p: 4,
+                                            borderRadius: '24px', p: { xs: 2, md: 4 },
                                             cursor: 'pointer',
                                             bgcolor: 'rgba(30, 41, 59, 0.6)', // Dark Glass
                                             backdropFilter: 'blur(16px)',

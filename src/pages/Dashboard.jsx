@@ -162,7 +162,7 @@ export default function Dashboard() {
     );
 
     return (
-        <Container maxWidth="xl" sx={{ pb: 8 }}>
+        <Container maxWidth="xl" sx={{ pb: { xs: 4, md: 8 } }}>
             <motion.div
                 variants={containerStagger(0.08)}
                 initial="hidden"
@@ -300,7 +300,7 @@ export default function Dashboard() {
                                     whileHover={{ y: -5, scale: 1.02 }}
                                     onClick={() => handleSubjectClick(sub.subject)}
                                     sx={{
-                                        p: 3,
+                                        p: { xs: 2, md: 3 },
                                         height: '100%',
                                         borderRadius: '20px',
                                         background: alpha(theme.palette.background.paper, 0.4),

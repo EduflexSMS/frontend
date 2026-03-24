@@ -1,9 +1,9 @@
-import { createTheme, alpha } from '@mui/material/styles';
+import { createTheme, responsiveFontSizes, alpha } from '@mui/material/styles';
 
 // MODERN EDUCATIONAL THEME - 2026 Professional Style
 // "Butter Smooth" & "Color Accurate" Redesign
 
-const theme = createTheme({
+let theme = createTheme({
     palette: {
         mode: 'dark', // Deep Professional Dark
         primary: {
@@ -202,5 +202,7 @@ const theme = createTheme({
         }
     },
 });
+
+theme = responsiveFontSizes(theme);
 
 export default theme;

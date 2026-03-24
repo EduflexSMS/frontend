@@ -326,13 +326,17 @@ export default function Layout() {
                                     fontWeight: 600,
                                     bgcolor: alpha(theme.palette.primary.main, 0.1),
                                     borderRadius: '12px',
-                                    px: 2,
+                                    px: { xs: 1, sm: 2 },
+                                    minWidth: { xs: 40, sm: 'auto' },
+                                    '& .MuiButton-startIcon': { margin: { xs: 0, sm: 1 } },
                                     '&:hover': {
                                         bgcolor: alpha(theme.palette.primary.main, 0.2)
                                     }
                                 }}
                             >
-                                {i18n.language === 'si' ? 'සිංහල' : 'English'}
+                                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                                    {i18n.language === 'si' ? 'සිංහල' : 'English'}
+                                </Box>
                             </Button>
 
                             <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'inline-flex' } }}>
@@ -341,7 +345,7 @@ export default function Layout() {
                             <IconButton size="small" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'inline-flex' } }}>
                                 <SettingsOutlined />
                             </IconButton>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 1, p: 0.5, pr: 1.5, borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: { xs: 0.5, sm: 1 }, p: 0.5, pr: { xs: 0.5, sm: 1.5 }, borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
                                 <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.9rem' }}>A</Avatar>
                                 <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
                                     <Typography variant="subtitle2" sx={{ lineHeight: 1.2, color: 'text.primary' }}>{t('admin_user')}</Typography>

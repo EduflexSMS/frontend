@@ -304,7 +304,7 @@ export default function LoginPage() {
                                 sx={{
                                     maxWidth: 480,
                                     mx: 'auto',
-                                    p: { xs: 4, sm: 6 },
+                                    p: { xs: 3, sm: 6 },
                                     borderRadius: '40px',
                                     bgcolor: 'rgba(255, 255, 255, 0.02)',
                                     backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%)',
