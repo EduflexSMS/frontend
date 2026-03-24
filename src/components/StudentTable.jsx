@@ -12,6 +12,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { generateFeeReport } from '../utils/generateFeeReport';
 
 const WHATSAPP_GROUP_LINKS = {
+    'Grade 03': 'https://chat.whatsapp.com/JDa517chrKQ9459MfzRSZC',
+    'Grade 04': 'https://chat.whatsapp.com/Il7vUb6trXOBViX4U46dfm',
+    'Grade 05': 'https://chat.whatsapp.com/K0df52vVfPoDjFuLtYrneG',
     'Grade 06': 'https://chat.whatsapp.com/Ebz4zJgdDhDEn1p2Z6HzbX',
     'Grade 07': 'https://chat.whatsapp.com/Ko87JpVAHdMJ3UCIDHh22a',
     'Grade 08': 'https://chat.whatsapp.com/LfrLuuB0NmE37Bul1cSwog',
