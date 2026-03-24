@@ -3,13 +3,46 @@ import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Collapse, Box, Typography,
     useTheme, useMediaQuery, Card, CardContent, Button, Grid, Chip, Avatar, Tooltip
 } from '@mui/material';
-import { KeyboardArrowDown, KeyboardArrowUp, Edit, Phone, Delete, OpenInNew, FileDownload } from '@mui/icons-material';
+import { KeyboardArrowDown, KeyboardArrowUp, Edit, Phone, Delete, OpenInNew, FileDownload, WhatsApp } from '@mui/icons-material';
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import API_BASE_URL from '../config';
 import SubjectGrid from './SubjectGrid';
 import EditStudentDialog from '../components/EditStudentDialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generateFeeReport } from '../utils/generateFeeReport';
+
+const WHATSAPP_GROUP_LINKS = {
+    'Grade 06': 'https://chat.whatsapp.com/Ebz4zJgdDhDEn1p2Z6HzbX',
+    'Grade 07': 'https://chat.whatsapp.com/Ko87JpVAHdMJ3UCIDHh22a',
+    'Grade 08': 'https://chat.whatsapp.com/LfrLuuB0NmE37Bul1cSwog',
+    'Grade 09': 'https://chat.whatsapp.com/KEoJ2cotqWUA92EZA5R4W7',
+    'Grade 10': 'https://chat.whatsapp.com/KOJD2PNrd936IHgWxLGotB',
+    'Grade 11': 'https://chat.whatsapp.com/IuCquSU1EPHB9TcORCUdrz',
+};
+
+export const sendWhatsAppGroupLink = (student) => {
+    try {
+        if (!student.mobile) {
+            alert('No mobile number provided for this student.');
+            return;
+        }
+        let formattedNumber = student.mobile.trim().replace(/[\s-]/g, '');
+        if (formattedNumber.startsWith('0')) formattedNumber = '94' + formattedNumber.substring(1);
+        else if (formattedNumber.startsWith('+94')) formattedNumber = formattedNumber.substring(1);
+        else if (formattedNumber.length === 9 && !formattedNumber.startsWith('94')) formattedNumber = '94' + formattedNumber;
+        
+        const groupLink = WHATSAPP_GROUP_LINKS[student.grade];
+        if (!groupLink) {
+            alert(`No WhatsApp group link configured for ${student.grade}`);
+            return;
+        }
+        const message = `Welcome to Eduflex!\nHere is your ${student.grade} WhatsApp Group Link: ${groupLink}`;
+        const url = `https://wa.me/${formattedNumber}?text=${encodeURIComponent(message)}`;
+        window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+        console.error("Error opening WhatsApp link:", error);
+    }
+};
 
 function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
     const [open, setOpen] = useState(false);
@@ -113,6 +146,14 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
                 </TableCell>
                 <TableCell>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', opacity: 0.7, '&:hover': { opacity: 1 } }}>
+                        <Tooltip title="Send WhatsApp Group Link">
+                            <IconButton
+                                onClick={(e) => { e.stopPropagation(); sendWhatsAppGroupLink(row); }}
+                                sx={{ mr: 1, '&:hover': { color: '#25D366' } }}
+                            >
+                                <WhatsApp fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
                         <Tooltip title="Download Fee Report">
                             <IconButton
                                 onClick={(e) => { e.stopPropagation(); generateFeeReport(row, subjectColorMap); }}
@@ -229,6 +270,11 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
                         </Box>
                     </Box>
                     <Box>
+                        <Tooltip title="Send WhatsApp Group Link">
+                            <IconButton onClick={(e) => { e.stopPropagation(); sendWhatsAppGroupLink(row); }} size="small" sx={{ color: 'text.secondary', '&:hover': { color: '#25D366' } }}>
+                                <WhatsApp fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
                         <Tooltip title="Download Fee Report">
                             <IconButton onClick={(e) => { e.stopPropagation(); generateFeeReport(row, subjectColorMap); }} size="small" sx={{ color: 'text.secondary', '&:hover': { color: '#00ccff' } }}>
                                 <FileDownload fontSize="small" />
