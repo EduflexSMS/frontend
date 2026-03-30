@@ -1,157 +1,228 @@
-// ✅ Improved ViewStudents.jsx (Optimized + Cleaner + Better UX)
-
 import React, { useState, useEffect, useCallback } from 'react';
+import {
+  Box, TextField, Pagination, Typography, Container,
+  CircularProgress, Grid, Card, IconButton,
+  InputAdornment, alpha
+} from '@mui/material';
+import {
+  ArrowBack as ArrowBackIcon,
+  MenuBook as MenuBookIcon,
+  School as SchoolIcon,
+  PeopleAlt as PeopleAltIcon,
+  Search as SearchIcon
+} from '@mui/icons-material';
 import axios from 'axios';
+import StudentTable from '../components/StudentTable';
 import API_BASE_URL from '../config';
+import { motion } from 'framer-motion';
+import { useTheme } from '@mui/material/styles';
 
-// ─── Utils ─────────────────────────────────────────
-const debounce = (fn, delay = 400) => {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), delay);
-  };
+/* ---------------- Animations ---------------- */
+const fadeContainer = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08 }
+  }
 };
 
-const getAttendanceColor = (pct) => {
-  if (pct >= 75) return '#4ade80';
-  if (pct >= 50) return '#38bdf8';
-  return '#fb923c';
+const fadeItem = {
+  hidden: { opacity: 0, y: 30 },
+  show: { opacity: 1, y: 0 }
 };
 
-// ─── Student Row ───────────────────────────────────
-function StudentRow({ student }) {
-  const [open, setOpen] = useState(false);
-
-  const attendance = React.useMemo(() => {
-    let total = 0, attended = 0;
-
-    student.enrollments?.forEach(e => {
-      e.monthlyRecords?.forEach(r => {
-        r.attendance?.forEach(a => {
-          if (a !== 'pending') total++;
-          if (a === 'present') attended++;
-        });
-      });
-    });
-
-    return total === 0 ? 0 : Math.round((attended / total) * 100);
-  }, [student]);
-
-  return (
-    <div style={{ borderBottom: '1px solid #1f2a3a' }}>
-      <div
-        onClick={() => setOpen(!open)}
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          padding: '12px',
-          cursor: 'pointer'
-        }}
-      >
-        <div>
-          <strong>{student.name}</strong>
-          <div style={{ fontSize: '12px', opacity: 0.6 }}>{student.indexNumber}</div>
-        </div>
-
-        <div style={{ color: getAttendanceColor(attendance) }}>
-          {attendance}%
-        </div>
-      </div>
-
-      {open && (
-        <div style={{ padding: '10px 15px', background: '#0f172a' }}>
-          <p><b>Grade:</b> {student.grade}</p>
-          <p><b>Subjects:</b></p>
-          <ul>
-            {student.enrollments?.map(e => (
-              <li key={e._id}>{e.subject}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Main Component ────────────────────────────────
+/* ---------------- Component ---------------- */
 export default function ViewStudents() {
+  const theme = useTheme();
+
+  const [viewMode, setViewMode] = useState('grades');
+  const [selectedGrade, setSelectedGrade] = useState(null);
+  const [selectedSubject, setSelectedSubject] = useState(null);
+
+  const [grades, setGrades] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
+
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [sort, setSort] = useState('name');
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // ✅ Fetch students
-  const fetchStudents = useCallback(async (query = '') => {
+  /* ---------------- Fetch ---------------- */
+  useEffect(() => {
+    axios.get(`${API_BASE_URL}/api/students/grades`).then(r => setGrades(r.data));
+    axios.get(`${API_BASE_URL}/api/subjects`).then(r => setSubjects(r.data));
+  }, []);
+
+  const fetchStudents = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/students`, {
-        params: { page, search: query, sort }
+      const r = await axios.get(`${API_BASE_URL}/api/students`, {
+        params: { page, search, grade: selectedGrade, subject: selectedSubject }
       });
-
-      setStudents(res.data.students);
-      setTotalPages(res.data.totalPages);
-    } catch (err) {
-      console.error(err);
+      setStudents(r.data.students);
+      setTotalPages(r.data.totalPages);
+    } catch (e) {
+      console.error(e);
     }
     setLoading(false);
-  }, [page, sort]);
-
-  // ✅ Debounced search
-  const debouncedSearch = useCallback(debounce(fetchStudents), [fetchStudents]);
+  }, [page, search, selectedGrade, selectedSubject]);
 
   useEffect(() => {
-    debouncedSearch(search);
-  }, [search, debouncedSearch]);
+    if (viewMode === 'students') fetchStudents();
+  }, [viewMode, fetchStudents]);
 
-  useEffect(() => {
-    fetchStudents(search);
-  }, [page, sort]);
+  /* ---------------- Handlers ---------------- */
+  const handleBack = () => {
+    if (viewMode === 'students') {
+      if (!selectedGrade) setViewMode('grades');
+      else setViewMode('subjects');
+    } else if (viewMode === 'subjects') {
+      setViewMode('grades');
+      setSelectedGrade(null);
+    }
+  };
 
+  /* ---------------- UI Helpers ---------------- */
+  const glassCard = {
+    borderRadius: "20px",
+    backdropFilter: "blur(14px)",
+    background: alpha(theme.palette.background.paper, 0.6),
+    border: "1px solid rgba(255,255,255,0.08)",
+    transition: "all 0.3s ease",
+    cursor: "pointer"
+  };
+
+  /* ---------------- Render ---------------- */
   return (
-    <div style={{ padding: '20px', color: 'white' }}>
-      <h2>Students</h2>
+    <Box sx={{
+      minHeight: '100vh',
+      background: 'radial-gradient(circle at top, #0f172a, #020617)',
+      color: '#fff',
+      py: 4
+    }}>
+      <Container maxWidth="xl">
 
-      {/* 🔍 Search */}
-      <input
-        placeholder="Search student..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        style={{
-          padding: '8px',
-          width: '100%',
-          marginBottom: '10px',
-          borderRadius: '6px'
-        }}
-      />
+        {/* HEADER */}
+        <Box sx={{ mb: 5, display: "flex", alignItems: "center", gap: 2 }}>
+          {viewMode !== 'grades' && (
+            <IconButton onClick={handleBack} sx={{
+              bgcolor: "rgba(255,255,255,0.05)",
+              color: "#fff",
+              "&:hover": { bgcolor: "primary.main" }
+            }}>
+              <ArrowBackIcon />
+            </IconButton>
+          )}
 
-      {/* 🔽 Sorting */}
-      <select
-        value={sort}
-        onChange={(e) => setSort(e.target.value)}
-        style={{ marginBottom: '15px', padding: '6px' }}
-      >
-        <option value="name">Sort by Name</option>
-        <option value="attendance">Sort by Attendance</option>
-      </select>
+          <Typography variant="h4" fontWeight="bold">
+            {viewMode === "grades" && "Select Grade"}
+            {viewMode === "subjects" && `${selectedGrade} / Subjects`}
+            {viewMode === "students" && "Students"}
+          </Typography>
+        </Box>
 
-      {/* 📦 List */}
-      {loading ? (
-        <p>Loading...</p>
-      ) : students.length === 0 ? (
-        <p>No students found</p>
-      ) : (
-        students.map(s => <StudentRow key={s._id} student={s} />)
-      )}
+        {/* GRADES */}
+        {viewMode === "grades" && (
+          <Grid container spacing={3}
+            component={motion.div}
+            variants={fadeContainer}
+            initial="hidden"
+            animate="show"
+          >
 
-      {/* 📄 Pagination */}
-      <div style={{ marginTop: '15px' }}>
-        <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>Prev</button>
-        <span style={{ margin: '0 10px' }}>{page} / {totalPages}</span>
-        <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
-      </div>
-    </div>
+            {/* All Students */}
+            <Grid item xs={12} sm={6} md={3} component={motion.div} variants={fadeItem}>
+              <Card sx={glassCard}
+                onClick={() => {
+                  setSelectedGrade(null);
+                  setSelectedSubject(null);
+                  setViewMode("students");
+                }}>
+                <Box sx={{ p: 4, textAlign: "center" }}>
+                  <PeopleAltIcon sx={{ fontSize: 50, color: "#38bdf8" }} />
+                  <Typography mt={2} fontWeight="bold">All Students</Typography>
+                </Box>
+              </Card>
+            </Grid>
+
+            {grades.map(g => (
+              <Grid item xs={12} sm={6} md={3} key={g} component={motion.div} variants={fadeItem}>
+                <Card sx={glassCard}
+                  onClick={() => {
+                    setSelectedGrade(g);
+                    setViewMode("subjects");
+                  }}>
+                  <Box sx={{ p: 4, textAlign: "center" }}>
+                    <SchoolIcon sx={{ fontSize: 50, color: "#22c55e" }} />
+                    <Typography mt={2} fontWeight="bold">{g}</Typography>
+                  </Box>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        )}
+
+        {/* SUBJECTS */}
+        {viewMode === "subjects" && (
+          <Grid container spacing={3}
+            component={motion.div}
+            variants={fadeContainer}
+            initial="hidden"
+            animate="show"
+          >
+            {subjects.map(sub => (
+              <Grid item xs={12} sm={6} md={3} key={sub._id} component={motion.div} variants={fadeItem}>
+                <Card sx={glassCard}
+                  onClick={() => {
+                    setSelectedSubject(sub.name);
+                    setViewMode("students");
+                  }}>
+                  <Box sx={{ p: 4, textAlign: "center" }}>
+                    <MenuBookIcon sx={{ fontSize: 50, color: "#a78bfa" }} />
+                    <Typography mt={2}>{sub.name}</Typography>
+                  </Box>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        )}
+
+        {/* STUDENTS */}
+        {viewMode === "students" && (
+          <>
+            <TextField
+              fullWidth
+              placeholder="Search students..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              sx={{ mb: 3 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                )
+              }}
+            />
+
+            {loading ? (
+              <Box textAlign="center"><CircularProgress /></Box>
+            ) : (
+              <StudentTable students={students} />
+            )}
+
+            <Box mt={4} display="flex" justifyContent="center">
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={(e, v) => setPage(v)}
+              />
+            </Box>
+          </>
+        )}
+
+      </Container>
+    </Box>
   );
 }
