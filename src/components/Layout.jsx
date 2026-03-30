@@ -52,12 +52,12 @@ export default function Layout() {
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                color: 'white',
+                color: theme.palette.text.primary,
                 background: 'transparent',
                 position: 'relative',
                 overflowY: 'auto',
                 '&::-webkit-scrollbar': { width: '4px' },
-                '&::-webkit-scrollbar-thumb': { background: 'rgba(255,255,255,0.1)', borderRadius: '4px' }
+                '&::-webkit-scrollbar-thumb': { background: alpha(theme.palette.text.primary, 0.1), borderRadius: '4px' }
             }}
         >
 
@@ -82,7 +82,7 @@ export default function Layout() {
                     <Typography variant="h5" sx={{
                         fontWeight: 900,
                         letterSpacing: 1,
-                        background: 'linear-gradient(45deg, #fff, #60a5fa)',
+                        background: theme.palette.mode === 'dark' ? 'linear-gradient(45deg, #fff, #60a5fa)' : 'linear-gradient(45deg, #0f172a, #3b82f6)',
                         backgroundClip: 'text',
                         textFillColor: 'transparent',
                         fontSize: { xs: '1.2rem', md: '1.5rem' }
@@ -123,11 +123,11 @@ export default function Layout() {
                                     cursor: 'pointer',
                                     position: 'relative',
                                     overflow: 'hidden',
-                                    color: active ? 'white' : 'rgba(255,255,255,0.5)',
+                                    color: active ? '#ffffff' : theme.palette.text.secondary,
                                     transition: 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)',
                                     '&:hover': {
-                                        color: active ? 'white' : theme.palette.primary.light,
-                                        bgcolor: active ? 'transparent' : 'rgba(255,255,255,0.03)'
+                                        color: active ? '#ffffff' : theme.palette.primary.main,
+                                        bgcolor: active ? 'transparent' : alpha(theme.palette.text.primary, 0.04)
                                     }
                                 }}
                             >
@@ -163,7 +163,7 @@ export default function Layout() {
                                         fontWeight: active ? 800 : 600,
                                         fontSize: '0.9rem',
                                         letterSpacing: '0.02em',
-                                        color: active ? '#ffffff' : theme.palette.text.primary
+                                        color: active ? '#ffffff' : 'inherit'
                                     }}
                                 />
                             </Box>
