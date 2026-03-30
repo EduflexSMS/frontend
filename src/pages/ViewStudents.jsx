@@ -304,8 +304,26 @@ function Pager({ page, total, onChange }) {
 }
 
 // ─── Student Row ──────────────────────────────────────────────────────────────
-function StudentRow({ student }) {
+function StudentRow({ student, onUpdate }) {
   const [open, setOpen] = useState(false);
+
+  const handleToggleAttendance = async (subjectName, monthIndex, weekIndex) => {
+    try {
+      await axios.patch(`${API_BASE_URL}/api/attendance/${student._id}/${subjectName}/${monthIndex}/${weekIndex}`);
+      if (onUpdate) onUpdate();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleToggleFee = async (subjectName, monthIndex) => {
+    try {
+      await axios.patch(`${API_BASE_URL}/api/records/${student._id}/${subjectName}/${monthIndex}/fee`);
+      if (onUpdate) onUpdate();
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const stats = React.useMemo(() => {
     let total = 0, attended = 0;
@@ -397,7 +415,7 @@ function StudentRow({ student }) {
                         <div key={m} className={`mo-card${isCurrent ? ' now' : ''}`} style={{ opacity: isFuture ? 0.3 : 1 }}>
                           <div className="mo-name">{m}</div>
                           <div className="mo-meta">
-                            <span className="mo-fee" title={rec?.feePaid ? 'Fee paid' : 'Fee pending'}>
+                            <span className="mo-fee" title={rec?.feePaid ? 'Fee paid' : 'Fee pending'} onClick={(e) => { e.stopPropagation(); handleToggleFee(subj.name, mi); }} style={{ cursor: 'pointer' }}>
                               {rec?.feePaid ? '💛' : '🩶'}
                             </span>
                             {att.length > 0 && (
@@ -414,7 +432,7 @@ function StudentRow({ student }) {
                                   const isP = s === 'present' || s === true || s === 'true';
                                   const isQ = s === 'pending';
                                   return (
-                                    <div key={i} className={`dot ${isQ ? 'dot-q' : isP ? 'dot-p' : 'dot-a'}`}>
+                                    <div key={i} className={`dot ${isQ ? 'dot-q' : isP ? 'dot-p' : 'dot-a'}`} onClick={(e) => { e.stopPropagation(); handleToggleAttendance(subj.name, mi, i); }} style={{ cursor: 'pointer' }}>
                                       {isQ ? '' : isP ? '✓' : '✗'}
                                     </div>
                                   );
@@ -664,7 +682,7 @@ export default function ViewStudents() {
 
                 {students.length === 0
                   ? <div className="empty">No students found</div>
-                  : students.map(s => <StudentRow key={s._id} student={s} />)
+                  : students.map(s => <StudentRow key={s._id} student={s} onUpdate={() => fetchStudents(true)} />)
                 }
               </div>
             )}
