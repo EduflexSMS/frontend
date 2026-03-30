@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Collapse, Box, Typography,
-    useTheme, useMediaQuery, Card, CardContent, Button, Grid, Chip, Avatar, Tooltip
+    useTheme, useMediaQuery, Card, CardContent, Button, Grid, Chip, Avatar, Tooltip, alpha
 } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp, Edit, Phone, Delete, OpenInNew, FileDownload, WhatsApp } from '@mui/icons-material';
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
@@ -225,6 +225,7 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
 
 function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
     const [expanded, setExpanded] = useState(false);
+    const theme = useTheme();
 
     return (
         <Card
