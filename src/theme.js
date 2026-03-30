@@ -7,16 +7,16 @@ let theme = createTheme({
     palette: {
         mode: 'dark',
         primary: {
-            main: '#3b82f6', // Brighter, more modern blue
-            light: '#60a5fa',
-            dark: '#1d4ed8',
+            main: '#0ea5e9', // Cyber/Electric Blue
+            light: '#38bdf8',
+            dark: '#0284c7',
             contrastText: '#ffffff',
         },
         secondary: {
-            main: '#f59e0b', // Amber/Gold - More vibrant
-            light: '#fbbf24',
-            dark: '#d97706',
-            contrastText: '#000000',
+            main: '#8b5cf6', // Violet/Indigo
+            light: '#a78bfa',
+            dark: '#7c3aed',
+            contrastText: '#ffffff',
         },
         background: {
             default: '#020617', // Deeper black/navy
@@ -90,36 +90,37 @@ let theme = createTheme({
                     }
                 },
                 containedPrimary: {
-                    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                    boxShadow: '0 4px 14px 0 rgba(59, 130, 246, 0.39)',
-                    '&:hover': {
-                        background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
-                        boxShadow: '0 10px 30px -5px rgba(59, 130, 246, 0.6)',
-                    }
-                },
-                containedSecondary: {
-                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                    color: '#0f172a',
-                    boxShadow: '0 4px 14px 0 rgba(245, 158, 11, 0.39)',
-                    '&:hover': {
-                        background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-                        boxShadow: '0 10px 30px -5px rgba(245, 158, 11, 0.6)',
-                    }
-                }
+            background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
+            boxShadow: '0 4px 14px 0 rgba(14, 165, 233, 0.39)',
+            '&:hover': {
+                background: 'linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%)',
+                boxShadow: '0 10px 30px -5px rgba(14, 165, 233, 0.6)',
+            }
+        },
+        containedSecondary: {
+            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+            color: '#fff',
+            boxShadow: '0 4px 14px 0 rgba(139, 92, 246, 0.39)',
+            '&:hover': {
+                background: 'linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%)',
+                boxShadow: '0 10px 30px -5px rgba(139, 92, 246, 0.6)',
+            }
+        }
             },
         },
         MuiCard: {
             styleOverrides: {
                 root: {
-                    background: 'rgba(15, 23, 42, 0.6)', 
-                    backdropFilter: 'blur(24px)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    borderRadius: '32px',
-                    boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)',
-                    transition: 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)',
+                    background: 'rgba(15, 23, 42, 0.45)', // More transparent for better glass
+                    backdropFilter: 'blur(32px)',
+                    WebkitBackdropFilter: 'blur(32px)', // For Safari
+                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                    borderRadius: '24px',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                    transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
                     '&:hover': {
-                        borderColor: 'rgba(255, 255, 255, 0.15)',
-                        boxShadow: '0 30px 60px rgba(0, 0, 0, 0.4)',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        boxShadow: '0 30px 60px rgba(0, 0, 0, 0.5)',
                         transform: 'translateY(-4px)',
                     }
                 },

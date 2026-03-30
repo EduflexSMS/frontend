@@ -18,11 +18,12 @@ const containerVariants = {
 };
 
 const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
+    hidden: { y: 30, opacity: 0, filter: 'blur(3px)' },
     visible: {
         y: 0,
         opacity: 1,
-        transition: { type: 'spring', stiffness: 100 }
+        filter: 'blur(0px)',
+        transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] }
     }
 };
 

@@ -172,8 +172,9 @@ export default function Dashboard() {
                 <Box sx={{
                     mb: 6,
                     display: 'flex',
+                    flexDirection: { xs: 'column', md: 'row' },
                     justifyContent: 'space-between',
-                    alignItems: 'flex-end',
+                    alignItems: { xs: 'flex-start', md: 'flex-end' },
                     flexWrap: 'wrap',
                     gap: 3
                 }}>

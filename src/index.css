@@ -18,8 +18,16 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  background-color: #0b1121 !important;
-  /* Matches theme default */
+  background: linear-gradient(-45deg, #0b1121, #060b14, #0b162c, #090e1a) !important;
+  background-size: 400% 400% !important;
+  animation: bgGradient 15s ease infinite !important;
+  color: #fff;
+}
+
+@keyframes bgGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Subtle Cinematic Noise Overlay */
