@@ -1,3 +1,5 @@
+// ✅ FINAL COMBINED VERSION (UI UPGRADE + WORKING MONGODB LOGIC)
+
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     Box, TextField, Pagination, Typography, Container,
@@ -13,24 +15,6 @@ import API_BASE_URL from '../config';
 import { motion, AnimatePresence } from 'framer-motion';
 import { debounce } from 'lodash';
 
-// ------------------- Animations -------------------
-const pageTransition = {
-    initial: { opacity: 0, scale: 0.98, y: 30 },
-    animate: { opacity: 1, scale: 1, y: 0 },
-    exit: { opacity: 0, scale: 0.98, y: -30 },
-    transition: { duration: 0.4 }
-};
-
-const cardHover = {
-    whileHover: {
-        scale: 1.05,
-        rotateX: 5,
-        rotateY: -5,
-        boxShadow: "0 20px 40px rgba(0,0,0,0.4)"
-    }
-};
-
-// ------------------- Component -------------------
 export default function ViewStudents() {
 
     const [viewMode, setViewMode] = useState('grades');
@@ -47,7 +31,7 @@ export default function ViewStudents() {
     const [loading, setLoading] = useState(false);
     const [subjectColors, setSubjectColors] = useState({});
 
-    // ------------------- API -------------------
+    // ---------------- API ----------------
     const fetchGrades = async () => {
         setLoading(true);
         try {
@@ -68,11 +52,19 @@ export default function ViewStudents() {
         if (!bg) setLoading(true);
         try {
             const res = await axios.get(`${API_BASE_URL}/api/students`, {
-                params: { page, search, grade: selectedGrade, subject: selectedSubject }
+                params: {
+                    page,
+                    search,
+                    grade: selectedGrade,
+                    subject: selectedSubject
+                }
             });
+
             setStudents(res.data.students);
             setTotalPages(res.data.totalPages);
-        } finally { if (!bg) setLoading(false); }
+        } finally {
+            if (!bg) setLoading(false);
+        }
     }, [page, search, selectedGrade, selectedSubject]);
 
     useEffect(() => {
@@ -84,7 +76,7 @@ export default function ViewStudents() {
         if (viewMode === 'students') fetchStudents();
     }, [viewMode, fetchStudents]);
 
-    // ------------------- Search -------------------
+    // ---------------- Search ----------------
     const debouncedSearch = useCallback(
         debounce((val) => {
             setSearch(val);
@@ -93,32 +85,15 @@ export default function ViewStudents() {
         []
     );
 
-    // ------------------- UI Helpers -------------------
+    // ---------------- UI ----------------
     const neonCard = {
         borderRadius: "24px",
         background: "linear-gradient(145deg, rgba(255,255,255,0.05), rgba(0,0,0,0.4))",
-        backdropFilter: "blur(15px)",
+        backdropFilter: "blur(12px)",
         border: "1px solid rgba(255,255,255,0.1)",
-        cursor: "pointer",
-        overflow: "hidden",
-        position: "relative"
+        cursor: "pointer"
     };
 
-    const glow = {
-        "&::before": {
-            content: '""',
-            position: "absolute",
-            inset: 0,
-            background: "linear-gradient(120deg, transparent, rgba(0,255,255,0.3), transparent)",
-            opacity: 0,
-            transition: "0.5s"
-        },
-        "&:hover::before": {
-            opacity: 1
-        }
-    };
-
-    // ------------------- Render -------------------
     return (
         <Box sx={{
             minHeight: "100vh",
@@ -128,7 +103,6 @@ export default function ViewStudents() {
         }}>
             <Container maxWidth="xl">
 
-                {/* HEADER */}
                 <Box display="flex" alignItems="center" gap={2} mb={4}>
                     {viewMode !== 'grades' && (
                         <IconButton onClick={() => setViewMode('grades')}>
@@ -142,16 +116,15 @@ export default function ViewStudents() {
 
                 <AnimatePresence mode="wait">
 
-                    {/* ---------------- GRADES ---------------- */}
+                    {/* GRADES */}
                     {viewMode === 'grades' && (
-                        <motion.div key="grades" {...pageTransition}>
+                        <motion.div key="grades" initial={{opacity:0}} animate={{opacity:1}}>
                             <Grid container spacing={3}>
-
                                 <Grid item xs={12} md={3}>
                                     <Card
                                         component={motion.div}
-                                        {...cardHover}
-                                        sx={{ ...neonCard, ...glow, p: 4, textAlign: "center" }}
+                                        whileHover={{ scale: 1.05 }}
+                                        sx={{ ...neonCard, p: 4, textAlign: "center" }}
                                         onClick={() => setViewMode('students')}
                                     >
                                         <PeopleAlt sx={{ fontSize: 60 }} />
@@ -163,8 +136,8 @@ export default function ViewStudents() {
                                     <Grid item xs={12} md={3} key={g}>
                                         <Card
                                             component={motion.div}
-                                            {...cardHover}
-                                            sx={{ ...neonCard, ...glow, p: 4, textAlign: "center" }}
+                                            whileHover={{ scale: 1.05 }}
+                                            sx={{ ...neonCard, p: 4, textAlign: "center" }}
                                             onClick={() => {
                                                 setSelectedGrade(g);
                                                 setViewMode('subjects');
@@ -179,16 +152,16 @@ export default function ViewStudents() {
                         </motion.div>
                     )}
 
-                    {/* ---------------- SUBJECTS ---------------- */}
+                    {/* SUBJECTS */}
                     {viewMode === 'subjects' && (
-                        <motion.div key="subjects" {...pageTransition}>
+                        <motion.div key="subjects" initial={{opacity:0}} animate={{opacity:1}}>
                             <Grid container spacing={3}>
                                 {subjects.map(s => (
                                     <Grid item xs={12} md={3} key={s._id}>
                                         <Card
                                             component={motion.div}
-                                            {...cardHover}
-                                            sx={{ ...neonCard, ...glow, p: 4, textAlign: "center" }}
+                                            whileHover={{ scale: 1.05 }}
+                                            sx={{ ...neonCard, p: 4, textAlign: "center" }}
                                             onClick={() => {
                                                 setSelectedSubject(s.name);
                                                 setViewMode('students');
@@ -203,20 +176,16 @@ export default function ViewStudents() {
                         </motion.div>
                     )}
 
-                    {/* ---------------- STUDENTS ---------------- */}
+                    {/* STUDENTS */}
                     {viewMode === 'students' && (
-                        <motion.div key="students" {...pageTransition}>
+                        <motion.div key="students" initial={{opacity:0}} animate={{opacity:1}}>
 
-                            {/* SEARCH BAR (Floating Glass) */}
                             <Box mb={3}>
                                 <TextField
                                     fullWidth
-                                    placeholder="🔍 Search students..."
+                                    placeholder="Search students..."
                                     onChange={(e) => debouncedSearch(e.target.value)}
-                                    sx={{
-                                        background: "rgba(255,255,255,0.05)",
-                                        borderRadius: "20px"
-                                    }}
+                                    sx={{ background: "rgba(255,255,255,0.05)", borderRadius: "20px" }}
                                     InputProps={{
                                         startAdornment: (
                                             <InputAdornment position="start">
@@ -227,13 +196,11 @@ export default function ViewStudents() {
                                 />
                             </Box>
 
-                            {/* FILTER CHIPS */}
                             <Stack direction="row" spacing={1} mb={2}>
                                 {selectedGrade && <Chip label={selectedGrade} />}
                                 {selectedSubject && <Chip label={selectedSubject} />}
                             </Stack>
 
-                            {/* TABLE */}
                             {loading ? (
                                 <Grid container spacing={2}>
                                     {[...Array(6)].map((_, i) => (
@@ -248,7 +215,7 @@ export default function ViewStudents() {
                                         borderRadius: "20px",
                                         overflow: "hidden",
                                         background: "rgba(255,255,255,0.03)",
-                                        backdropFilter: "blur(12px)"
+                                        backdropFilter: "blur(10px)"
                                     }}>
                                         <StudentTable
                                             students={students}
@@ -257,7 +224,6 @@ export default function ViewStudents() {
                                         />
                                     </Paper>
 
-                                    {/* EMPTY */}
                                     {students.length === 0 && (
                                         <Fade in>
                                             <Box textAlign="center" p={5}>
@@ -267,7 +233,6 @@ export default function ViewStudents() {
                                         </Fade>
                                     )}
 
-                                    {/* PAGINATION */}
                                     <Box mt={3} display="flex" justifyContent="center">
                                         <Pagination
                                             count={totalPages}
@@ -281,7 +246,6 @@ export default function ViewStudents() {
                     )}
 
                 </AnimatePresence>
-
             </Container>
         </Box>
     );
