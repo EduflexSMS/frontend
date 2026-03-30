@@ -1,436 +1,461 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, TextField, Pagination, Typography, Container, CircularProgress, Grid, Card, Button, Paper, useTheme, useMediaQuery, IconButton, InputAdornment, alpha } from '@mui/material';
-import { ArrowBack as ArrowBackIcon, MenuBook as MenuBookIcon, School as SchoolIcon, PeopleAlt as PeopleAltIcon, Search as SearchIcon, FilterList as FilterListIcon } from '@mui/icons-material';
 import axios from 'axios';
 import StudentTable from '../components/StudentTable';
 import API_BASE_URL from '../config';
-import { motion } from 'framer-motion';
 
-// Animation Variants
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.1
-        }
+// ─── Global Styles ────────────────────────────────────────────────────────────
+const GlobalStyle = () => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
+
+    :root {
+      --bg:        #080c14;
+      --surface:   rgba(255,255,255,0.045);
+      --border:    rgba(255,255,255,0.09);
+      --border-hi: rgba(255,255,255,0.18);
+      --accent:    #4f8ef7;
+      --accent2:   #a78bfa;
+      --success:   #34d399;
+      --warn:      #fb923c;
+      --text:      #f0f4ff;
+      --muted:     rgba(240,244,255,0.45);
+      --card-r:    20px;
+      --font-head: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
     }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .vs-root {
+      min-height: 100vh;
+      background: var(--bg);
+      padding: 28px 20px 60px;
+      font-family: var(--font-body);
+      color: var(--text);
+      position: relative;
+    }
+
+    .vs-root::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.025;
+    }
+
+    .vs-orb {
+      position: fixed; border-radius: 50%; filter: blur(90px);
+      pointer-events: none; z-index: 0;
+      animation: vs-pulse 8s ease-in-out infinite alternate;
+    }
+    .vs-orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(79,142,247,0.16), transparent 70%); top: -160px; left: -100px; }
+    .vs-orb-2 { width: 380px; height: 380px; background: radial-gradient(circle, rgba(167,139,250,0.12), transparent 70%); bottom: -60px; right: -60px; animation-delay: -4s; }
+
+    @keyframes vs-pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+    /* ── Layout ── */
+    .vs-wrap { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+
+    /* ── Glass ── */
+    .glass {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-r);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+    }
+
+    /* ── Header ── */
+    .vs-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+
+    .back-btn {
+      width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--muted); cursor: pointer; font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; font-family: var(--font-body);
+    }
+    .back-btn:hover { border-color: var(--border-hi); color: var(--text); transform: translateX(-2px); }
+
+    .vs-breadcrumb { font-family: var(--font-head); font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 800; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; }
+    .bc-dim   { opacity: 0.3; }
+    .bc-sep   { opacity: 0.15; font-weight: 400; }
+    .bc-active { color: var(--accent); }
+
+    /* ── Stat strip (grades view) ── */
+    .stat-strip { display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; }
+    .stat-pill { padding: 8px 18px; border-radius: 99px; font-size: 0.78rem; font-weight: 500; border: 1px solid var(--border); background: var(--surface); color: var(--muted); }
+
+    /* ── Section label ── */
+    .section-lbl { font-family: var(--font-head); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.4px; color: var(--muted); margin-bottom: 16px; }
+
+    /* ── Grade / Subject grid ── */
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+
+    .sel-card {
+      padding: 28px 22px; cursor: pointer; min-height: 200px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+      text-align: center;
+    }
+    .sel-card:hover { border-color: var(--border-hi); transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+    .sel-card:active { transform: translateY(-1px); }
+
+    /* Hero card (All Students) */
+    .hero-card {
+      background: linear-gradient(135deg, rgba(79,142,247,0.15), rgba(167,139,250,0.1));
+      border-color: rgba(79,142,247,0.25);
+    }
+    .hero-card:hover { border-color: rgba(79,142,247,0.5); box-shadow: 0 12px 40px rgba(79,142,247,0.2); }
+
+    .card-icon {
+      width: 60px; height: 60px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+    }
+    .card-title { font-family: var(--font-head); font-size: 1rem; font-weight: 700; line-height: 1.2; }
+    .card-sub   { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+    /* Grade badge */
+    .grade-badge {
+      width: 64px; height: 64px; border-radius: 18px;
+      background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-head); font-size: 1.4rem; font-weight: 800; color: #22d3ee;
+    }
+
+    /* Subject icon pill */
+    .subj-icon-wrap {
+      width: 60px; height: 60px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+    }
+
+    /* ── Search bar ── */
+    .search-wrap { position: relative; margin-bottom: 20px; }
+    .search-wrap svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
+    .search-input {
+      width: 100%; padding: 13px 16px 13px 46px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; font-size: 0.9rem; font-family: var(--font-body);
+      color: var(--text); outline: none; transition: border-color 0.2s;
+    }
+    .search-input::placeholder { color: var(--muted); }
+    .search-input:focus { border-color: var(--accent); }
+
+    /* ── Table wrapper ── */
+    .table-wrap {
+      border-radius: var(--card-r); overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      backdrop-filter: blur(18px);
+    }
+
+    /* ── Pagination ── */
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 24px; }
+    .pg-btn {
+      width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--muted); cursor: pointer;
+      font-family: var(--font-head); font-size: 0.82rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+    }
+    .pg-btn:hover { border-color: var(--border-hi); color: var(--text); }
+    .pg-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+    .pg-btn:disabled { opacity: 0.3; cursor: default; }
+
+    /* ── Loading ── */
+    .spinner { width: 40px; height: 40px; border: 3px solid rgba(79,142,247,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .centered { display: flex; justify-content: center; align-items: center; padding: 60px; }
+
+    /* ── Fade animations ── */
+    .fade-in  { animation: fadein 0.4s ease both; }
+    .fade-in2 { animation: fadein 0.4s 0.08s ease both; }
+    .fade-in3 { animation: fadein 0.4s 0.16s ease both; }
+    @keyframes fadein { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+    @media (max-width: 600px) {
+      .card-grid { grid-template-columns: repeat(2, 1fr); }
+      .sel-card  { min-height: 150px; padding: 20px 14px; }
+    }
+  `}</style>
+);
+
+// ─── Subject color & icon map ─────────────────────────────────────────────────
+const SUBJECT_STYLES = {
+  Mathematics:                    { color: '#f87171', bg: 'rgba(248,113,113,0.12)', icon: '📐' },
+  Science:                        { color: '#38bdf8', bg: 'rgba(56,189,248,0.12)',  icon: '🔬' },
+  English:                        { color: '#34d399', bg: 'rgba(52,211,153,0.12)',  icon: '📖' },
+  ICT:                            { color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', icon: '💻' },
+  'Business and Accounting Studies': { color: '#fb923c', bg: 'rgba(251,146,60,0.12)',  icon: '📊' },
+  Scholarship:                    { color: '#fbbf24', bg: 'rgba(251,191,36,0.12)',  icon: '🏆' },
 };
 
-const itemVariants = {
-    hidden: { y: 30, opacity: 0, filter: 'blur(3px)' },
-    visible: {
-        y: 0,
-        opacity: 1,
-        filter: 'blur(0px)',
-        transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] }
-    }
-};
+function getSubjectStyle(name) {
+  for (const key of Object.keys(SUBJECT_STYLES)) {
+    if (name.includes(key)) return SUBJECT_STYLES[key];
+  }
+  return { color: '#4f8ef7', bg: 'rgba(79,142,247,0.12)', icon: '📚' };
+}
 
-// ViewStudents Component - v2.2 (Animated)
+// ─── Grade number helper ──────────────────────────────────────────────────────
+function gradeNum(grade) { return parseInt(grade?.replace(/\D/g, '') || '0'); }
+
+function shouldShowSubject(subjectName, selectedGrade) {
+  if (!selectedGrade) return true;
+  const n = gradeNum(selectedGrade);
+  if (n >= 6 && n <= 9)   return ['Mathematics','Science','English','ICT'].some(s => subjectName.includes(s));
+  if (n === 10 || n === 11) return ['Mathematics','Science','English','ICT','Business'].some(s => subjectName.includes(s));
+  if (n >= 3 && n <= 5)   return subjectName.toLowerCase().includes('scholarship');
+  return true;
+}
+
+// ─── SVG Search Icon ──────────────────────────────────────────────────────────
+const SearchIcon = () => (
+  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <circle cx="11" cy="11" r="8" strokeWidth="2"/>
+    <path d="M21 21l-4.35-4.35" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
+
+// ─── Pagination ───────────────────────────────────────────────────────────────
+function Pager({ page, total, onChange }) {
+  const pages = [];
+  for (let i = 1; i <= total; i++) pages.push(i);
+  const visible = pages.filter(p => p === 1 || p === total || Math.abs(p - page) <= 1);
+  return (
+    <div className="pagination">
+      <button className="pg-btn" disabled={page === 1} onClick={() => onChange(page - 1)}>‹</button>
+      {visible.map((p, i) => {
+        const prev = visible[i - 1];
+        return (
+          <React.Fragment key={p}>
+            {prev && p - prev > 1 && <span style={{color:'var(--muted)',fontSize:'0.8rem'}}>…</span>}
+            <button className={`pg-btn${p === page ? ' active' : ''}`} onClick={() => onChange(p)}>{p}</button>
+          </React.Fragment>
+        );
+      })}
+      <button className="pg-btn" disabled={page === total} onClick={() => onChange(page + 1)}>›</button>
+    </div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function ViewStudents() {
-    const theme = useTheme();
-    // View States: 'grades', 'subjects', 'students'
-    const [viewMode, setViewMode] = useState('grades');
-    const [selectedGrade, setSelectedGrade] = useState(null);
-    const [selectedSubject, setSelectedSubject] = useState(null);
+  const [viewMode, setViewMode]         = useState('grades');   // 'grades' | 'subjects' | 'students'
+  const [selectedGrade, setSelectedGrade]     = useState(null);
+  const [selectedSubject, setSelectedSubject] = useState(null);
 
-    // Data
-    const [grades, setGrades] = useState([]);
-    const [subjects, setSubjects] = useState([]);
-    const [students, setStudents] = useState([]);
+  const [grades, setGrades]         = useState([]);
+  const [subjects, setSubjects]     = useState([]);
+  const [students, setStudents]     = useState([]);
+  const [subjectColors, setSubjectColors] = useState({});
 
-    // Pagination & Search
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [search, setSearch] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [subjectColors, setSubjectColors] = useState({});
+  const [page, setPage]             = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch]         = useState('');
+  const [loading, setLoading]       = useState(false);
 
-    // Fetch Distinct Grades
-    const fetchGrades = async () => {
-        setLoading(true);
-        try {
-            const response = await axios.get(`${API_BASE_URL}/api/students/grades`);
-            setGrades(response.data);
-        } catch (error) {
-            console.error("Error fetching grades:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+  // ── Fetchers ──
+  const fetchGrades = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/students/grades`);
+      setGrades(res.data);
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  };
 
-    // Fetch Subjects
-    const fetchSubjects = async () => {
-        try {
-            const response = await axios.get(`${API_BASE_URL}/api/subjects`);
-            setSubjects(response.data);
+  const fetchSubjects = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/subjects`);
+      setSubjects(res.data);
+      const map = {};
+      res.data.forEach(s => { map[s.name] = s; });
+      setSubjectColors(map);
+    } catch (e) { console.error(e); }
+  };
 
-            const subjectMap = {};
-            response.data.forEach(sub => {
-                subjectMap[sub.name] = sub;
-            });
-            setSubjectColors(subjectMap);
-        } catch (error) {
-            console.error("Error fetching subjects:", error);
-        }
-    };
+  const fetchStudents = useCallback(async (background = false) => {
+    if (!background) setLoading(true);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/students`, {
+        params: { page, search, grade: selectedGrade, subject: selectedSubject }
+      });
+      setStudents(res.data.students);
+      setTotalPages(res.data.totalPages);
+    } catch (e) { console.error(e); }
+    finally { if (!background) setLoading(false); }
+  }, [page, search, selectedGrade, selectedSubject]);
 
-    // Fetch Students
-    const fetchStudents = useCallback(async (background = false) => {
-        if (!background) setLoading(true);
-        try {
-            const response = await axios.get(`${API_BASE_URL}/api/students`, {
-                params: {
-                    page,
-                    search,
-                    grade: selectedGrade,
-                    subject: selectedSubject
-                }
-            });
-            setStudents(response.data.students);
-            setTotalPages(response.data.totalPages);
-        } catch (error) {
-            console.error("Error fetching students:", error);
-        } finally {
-            if (!background) setLoading(false);
-        }
-    }, [page, search, selectedGrade, selectedSubject]);
+  useEffect(() => { fetchGrades(); fetchSubjects(); }, []);
+  useEffect(() => { if (viewMode === 'students') fetchStudents(); }, [viewMode, fetchStudents]);
 
-    // Initial Load
-    useEffect(() => {
-        fetchGrades();
-        fetchSubjects();
-    }, []);
+  // ── Handlers ──
+  const handleGradeClick   = g  => { setSelectedGrade(g); setViewMode('subjects'); };
+  const handleSubjectClick = s  => { setSelectedSubject(s); setViewMode('students'); setPage(1); };
+  const handleAllStudents  = () => { setSelectedGrade(null); setSelectedSubject(null); setViewMode('students'); setPage(1); };
 
-    // Fetch students when entering 'students' view
-    useEffect(() => {
-        if (viewMode === 'students') {
-            fetchStudents();
-        }
-    }, [viewMode, fetchStudents]);
+  const handleBack = () => {
+    if (viewMode === 'students') {
+      if (!selectedGrade) { setViewMode('grades'); }
+      else                { setViewMode('subjects'); }
+    } else if (viewMode === 'subjects') {
+      setViewMode('grades'); setSelectedGrade(null);
+    }
+  };
 
-    // Handlers
-    const handleGradeClick = (grade) => {
-        setSelectedGrade(grade);
-        setViewMode('subjects');
-    };
+  // ── Breadcrumb ──
+  const Breadcrumb = () => (
+    <div className="vs-breadcrumb">
+      {viewMode === 'grades' && <span>Students</span>}
+      {viewMode === 'subjects' && (
+        <>
+          <span className="bc-dim">Students</span>
+          <span className="bc-sep">/</span>
+          <span className="bc-active">{selectedGrade}</span>
+        </>
+      )}
+      {viewMode === 'students' && (
+        <>
+          <span className="bc-dim">Students</span>
+          {selectedGrade && (
+            <>
+              <span className="bc-sep">/</span>
+              <span className="bc-dim">{selectedGrade}</span>
+              <span className="bc-sep">/</span>
+              <span className="bc-active">{selectedSubject || 'All'}</span>
+            </>
+          )}
+          {!selectedGrade && (
+            <>
+              <span className="bc-sep">/</span>
+              <span className="bc-active">All</span>
+            </>
+          )}
+        </>
+      )}
+    </div>
+  );
 
-    const handleSubjectClick = (subjectName) => {
-        setSelectedSubject(subjectName);
-        setViewMode('students');
-        setPage(1);
-    };
+  const visibleSubjects = subjects.filter(s => shouldShowSubject(s.name, selectedGrade));
 
-    const handleAllStudentsClick = () => {
-        setSelectedGrade(null);
-        setSelectedSubject(null);
-        setViewMode('students');
-        setPage(1);
-    };
+  return (
+    <div className="vs-root">
+      <GlobalStyle />
+      <div className="vs-orb vs-orb-1" />
+      <div className="vs-orb vs-orb-2" />
 
-    const handleBack = () => {
-        if (viewMode === 'students') {
-            // If we came from "All Students" (no grade/subject), go back to grades
-            if (!selectedGrade) {
-                setViewMode('grades');
-            } else {
-                setViewMode('subjects');
-            }
-        } else if (viewMode === 'subjects') {
-            setViewMode('grades');
-            setSelectedGrade(null);
-        }
-    };
+      <div className="vs-wrap">
 
-    // Dynamic Subject Colors for Visual Vibrancy
-    const getSubjectColor = (name) => {
-        if (name.includes('Mathematics')) return '#FF4B2B'; // Red/Orange
-        if (name.includes('Science')) return '#2196F3'; // Blue
-        if (name.includes('English')) return '#00E676'; // Green
-        if (name.includes('ICT')) return '#651FFF'; // Purple
-        if (name.includes('Business')) return '#F50057'; // Pink
-        if (name.includes('Scholarship')) return '#FFD600'; // Gold
-        return '#2196F3'; // Default
-    };
+        {/* ── Header ── */}
+        <div className="vs-header fade-in">
+          {viewMode !== 'grades' && (
+            <button className="back-btn" onClick={handleBack} aria-label="Go back">←</button>
+          )}
+          <Breadcrumb />
+        </div>
 
-    return (
-        <Box sx={{
-            minHeight: '100vh',
-            // TRANSPARENT BACKGROUND TO SHOW 3D HOLOGRAMS
-            background: 'transparent',
-            pt: { xs: 2, md: 4 }, pb: { xs: 4, md: 8 }
-        }}>
-            <Container maxWidth="xl">
-                {/* Header Section */}
-                <Box sx={{ mb: 6, display: 'flex', alignItems: 'center', gap: 3 }}>
-                    {viewMode !== 'grades' && (
-                        <IconButton
-                            onClick={handleBack}
-                            sx={{
-                                color: 'text.primary',
-                                bgcolor: alpha(theme.palette.background.paper, 0.3),
-                                backdropFilter: 'blur(10px)',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2), transform: 'scale(1.1)' },
-                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                            }}
-                        >
-                            <ArrowBackIcon />
-                        </IconButton>
-                    )}
+        {/* ══ GRADES VIEW ════════════════════════════════════════════════════ */}
+        {viewMode === 'grades' && (
+          <div className="fade-in2">
+            <p className="section-lbl">Select a grade to drill down, or view all records</p>
+            <div className="card-grid">
 
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        key={viewMode}
-                    >
-                        <Typography variant="h3" sx={{
-                            fontWeight: 900,
-                            color: 'text.primary',
-                            letterSpacing: '-1.5px',
-                            display: 'flex', alignItems: 'center', gap: 2,
-                            fontSize: { xs: '1.75rem', md: '2.5rem' },
-                            textShadow: '0 0 20px rgba(59, 130, 246, 0.5)' // Neon Glow Title
-                        }}>
-                            {/* Breadcrumb-style Header */}
-                            {viewMode === 'grades' && 'Select Grade'}
-                            {viewMode === 'subjects' && (
-                                <>
-                                    <span style={{ opacity: 0.4 }}>{selectedGrade}</span>
-                                    <span style={{ opacity: 0.2 }}>/</span>
-                                    <span style={{ color: theme.palette.primary.main }}>Select Subject</span>
-                                </>
-                            )}
-                            {viewMode === 'students' && (
-                                <>
-                                    <span style={{ opacity: 0.4 }}>Students</span>
-                                    {selectedGrade && (
-                                        <>
-                                            <span style={{ opacity: 0.2 }}>/</span>
-                                            <span style={{ color: theme.palette.primary.main }}>{selectedSubject || 'All'}</span>
-                                        </>
-                                    )}
-                                </>
-                            )}
-                        </Typography>
-                    </motion.div>
-                </Box>
+              {/* All Students hero card */}
+              <div className="glass sel-card hero-card" onClick={handleAllStudents}>
+                <div className="card-icon" style={{background:'rgba(79,142,247,0.15)',border:'1px solid rgba(79,142,247,0.25)'}}>
+                  👥
+                </div>
+                <div>
+                  <div className="card-title">All Students</div>
+                  <div className="card-sub">View every record</div>
+                </div>
+              </div>
 
-                {/* GRADES VIEW */}
-                {viewMode === 'grades' && (
-                    <Grid container spacing={3} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
-                        {/* All Students Card - Hero Style */}
-                        <Grid item xs={12} sm={6} md={3} component={motion.div} variants={itemVariants}>
-                            <Card
-                                component={motion.div}
-                                whileHover={{ y: -10, boxShadow: '0 0 30px rgba(59, 130, 246, 0.6)' }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={handleAllStudentsClick}
-                                sx={{
-                                    height: '100%', minHeight: 240,
-                                    cursor: 'pointer', borderRadius: '24px',
-                                    background: alpha(theme.palette.primary.main, 0.15),
-                                    backdropFilter: 'blur(20px)',
-                                    border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-                                    padding: { xs: 2, md: 4 }, position: 'relative', overflow: 'hidden',
-                                    display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'
-                                }}
-                            >
-                                <PeopleAltIcon sx={{ fontSize: 64, color: '#60a5fa', mb: 2, zIndex: 1, filter: 'drop-shadow(0 0 10px #3b82f6)' }} />
-                                <Typography variant="h5" fontWeight="800" color="text.primary" align="center" sx={{ zIndex: 1 }}>
-                                    View All Students
-                                </Typography>
-                                <Paper sx={{ mt: 2, px: 2, py: 0.5, borderRadius: '20px', bgcolor: alpha(theme.palette.text.primary, 0.05), color: 'text.secondary', border: `1px solid ${theme.palette.divider}` }}>
-                                    <Typography variant="caption" fontWeight="bold">Total Records</Typography>
-                                </Paper>
-                            </Card>
-                        </Grid>
+              {loading ? (
+                <div className="centered"><div className="spinner"/></div>
+              ) : grades.map((grade, i) => (
+                <div
+                  key={grade}
+                  className="glass sel-card"
+                  onClick={() => handleGradeClick(grade)}
+                  style={{animationDelay:`${i * 0.05}s`}}
+                >
+                  <div className="grade-badge">{grade.replace(/\D/g,'')}</div>
+                  <div>
+                    <div className="card-title">{grade}</div>
+                    <div className="card-sub">View subjects →</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-                        {grades.map((grade) => (
-                            <Grid item xs={12} sm={6} md={3} key={grade} component={motion.div} variants={itemVariants}>
-                                <Card
-                                    component={motion.div}
-                                    whileHover={{
-                                        y: -10, scale: 1.02,
-                                        boxShadow: '0 0 25px rgba(6, 182, 212, 0.4)', // Cyan Neon Glow
-                                        borderColor: '#06b6d4'
-                                    }}
-                                    whileTap={{ scale: 0.97 }}
-                                    onClick={() => handleGradeClick(grade)}
-                                    sx={{
-                                        height: '100%', minHeight: 240,
-                                        p: { xs: 2, md: 4 }, borderRadius: '24px',
-                                        cursor: 'pointer',
-                                        bgcolor: alpha(theme.palette.background.paper, 0.6),
-                                        backdropFilter: 'blur(20px)',
-                                        border: `1px solid ${theme.palette.divider}`,
-                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                                        position: 'relative', overflow: 'hidden',
-                                        transition: 'border-color 0.3s'
-                                    }}
-                                >
-                                    <Box sx={{
-                                        width: 80, height: 80, borderRadius: '50%',
-                                        background: 'rgba(6, 182, 212, 0.1)',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        mb: 3, border: '1px solid rgba(6, 182, 212, 0.3)'
-                                    }}>
-                                        <SchoolIcon sx={{ fontSize: 40, color: '#22d3ee' }} />
-                                    </Box>
+        {/* ══ SUBJECTS VIEW ══════════════════════════════════════════════════ */}
+        {viewMode === 'subjects' && (
+          <div className="fade-in2">
+            <p className="section-lbl">Choose a subject for {selectedGrade}</p>
+            <div className="card-grid">
+              {visibleSubjects.map((subject, i) => {
+                const style = getSubjectStyle(subject.name);
+                return (
+                  <div
+                    key={subject._id}
+                    className="glass sel-card"
+                    onClick={() => handleSubjectClick(subject.name)}
+                    style={{animationDelay:`${i * 0.05}s`}}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = style.color + '66'; e.currentTarget.style.boxShadow = `0 12px 40px ${style.color}22`; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.boxShadow = ''; }}
+                  >
+                    <div className="subj-icon-wrap" style={{background: style.bg, border:`1px solid ${style.color}33`}}>
+                      {style.icon}
+                    </div>
+                    <div>
+                      <div className="card-title">{subject.name}</div>
+                      <div className="card-sub" style={{color: style.color, opacity: 0.8}}>View students →</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
-                                    <Typography variant="h5" fontWeight="800" color="text.primary">
-                                        {grade}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                                        Click to view subjects
-                                    </Typography>
-                                </Card>
-                            </Grid>
-                        ))}
-                    </Grid>
-                )}
+        {/* ══ STUDENTS VIEW ══════════════════════════════════════════════════ */}
+        {viewMode === 'students' && (
+          <div className="fade-in2">
+            {/* Search */}
+            <div className="search-wrap fade-in">
+              <SearchIcon />
+              <input
+                className="search-input"
+                placeholder="Search by name or ID…"
+                value={search}
+                onChange={e => { setSearch(e.target.value); setPage(1); }}
+              />
+            </div>
 
-                {/* SUBJECTS VIEW */}
-                {viewMode === 'subjects' && (
-                    <Grid container spacing={3} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
-                        {subjects.map((subject) => {
-                            // Grade-Specific Subject Filtering
-                            let shouldShow = true;
-                            if (selectedGrade) {
-                                const gradeNum = parseInt(selectedGrade.replace(/\D/g, ''));
-                                const sName = subject.name;
+            {/* Table */}
+            {loading ? (
+              <div className="centered"><div className="spinner"/></div>
+            ) : (
+              <div className="table-wrap fade-in2">
+                <StudentTable
+                  students={students}
+                  onUpdate={() => fetchStudents(true)}
+                  subjectColorMap={subjectColors}
+                />
+              </div>
+            )}
 
-                                if (gradeNum >= 6 && gradeNum <= 9) {
-                                    shouldShow = ['Mathematics', 'Science', 'English', 'ICT'].includes(sName);
-                                } else if (gradeNum === 10 || gradeNum === 11) {
-                                    shouldShow = ['Mathematics', 'Science', 'English', 'ICT', 'Business and Accounting Studies'].includes(sName);
-                                } else if (gradeNum >= 3 && gradeNum <= 5) {
-                                    shouldShow = sName.toLowerCase().includes('scholarship');
-                                }
-                            }
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <Pager page={page} total={totalPages} onChange={p => setPage(p)} />
+            )}
+          </div>
+        )}
 
-                            if (!shouldShow) return null;
-
-                            const isActiveColor = getSubjectColor(subject.name);
-
-                            return (
-                                <Grid item xs={12} sm={6} md={3} key={subject._id} component={motion.div} variants={itemVariants}>
-                                    <Card
-                                        component={motion.div}
-                                        whileHover={{ y: -8, scale: 1.02, boxShadow: `0 0 20px ${isActiveColor}66`, borderColor: isActiveColor }}
-                                        whileTap={{ scale: 0.98 }}
-                                        onClick={() => handleSubjectClick(subject.name)}
-                                        sx={{
-                                            height: '100%', minHeight: 240,
-                                            borderRadius: '24px', p: { xs: 2, md: 4 },
-                                            cursor: 'pointer',
-                                            bgcolor: alpha(theme.palette.background.paper, 0.6),
-                                            backdropFilter: 'blur(20px)',
-                                            border: `1px solid ${theme.palette.divider}`,
-                                            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
-                                            position: 'relative', overflow: 'hidden',
-                                            transition: 'border-color 0.3s'
-                                        }}
-                                    >
-                                        <Box sx={{
-                                            p: 2.5, borderRadius: '20px',
-                                            bgcolor: `${isActiveColor}22`,
-                                            color: isActiveColor,
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                                            zIndex: 1,
-                                            border: `1px solid ${isActiveColor}44`,
-                                            '.MuiCard-root:hover &': { transform: 'scale(1.1) rotate(-5deg)' }
-                                        }}>
-                                            <MenuBookIcon sx={{ fontSize: 36 }} />
-                                        </Box>
-
-                                        <Typography variant="h6" fontWeight="bold" align="center" sx={{
-                                            color: 'text.primary',
-                                            lineHeight: 1.2,
-                                            zIndex: 1
-                                        }}>
-                                            {subject.name}
-                                        </Typography>
-                                    </Card>
-                                </Grid>
-                            );
-                        })}
-                    </Grid>
-                )}
-
-                {/* STUDENTS VIEW */}
-                {viewMode === 'students' && (
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                        <TextField
-                            label="Search Student"
-                            variant="outlined"
-                            fullWidth
-                            value={search}
-                            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                            sx={{
-                                mb: 4,
-                                '& .MuiOutlinedInput-root': {
-                                    borderRadius: '16px',
-                                    bgcolor: alpha(theme.palette.background.paper, 0.6),
-                                    backdropFilter: 'blur(20px)',
-                                    color: 'text.primary',
-                                    '& fieldset': { borderColor: theme.palette.divider },
-                                    '&:hover fieldset': { borderColor: theme.palette.primary.main },
-                                },
-                                '& .MuiInputLabel-root': { color: 'text.secondary' }
-                            }}
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <SearchIcon sx={{ color: 'text.secondary' }} />
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-
-                        {loading ? (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}>
-                                <CircularProgress size={60} thickness={4} />
-                            </Box>
-                        ) : (
-                            <Paper elevation={0} sx={{
-                                borderRadius: '24px', overflow: 'hidden',
-                                border: `1px solid ${theme.palette.divider}`,
-                                bgcolor: 'transparent',
-                                backdropFilter: 'none'
-                            }}>
-                                <StudentTable
-                                    students={students}
-                                    onUpdate={() => fetchStudents(true)}
-                                    subjectColorMap={subjectColors}
-                                />
-                            </Paper>
-                        )}
-
-                        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
-                            <Pagination
-                                count={totalPages}
-                                page={page}
-                                onChange={(e, value) => setPage(value)}
-                                color="primary"
-                                shape="circular"
-                                size="large"
-                                sx={{
-                                    '& .MuiPaginationItem-root': {
-                                        color: 'text.secondary',
-                                        '&.Mui-selected': {
-                                            bgcolor: theme.palette.primary.main,
-                                            color: '#fff'
-                                        }
-                                    }
-                                }}
-                            />
-                        </Box>
-                    </motion.div>
-                )}
-            </Container>
-        </Box>
-    );
+      </div>
+    </div>
+  );
 }
