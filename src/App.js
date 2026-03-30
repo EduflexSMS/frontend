@@ -46,8 +46,10 @@ class ErrorBoundary extends React.Component {
 }
 
 function AnimatedRoutes() {
+  const location = useLocation();
   return (
-    <Routes>
+    <AnimatePresence mode="wait" initial={false}>
+      <Routes location={location}>
       <Route path="/login" element={
         <PageTransition>
           <LoginPage />
@@ -85,7 +87,8 @@ function AnimatedRoutes() {
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </AnimatePresence>
   );
 }
 

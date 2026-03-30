@@ -104,41 +104,58 @@ export const getDesignTokens = (mode) => ({
                 root: {
                     borderRadius: '16px',
                     padding: '10px 24px',
-                    transition: 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)',
+                    transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                    backgroundSize: '200% auto',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        background: 'linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%)',
+                        transform: 'translateX(-100%)',
+                        transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                    },
                     '&:hover': {
-                        transform: 'translateY(-4px) scale(1.02)',
+                        transform: 'translateY(-4px) scale(1.03)',
                         boxShadow: mode === 'dark' 
-                            ? '0 16px 24px -6px rgba(0, 0, 0, 0.6)' 
-                            : '0 16px 24px -6px rgba(15, 23, 42, 0.15)',
+                            ? '0 20px 30px -8px rgba(0, 0, 0, 0.8)' 
+                            : '0 20px 30px -8px rgba(15, 23, 42, 0.2)',
+                        '&::after': {
+                            transform: 'translateX(100%)',
+                        }
                     },
                     '&:active': {
-                        transform: 'translateY(-1px) scale(0.98)',
+                        transform: 'translateY(-1px) scale(0.97)',
+                        transition: 'all 0.1s ease',
                     }
                 },
                 containedPrimary: {
-                    background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
+                    background: 'linear-gradient(135deg, #0ea5e9 0%, #38bdf8 50%, #0284c7 100%)',
+                    backgroundSize: '200% auto',
                     boxShadow: mode === 'dark' 
-                        ? '0 6px 20px rgba(14, 165, 233, 0.4)'
-                        : '0 6px 16px rgba(14, 165, 233, 0.3)',
+                        ? '0 8px 25px rgba(14, 165, 233, 0.5)'
+                        : '0 8px 20px rgba(14, 165, 233, 0.4)',
                     color: '#fff',
                     '&:hover': {
-                        background: 'linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%)',
+                        backgroundPosition: 'right center',
                         boxShadow: mode === 'dark' 
-                            ? '0 12px 30px rgba(14, 165, 233, 0.6)'
-                            : '0 10px 24px rgba(14, 165, 233, 0.4)',
+                            ? '0 15px 35px rgba(14, 165, 233, 0.7)'
+                            : '0 12px 28px rgba(14, 165, 233, 0.5)',
                     }
                 },
                 containedSecondary: {
-                    background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                    background: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 50%, #7c3aed 100%)',
+                    backgroundSize: '200% auto',
                     color: '#fff',
                     boxShadow: mode === 'dark' 
-                        ? '0 6px 20px rgba(139, 92, 246, 0.4)'
-                        : '0 6px 16px rgba(139, 92, 246, 0.3)',
+                        ? '0 8px 25px rgba(139, 92, 246, 0.5)'
+                        : '0 8px 20px rgba(139, 92, 246, 0.4)',
                     '&:hover': {
-                        background: 'linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%)',
+                        backgroundPosition: 'right center',
                         boxShadow: mode === 'dark' 
-                            ? '0 12px 30px rgba(139, 92, 246, 0.6)'
-                            : '0 10px 24px rgba(139, 92, 246, 0.4)',
+                            ? '0 15px 35px rgba(139, 92, 246, 0.7)'
+                            : '0 12px 28px rgba(139, 92, 246, 0.5)',
                     }
                 }
             },
@@ -152,11 +169,12 @@ export const getDesignTokens = (mode) => ({
                     border: mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(15, 23, 42, 0.05)',
                     borderRadius: '24px',
                     boxShadow: mode === 'dark' ? '0 20px 40px rgba(0, 0, 0, 0.4)' : '0 20px 40px rgba(15, 23, 42, 0.06)',
-                    transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+                    transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                    transform: 'translateZ(0)',
                     '&:hover': {
                         borderColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(15, 23, 42, 0.12)',
-                        boxShadow: mode === 'dark' ? '0 30px 60px rgba(0, 0, 0, 0.5)' : '0 30px 60px rgba(15, 23, 42, 0.1)',
-                        transform: 'translateY(-6px) scale(1.01)',
+                        boxShadow: mode === 'dark' ? '0 30px 60px rgba(14, 165, 233, 0.15)' : '0 30px 60px rgba(14, 165, 233, 0.1)',
+                        transform: 'translateY(-6px) scale(1.02) perspective(1000px) rotateX(2deg)',
                     }
                 },
             },
@@ -196,6 +214,15 @@ export const getDesignTokens = (mode) => ({
                     border: mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.05)',
                     borderRadius: '32px',
                     boxShadow: mode === 'dark' ? '0 50px 100px -20px rgba(0, 0, 0, 0.6)' : '0 50px 100px -20px rgba(15, 23, 42, 0.2)',
+                }
+            }
+        },
+        MuiBackdrop: {
+            styleOverrides: {
+                root: {
+                    backdropFilter: 'blur(20px)',
+                    backgroundColor: mode === 'dark' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(15, 23, 42, 0.4)',
+                    transition: 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
                 }
             }
         },
