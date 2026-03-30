@@ -1,436 +1,679 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, TextField, Pagination, Typography, Container, CircularProgress, Grid, Card, Button, Paper, useTheme, useMediaQuery, IconButton, InputAdornment, alpha } from '@mui/material';
-import { ArrowBack as ArrowBackIcon, MenuBook as MenuBookIcon, School as SchoolIcon, PeopleAlt as PeopleAltIcon, Search as SearchIcon, FilterList as FilterListIcon } from '@mui/icons-material';
 import axios from 'axios';
-import StudentTable from '../components/StudentTable';
 import API_BASE_URL from '../config';
-import { motion } from 'framer-motion';
+import StudentTable from '../components/StudentTable';
 
-// Animation Variants
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.1
-        }
+// ─── Global Styles ─────────────────────────────────────────────────────────
+const GlobalStyle = () => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+    :root {
+      --bg:          #09090b;
+      --bg2:         #0f0f12;
+      --bg3:         #141418;
+      --bg4:         #1a1a20;
+      --surface:     rgba(255,255,255,0.03);
+      --surface2:    rgba(255,255,255,0.055);
+      --surface3:    rgba(255,255,255,0.08);
+      --border:      rgba(255,255,255,0.06);
+      --border2:     rgba(255,255,255,0.10);
+      --border3:     rgba(255,255,255,0.16);
+      --accent:      #6366f1;
+      --accent-dim:  rgba(99,102,241,0.15);
+      --accent-glow: rgba(99,102,241,0.3);
+      --cyan:        #22d3ee;
+      --cyan-dim:    rgba(34,211,238,0.12);
+      --green:       #4ade80;
+      --green-dim:   rgba(74,222,128,0.12);
+      --orange:      #fb923c;
+      --orange-dim:  rgba(251,146,60,0.12);
+      --red:         #f87171;
+      --gold:        #fbbf24;
+      --text:        #fafafa;
+      --text2:       #a1a1aa;
+      --text3:       #71717a;
+      --r-sm:        8px;
+      --r:           12px;
+      --r-lg:        16px;
+      --r-xl:        20px;
+      --font:        'Inter', sans-serif;
+      --mono:        'JetBrains Mono', monospace;
     }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .vs { min-height: 100vh; background: var(--bg); font-family: var(--font); color: var(--text); }
+
+    .vs-inner { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    /* ── Page Header ── */
+    .ph { margin-bottom: 36px; }
+    .ph-row { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+    .ph-icon {
+      width: 44px; height: 44px; border-radius: var(--r);
+      background: var(--accent-dim); border: 1px solid rgba(99,102,241,0.25);
+      display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;
+    }
+    .ph-title { font-size: clamp(1.6rem,3vw,2.2rem); font-weight: 800; letter-spacing: -0.8px; }
+    .ph-sub { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.8px; color: var(--text3); font-weight: 500; margin-left: 58px; }
+
+    /* ── Nav Row (back + breadcrumb) ── */
+    .nav-row { display: flex; align-items: center; gap: 14px; margin-bottom: 32px; }
+    .back-btn {
+      width: 38px; height: 38px; border-radius: var(--r); flex-shrink: 0;
+      background: var(--surface2); border: 1px solid var(--border2);
+      color: var(--text2); cursor: pointer; font-size: 1rem; font-family: var(--font);
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.18s ease;
+    }
+    .back-btn:hover { color: var(--text); border-color: var(--border3); transform: translateX(-2px); background: var(--surface3); }
+
+    .breadcrumb { display: flex; align-items: center; gap: 10px; font-size: clamp(1.05rem,2vw,1.45rem); font-weight: 800; letter-spacing: -0.4px; }
+    .bc-dim { color: var(--text3); }
+    .bc-sep { color: var(--border3); }
+    .bc-active { color: var(--accent); }
+
+    /* ── Grade / Subject Grid ── */
+    .sel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px,1fr)); gap: 14px; }
+    @media (max-width: 580px) { .sel-grid { grid-template-columns: repeat(2,1fr); } }
+
+    .sel-card {
+      padding: 28px 18px 22px; border-radius: var(--r-xl);
+      background: var(--surface); border: 1px solid var(--border);
+      cursor: pointer; text-align: center; min-height: 170px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+      transition: border-color 0.18s, background 0.18s, transform 0.18s, box-shadow 0.18s;
+      position: relative;
+    }
+    .sel-card:hover { border-color: var(--border3); background: var(--surface2); transform: translateY(-4px); box-shadow: 0 20px 48px rgba(0,0,0,0.55); }
+    .sel-card.hero { background: var(--accent-dim); border-color: rgba(99,102,241,0.28); }
+    .sel-card.hero:hover { border-color: rgba(99,102,241,0.5); box-shadow: 0 20px 48px rgba(99,102,241,0.2); }
+
+    .grade-circle {
+      width: 66px; height: 66px; border-radius: 18px;
+      background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.22);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.55rem; font-weight: 800; color: var(--cyan); letter-spacing: -1px;
+    }
+    .subj-circle {
+      width: 58px; height: 58px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+    }
+    .card-name { font-size: 0.92rem; font-weight: 700; color: var(--text); line-height: 1.2; }
+    .card-hint { font-size: 0.66rem; color: var(--text3); margin-top: 3px; }
+
+    /* ── Search ── */
+    .search-wrap { position: relative; margin-bottom: 16px; }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; }
+    .search-icon svg { width: 15px; height: 15px; }
+    .search-input {
+      width: 100%; padding: 12px 14px 12px 42px; border-radius: var(--r-lg);
+      background: var(--bg3); border: 1px solid var(--border2);
+      font-size: 0.875rem; font-family: var(--font); color: var(--text); outline: none;
+      transition: border-color 0.18s, background 0.18s;
+    }
+    .search-input::placeholder { color: var(--text3); }
+    .search-input:focus { border-color: rgba(99,102,241,0.45); background: var(--bg4); }
+
+    /* ── Table wrapper ── */
+    .tbl-wrap { border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--border); background: var(--bg2); }
+    .tbl-head {
+      display: grid; grid-template-columns: 44px 1fr 150px 90px 72px 36px;
+      align-items: center; padding: 10px 18px;
+      background: rgba(255,255,255,0.025); border-bottom: 1px solid var(--border);
+    }
+    .th { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.4px; color: var(--text3); }
+    @media (max-width: 620px) {
+      .tbl-head { grid-template-columns: 38px 1fr 80px 58px 28px; }
+      .col-idx { display: none; }
+    }
+
+    /* ── Student rows ── */
+    .stu-item { border-bottom: 1px solid var(--border); }
+    .stu-item:last-child { border-bottom: none; }
+
+    .stu-row {
+      display: grid; grid-template-columns: 44px 1fr 150px 90px 72px 36px;
+      align-items: center; padding: 13px 18px; cursor: pointer; gap: 8px;
+      transition: background 0.12s;
+    }
+    .stu-row:hover { background: rgba(255,255,255,0.03); }
+    .stu-row.open { background: rgba(99,102,241,0.04); }
+    @media (max-width: 620px) { .stu-row { grid-template-columns: 38px 1fr 80px 58px 28px; } }
+
+    .avatar {
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.85rem; color: white; letter-spacing: -0.5px;
+    }
+    .stu-name-cell { min-width: 0; }
+    .stu-name { font-weight: 600; font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stu-grade-lbl { font-size: 0.63rem; color: var(--text3); margin-top: 2px; }
+    .stu-idx { font-family: var(--mono); font-size: 0.7rem; color: var(--cyan); background: var(--cyan-dim); border: 1px solid rgba(34,211,238,0.18); padding: 3px 8px; border-radius: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stu-att { font-weight: 700; font-size: 0.8rem; font-family: var(--mono); }
+
+    .badge { padding: 3px 9px; border-radius: 99px; font-size: 0.62rem; font-weight: 700; }
+    .badge-good { background: var(--green-dim); border: 1px solid rgba(74,222,128,0.22); color: var(--green); }
+    .badge-low  { background: var(--orange-dim); border: 1px solid rgba(251,146,60,0.22); color: var(--orange); }
+
+    .chev { color: var(--text3); font-size: 0.85rem; transition: transform 0.16s, color 0.16s; user-select: none; }
+    .chev.open { transform: rotate(90deg); color: var(--accent); }
+
+    /* ── Student detail panel ── */
+    .stu-detail { background: rgba(99,102,241,0.025); border-top: 1px solid rgba(99,102,241,0.1); }
+    .detail-body { padding: 22px 18px 26px; }
+
+    .sec-lbl {
+      font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.6px;
+      color: var(--text3); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+    }
+    .sec-lbl::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 22px; }
+    @media (max-width: 500px) { .stats-grid { grid-template-columns: repeat(2,1fr); } }
+
+    .stat-box { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; }
+    .stat-val { font-family: var(--mono); font-size: 1.45rem; font-weight: 700; line-height: 1; }
+    .stat-lbl { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-top: 5px; }
+
+    /* Monthly breakdown */
+    .months-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+    .months-scroll::-webkit-scrollbar { height: 3px; }
+    .months-scroll::-webkit-scrollbar-track { background: transparent; }
+    .months-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+    .mo-card {
+      flex-shrink: 0; min-width: 112px;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 12px 12px 10px;
+    }
+    .mo-card.now { border-color: rgba(99,102,241,0.35); background: rgba(99,102,241,0.06); }
+
+    .mo-name { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.4px; color: var(--text3); margin-bottom: 10px; }
+    .mo-meta { display: flex; align-items: center; gap: 7px; margin-bottom: 9px; font-size: 0.7rem; color: var(--text3); }
+    .mo-fee { font-size: 1rem; }
+    .att-dots { display: flex; flex-wrap: wrap; gap: 5px; }
+    .dot {
+      width: 19px; height: 19px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; font-size: 0.55rem; font-weight: 700;
+    }
+    .dot-p { background: var(--green-dim); border: 1.5px solid rgba(74,222,128,0.45); color: var(--green); }
+    .dot-a { background: var(--orange-dim); border: 1.5px solid rgba(251,146,60,0.35); color: var(--orange); }
+    .dot-q { background: var(--surface); border: 1.5px solid var(--border); color: var(--text3); }
+    .no-data { font-size: 0.63rem; color: var(--text3); }
+
+    /* Subject list */
+    .subj-list { display: flex; flex-direction: column; gap: 8px; }
+    .subj-row { display: flex; align-items: center; gap: 10px; padding: 10px 13px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r); }
+    .subj-em { font-size: 0.9rem; flex-shrink: 0; }
+    .subj-nm { flex: 1; font-size: 0.82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mini-bar { width: 80px; height: 4px; border-radius: 4px; background: rgba(255,255,255,0.06); overflow: hidden; flex-shrink: 0; }
+    .mini-fill { height: 100%; border-radius: 4px; }
+    .subj-pct { font-family: var(--mono); font-size: 0.75rem; font-weight: 700; min-width: 34px; text-align: right; flex-shrink: 0; }
+
+    /* ── Pager ── */
+    .pager { display: flex; justify-content: center; align-items: center; gap: 5px; margin-top: 26px; }
+    .pg-btn {
+      width: 34px; height: 34px; border-radius: var(--r-sm); border: 1px solid var(--border);
+      background: var(--surface); color: var(--text2); cursor: pointer; font-family: var(--font);
+      font-size: 0.78rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; transition: all 0.12s;
+    }
+    .pg-btn:hover:not(:disabled) { border-color: var(--border2); color: var(--text); background: var(--surface2); }
+    .pg-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .pg-btn:disabled { opacity: 0.2; cursor: default; }
+
+    /* ── Loader ── */
+    .spinner { width: 36px; height: 36px; border: 3px solid rgba(99,102,241,0.12); border-top-color: var(--accent); border-radius: 50%; animation: vs-spin 0.7s linear infinite; }
+    @keyframes vs-spin { to { transform: rotate(360deg); } }
+    .centered { display: flex; justify-content: center; align-items: center; padding: 56px 0; }
+    .empty { text-align: center; padding: 44px; font-size: 0.85rem; color: var(--text3); }
+
+    /* ── Animations ── */
+    .fade-up { animation: vs-fadein 0.22s ease both; }
+    @keyframes vs-fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    .stagger > * { animation: vs-fadein 0.22s ease both; }
+    .stagger > *:nth-child(1) { animation-delay: 0.00s; }
+    .stagger > *:nth-child(2) { animation-delay: 0.04s; }
+    .stagger > *:nth-child(3) { animation-delay: 0.07s; }
+    .stagger > *:nth-child(4) { animation-delay: 0.10s; }
+    .stagger > *:nth-child(5) { animation-delay: 0.13s; }
+    .stagger > *:nth-child(6) { animation-delay: 0.15s; }
+    .stagger > *:nth-child(n+7) { animation-delay: 0.17s; }
+
+    .slide-in { animation: vs-slide 0.15s ease both; }
+    @keyframes vs-slide { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
+  `}</style>
+);
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
+const SUBJ_META = {
+  Mathematics: { color: '#f87171', bg: 'rgba(248,113,113,0.12)', icon: '📐' },
+  Science:     { color: '#22d3ee', bg: 'rgba(34,211,238,0.12)',  icon: '🔬' },
+  English:     { color: '#4ade80', bg: 'rgba(74,222,128,0.12)',  icon: '📖' },
+  ICT:         { color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', icon: '💻' },
+  Business:    { color: '#fb923c', bg: 'rgba(251,146,60,0.12)',  icon: '📊' },
+  Scholarship: { color: '#fbbf24', bg: 'rgba(251,191,36,0.12)',  icon: '🏆' },
 };
 
-const itemVariants = {
-    hidden: { y: 30, opacity: 0, filter: 'blur(3px)' },
-    visible: {
-        y: 0,
-        opacity: 1,
-        filter: 'blur(0px)',
-        transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] }
-    }
+const getSubjMeta = name => {
+  for (const [k, v] of Object.entries(SUBJ_META)) {
+    if (name?.includes(k)) return v;
+  }
+  return { color: '#6366f1', bg: 'rgba(99,102,241,0.12)', icon: '📚' };
 };
 
-// ViewStudents Component - v2.2 (Animated)
-export default function ViewStudents() {
-    const theme = useTheme();
-    // View States: 'grades', 'subjects', 'students'
-    const [viewMode, setViewMode] = useState('grades');
-    const [selectedGrade, setSelectedGrade] = useState(null);
-    const [selectedSubject, setSelectedSubject] = useState(null);
+const attColor = pct => pct >= 75 ? '#4ade80' : pct >= 50 ? '#22d3ee' : '#fb923c';
 
-    // Data
-    const [grades, setGrades] = useState([]);
-    const [subjects, setSubjects] = useState([]);
-    const [students, setStudents] = useState([]);
+const fmtGrade = g => g?.replace(/\D/g, '').padStart(2, '0') || g;
 
-    // Pagination & Search
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [search, setSearch] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [subjectColors, setSubjectColors] = useState({});
+function shouldShowSubject(name, grade) {
+  const n = parseInt(grade?.replace(/\D/g, '') || '0');
+  if (n >= 6 && n <= 9)     return ['Mathematics','Science','English','ICT'].some(k => name.includes(k));
+  if (n === 10 || n === 11) return ['Mathematics','Science','English','ICT','Business'].some(k => name.includes(k));
+  if (n >= 3 && n <= 5)     return name.toLowerCase().includes('scholarship');
+  return true;
+}
 
-    // Fetch Distinct Grades
-    const fetchGrades = async () => {
-        setLoading(true);
-        try {
-            const response = await axios.get(`${API_BASE_URL}/api/students/grades`);
-            setGrades(response.data);
-        } catch (error) {
-            console.error("Error fetching grades:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+// ─── Pager ────────────────────────────────────────────────────────────────────
+function Pager({ page, total, onChange }) {
+  if (total <= 1) return null;
+  const pages   = Array.from({ length: total }, (_, i) => i + 1);
+  const visible = pages.filter(p => p === 1 || p === total || Math.abs(p - page) <= 1);
+  return (
+    <div className="pager">
+      <button className="pg-btn" disabled={page === 1} onClick={() => onChange(page - 1)}>‹</button>
+      {visible.map((p, i) => {
+        const prev = visible[i - 1];
+        return (
+          <React.Fragment key={p}>
+            {prev && p - prev > 1 && <span style={{ color: 'var(--text3)', fontSize: '0.8rem' }}>…</span>}
+            <button className={`pg-btn${p === page ? ' active' : ''}`} onClick={() => onChange(p)}>{p}</button>
+          </React.Fragment>
+        );
+      })}
+      <button className="pg-btn" disabled={page === total} onClick={() => onChange(page + 1)}>›</button>
+    </div>
+  );
+}
 
-    // Fetch Subjects
-    const fetchSubjects = async () => {
-        try {
-            const response = await axios.get(`${API_BASE_URL}/api/subjects`);
-            setSubjects(response.data);
+// ─── Student Row ──────────────────────────────────────────────────────────────
+function StudentRow({ student }) {
+  const [open, setOpen] = useState(false);
 
-            const subjectMap = {};
-            response.data.forEach(sub => {
-                subjectMap[sub.name] = sub;
-            });
-            setSubjectColors(subjectMap);
-        } catch (error) {
-            console.error("Error fetching subjects:", error);
-        }
-    };
+  const stats = React.useMemo(() => {
+    let total = 0, attended = 0;
+    (student.enrollments || []).forEach(e => {
+      (e.monthlyRecords || []).forEach(r => {
+        (r.attendance || []).forEach(s => {
+          if (s !== 'pending') total++;
+          if (s === 'present' || s === true || s === 'true') attended++;
+        });
+      });
+    });
+    const pct = total === 0 ? 0 : Math.round((attended / total) * 100);
+    const subjects = (student.enrollments || []).map(e => {
+      let st = 0, sa = 0;
+      (e.monthlyRecords || []).forEach(r => {
+        (r.attendance || []).forEach(s => {
+          if (s !== 'pending') st++;
+          if (s === 'present' || s === true || s === 'true') sa++;
+        });
+      });
+      const feesTotal = e.monthlyRecords?.length || 0;
+      const feesPaid  = e.monthlyRecords?.filter(r => r.feePaid).length || 0;
+      return {
+        name: e.subject,
+        pct: st === 0 ? 0 : Math.round((sa / st) * 100),
+        feesTotal, feesPaid,
+        monthlyRecords: e.monthlyRecords || []
+      };
+    });
+    const feesPaidCount = subjects.reduce((acc, s) => acc + (s.feesPaid > 0 ? 1 : 0), 0);
+    return { pct, attended, total, subjects, feesPaidCount };
+  }, [student]);
 
-    // Fetch Students
-    const fetchStudents = useCallback(async (background = false) => {
-        if (!background) setLoading(true);
-        try {
-            const response = await axios.get(`${API_BASE_URL}/api/students`, {
-                params: {
-                    page,
-                    search,
-                    grade: selectedGrade,
-                    subject: selectedSubject
-                }
-            });
-            setStudents(response.data.students);
-            setTotalPages(response.data.totalPages);
-        } catch (error) {
-            console.error("Error fetching students:", error);
-        } finally {
-            if (!background) setLoading(false);
-        }
-    }, [page, search, selectedGrade, selectedSubject]);
+  return (
+    <div className="stu-item">
+      <div className={`stu-row${open ? ' open' : ''}`} onClick={() => setOpen(o => !o)}>
+        <div className="avatar">{student.name?.charAt(0) || '?'}</div>
+        <div className="stu-name-cell">
+          <div className="stu-name">{student.name}</div>
+          <div className="stu-grade-lbl">{student.grade}</div>
+        </div>
+        <div className={`stu-idx col-idx`}>{student.indexNumber}</div>
+        <div className="stu-att" style={{ color: attColor(stats.pct) }}>{stats.pct}%</div>
+        <span className={`badge ${stats.pct >= 75 ? 'badge-good' : 'badge-low'}`}>{stats.pct >= 75 ? 'Good' : 'Low'}</span>
+        <span className={`chev${open ? ' open' : ''}`}>›</span>
+      </div>
 
-    // Initial Load
-    useEffect(() => {
-        fetchGrades();
-        fetchSubjects();
-    }, []);
+      {open && (
+        <div className="stu-detail slide-in">
+          <div className="detail-body">
 
-    // Fetch students when entering 'students' view
-    useEffect(() => {
-        if (viewMode === 'students') {
-            fetchStudents();
-        }
-    }, [viewMode, fetchStudents]);
+            {/* Overview stats */}
+            <div className="sec-lbl">📊 Overview</div>
+            <div className="stats-grid">
+              <div className="stat-box">
+                <div className="stat-val" style={{ color: attColor(stats.pct) }}>{stats.pct}%</div>
+                <div className="stat-lbl">Attendance</div>
+              </div>
+              <div className="stat-box">
+                <div className="stat-val" style={{ color: 'var(--cyan)' }}>{stats.attended}</div>
+                <div className="stat-lbl">Attended</div>
+              </div>
+              <div className="stat-box">
+                <div className="stat-val" style={{ color: 'var(--text2)' }}>{stats.total}</div>
+                <div className="stat-lbl">Total Classes</div>
+              </div>
+              <div className="stat-box">
+                <div className="stat-val" style={{ color: 'var(--green)' }}>{stats.feesPaidCount}/{stats.subjects.length}</div>
+                <div className="stat-lbl">Fees Paid</div>
+              </div>
+            </div>
 
-    // Handlers
-    const handleGradeClick = (grade) => {
-        setSelectedGrade(grade);
-        setViewMode('subjects');
-    };
-
-    const handleSubjectClick = (subjectName) => {
-        setSelectedSubject(subjectName);
-        setViewMode('students');
-        setPage(1);
-    };
-
-    const handleAllStudentsClick = () => {
-        setSelectedGrade(null);
-        setSelectedSubject(null);
-        setViewMode('students');
-        setPage(1);
-    };
-
-    const handleBack = () => {
-        if (viewMode === 'students') {
-            // If we came from "All Students" (no grade/subject), go back to grades
-            if (!selectedGrade) {
-                setViewMode('grades');
-            } else {
-                setViewMode('subjects');
-            }
-        } else if (viewMode === 'subjects') {
-            setViewMode('grades');
-            setSelectedGrade(null);
-        }
-    };
-
-    // Dynamic Subject Colors for Visual Vibrancy
-    const getSubjectColor = (name) => {
-        if (name.includes('Mathematics')) return '#FF4B2B'; // Red/Orange
-        if (name.includes('Science')) return '#2196F3'; // Blue
-        if (name.includes('English')) return '#00E676'; // Green
-        if (name.includes('ICT')) return '#651FFF'; // Purple
-        if (name.includes('Business')) return '#F50057'; // Pink
-        if (name.includes('Scholarship')) return '#FFD600'; // Gold
-        return '#2196F3'; // Default
-    };
-
-    return (
-        <Box sx={{
-            minHeight: '100vh',
-            // TRANSPARENT BACKGROUND TO SHOW 3D HOLOGRAMS
-            background: 'transparent',
-            pt: { xs: 2, md: 4 }, pb: { xs: 4, md: 8 }
-        }}>
-            <Container maxWidth="xl">
-                {/* Header Section */}
-                <Box sx={{ mb: 6, display: 'flex', alignItems: 'center', gap: 3 }}>
-                    {viewMode !== 'grades' && (
-                        <IconButton
-                            onClick={handleBack}
-                            sx={{
-                                color: 'text.primary',
-                                bgcolor: alpha(theme.palette.background.paper, 0.3),
-                                backdropFilter: 'blur(10px)',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2), transform: 'scale(1.1)' },
-                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                            }}
-                        >
-                            <ArrowBackIcon />
-                        </IconButton>
-                    )}
-
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        key={viewMode}
-                    >
-                        <Typography variant="h3" sx={{
-                            fontWeight: 900,
-                            color: 'text.primary',
-                            letterSpacing: '-1.5px',
-                            display: 'flex', alignItems: 'center', gap: 2,
-                            fontSize: { xs: '1.75rem', md: '2.5rem' },
-                            textShadow: '0 0 20px rgba(59, 130, 246, 0.5)' // Neon Glow Title
-                        }}>
-                            {/* Breadcrumb-style Header */}
-                            {viewMode === 'grades' && 'Select Grade'}
-                            {viewMode === 'subjects' && (
-                                <>
-                                    <span style={{ opacity: 0.4 }}>{selectedGrade}</span>
-                                    <span style={{ opacity: 0.2 }}>/</span>
-                                    <span style={{ color: theme.palette.primary.main }}>Select Subject</span>
-                                </>
+            {/* Monthly breakdown per subject */}
+            {stats.subjects.map(subj => {
+              const sm = getSubjMeta(subj.name);
+              return (
+                <div key={subj.name} style={{ marginBottom: 22 }}>
+                  <div className="sec-lbl">
+                    <span style={{ color: sm.color }}>{sm.icon} {subj.name}</span>
+                  </div>
+                  <div className="months-scroll">
+                    {MONTHS.map((m, mi) => {
+                      const rec        = subj.monthlyRecords?.find(r => r.monthIndex === mi);
+                      const nowMonth   = new Date().getMonth();
+                      const isCurrent  = mi === nowMonth;
+                      const isFuture   = !rec && mi > nowMonth;
+                      const att        = rec?.attendance || [];
+                      return (
+                        <div key={m} className={`mo-card${isCurrent ? ' now' : ''}`} style={{ opacity: isFuture ? 0.3 : 1 }}>
+                          <div className="mo-name">{m}</div>
+                          <div className="mo-meta">
+                            <span className="mo-fee" title={rec?.feePaid ? 'Fee paid' : 'Fee pending'}>
+                              {rec?.feePaid ? '💛' : '🩶'}
+                            </span>
+                            {att.length > 0 && (
+                              <span>
+                                {att.filter(a => a === 'present' || a === true || a === 'true').length}
+                                /{att.filter(a => a !== 'pending').length}
+                              </span>
                             )}
-                            {viewMode === 'students' && (
-                                <>
-                                    <span style={{ opacity: 0.4 }}>Students</span>
-                                    {selectedGrade && (
-                                        <>
-                                            <span style={{ opacity: 0.2 }}>/</span>
-                                            <span style={{ color: theme.palette.primary.main }}>{selectedSubject || 'All'}</span>
-                                        </>
-                                    )}
-                                </>
-                            )}
-                        </Typography>
-                    </motion.div>
-                </Box>
-
-                {/* GRADES VIEW */}
-                {viewMode === 'grades' && (
-                    <Grid container spacing={3} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
-                        {/* All Students Card - Hero Style */}
-                        <Grid item xs={12} sm={6} md={3} component={motion.div} variants={itemVariants}>
-                            <Card
-                                component={motion.div}
-                                whileHover={{ y: -10, boxShadow: '0 0 30px rgba(59, 130, 246, 0.6)' }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={handleAllStudentsClick}
-                                sx={{
-                                    height: '100%', minHeight: 240,
-                                    cursor: 'pointer', borderRadius: '24px',
-                                    background: alpha(theme.palette.primary.main, 0.15),
-                                    backdropFilter: 'blur(20px)',
-                                    border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-                                    padding: { xs: 2, md: 4 }, position: 'relative', overflow: 'hidden',
-                                    display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'
-                                }}
-                            >
-                                <PeopleAltIcon sx={{ fontSize: 64, color: '#60a5fa', mb: 2, zIndex: 1, filter: 'drop-shadow(0 0 10px #3b82f6)' }} />
-                                <Typography variant="h5" fontWeight="800" color="text.primary" align="center" sx={{ zIndex: 1 }}>
-                                    View All Students
-                                </Typography>
-                                <Paper sx={{ mt: 2, px: 2, py: 0.5, borderRadius: '20px', bgcolor: alpha(theme.palette.text.primary, 0.05), color: 'text.secondary', border: `1px solid ${theme.palette.divider}` }}>
-                                    <Typography variant="caption" fontWeight="bold">Total Records</Typography>
-                                </Paper>
-                            </Card>
-                        </Grid>
-
-                        {grades.map((grade) => (
-                            <Grid item xs={12} sm={6} md={3} key={grade} component={motion.div} variants={itemVariants}>
-                                <Card
-                                    component={motion.div}
-                                    whileHover={{
-                                        y: -10, scale: 1.02,
-                                        boxShadow: '0 0 25px rgba(6, 182, 212, 0.4)', // Cyan Neon Glow
-                                        borderColor: '#06b6d4'
-                                    }}
-                                    whileTap={{ scale: 0.97 }}
-                                    onClick={() => handleGradeClick(grade)}
-                                    sx={{
-                                        height: '100%', minHeight: 240,
-                                        p: { xs: 2, md: 4 }, borderRadius: '24px',
-                                        cursor: 'pointer',
-                                        bgcolor: alpha(theme.palette.background.paper, 0.6),
-                                        backdropFilter: 'blur(20px)',
-                                        border: `1px solid ${theme.palette.divider}`,
-                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                                        position: 'relative', overflow: 'hidden',
-                                        transition: 'border-color 0.3s'
-                                    }}
-                                >
-                                    <Box sx={{
-                                        width: 80, height: 80, borderRadius: '50%',
-                                        background: 'rgba(6, 182, 212, 0.1)',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        mb: 3, border: '1px solid rgba(6, 182, 212, 0.3)'
-                                    }}>
-                                        <SchoolIcon sx={{ fontSize: 40, color: '#22d3ee' }} />
-                                    </Box>
-
-                                    <Typography variant="h5" fontWeight="800" color="text.primary">
-                                        {grade}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                                        Click to view subjects
-                                    </Typography>
-                                </Card>
-                            </Grid>
-                        ))}
-                    </Grid>
-                )}
-
-                {/* SUBJECTS VIEW */}
-                {viewMode === 'subjects' && (
-                    <Grid container spacing={3} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
-                        {subjects.map((subject) => {
-                            // Grade-Specific Subject Filtering
-                            let shouldShow = true;
-                            if (selectedGrade) {
-                                const gradeNum = parseInt(selectedGrade.replace(/\D/g, ''));
-                                const sName = subject.name;
-
-                                if (gradeNum >= 6 && gradeNum <= 9) {
-                                    shouldShow = ['Mathematics', 'Science', 'English', 'ICT'].includes(sName);
-                                } else if (gradeNum === 10 || gradeNum === 11) {
-                                    shouldShow = ['Mathematics', 'Science', 'English', 'ICT', 'Business and Accounting Studies'].includes(sName);
-                                } else if (gradeNum >= 3 && gradeNum <= 5) {
-                                    shouldShow = sName.toLowerCase().includes('scholarship');
-                                }
+                          </div>
+                          <div className="att-dots">
+                            {att.length === 0
+                              ? <span className="no-data">No data</span>
+                              : att.map((s, i) => {
+                                  const isP = s === 'present' || s === true || s === 'true';
+                                  const isQ = s === 'pending';
+                                  return (
+                                    <div key={i} className={`dot ${isQ ? 'dot-q' : isP ? 'dot-p' : 'dot-a'}`}>
+                                      {isQ ? '' : isP ? '✓' : '✗'}
+                                    </div>
+                                  );
+                                })
                             }
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
 
-                            if (!shouldShow) return null;
+            {/* Subject progress bars */}
+            {stats.subjects.length > 0 && (
+              <>
+                <div className="sec-lbl">📈 Subject Progress</div>
+                <div className="subj-list">
+                  {stats.subjects.map(s => {
+                    const sm = getSubjMeta(s.name);
+                    return (
+                      <div className="subj-row" key={s.name} style={{ borderColor: `${sm.color}22` }}>
+                        <span className="subj-em">{sm.icon}</span>
+                        <span className="subj-nm">{s.name}</span>
+                        <div className="mini-bar">
+                          <div className="mini-fill" style={{ width: `${s.pct}%`, background: attColor(s.pct) }} />
+                        </div>
+                        <span className="subj-pct" style={{ color: attColor(s.pct) }}>{s.pct}%</span>
+                        <span className={`badge ${s.feesPaid > 0 ? 'badge-good' : 'badge-low'}`}>
+                          {s.feesPaid > 0 ? '✓ Paid' : '⏳'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
 
-                            const isActiveColor = getSubjectColor(subject.name);
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
-                            return (
-                                <Grid item xs={12} sm={6} md={3} key={subject._id} component={motion.div} variants={itemVariants}>
-                                    <Card
-                                        component={motion.div}
-                                        whileHover={{ y: -8, scale: 1.02, boxShadow: `0 0 20px ${isActiveColor}66`, borderColor: isActiveColor }}
-                                        whileTap={{ scale: 0.98 }}
-                                        onClick={() => handleSubjectClick(subject.name)}
-                                        sx={{
-                                            height: '100%', minHeight: 240,
-                                            borderRadius: '24px', p: { xs: 2, md: 4 },
-                                            cursor: 'pointer',
-                                            bgcolor: alpha(theme.palette.background.paper, 0.6),
-                                            backdropFilter: 'blur(20px)',
-                                            border: `1px solid ${theme.palette.divider}`,
-                                            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
-                                            position: 'relative', overflow: 'hidden',
-                                            transition: 'border-color 0.3s'
-                                        }}
-                                    >
-                                        <Box sx={{
-                                            p: 2.5, borderRadius: '20px',
-                                            bgcolor: `${isActiveColor}22`,
-                                            color: isActiveColor,
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                                            zIndex: 1,
-                                            border: `1px solid ${isActiveColor}44`,
-                                            '.MuiCard-root:hover &': { transform: 'scale(1.1) rotate(-5deg)' }
-                                        }}>
-                                            <MenuBookIcon sx={{ fontSize: 36 }} />
-                                        </Box>
+// ─── Main ─────────────────────────────────────────────────────────────────────
+export default function ViewStudents() {
+  // ── State (identical to original) ──
+  const [viewMode, setViewMode]               = useState('grades');
+  const [selectedGrade, setSelectedGrade]     = useState(null);
+  const [selectedSubject, setSelectedSubject] = useState(null);
 
-                                        <Typography variant="h6" fontWeight="bold" align="center" sx={{
-                                            color: 'text.primary',
-                                            lineHeight: 1.2,
-                                            zIndex: 1
-                                        }}>
-                                            {subject.name}
-                                        </Typography>
-                                    </Card>
-                                </Grid>
-                            );
-                        })}
-                    </Grid>
-                )}
+  const [grades, setGrades]       = useState([]);
+  const [subjects, setSubjects]   = useState([]);
+  const [students, setStudents]   = useState([]);
+  const [subjectColors, setSubjectColors] = useState({});
 
-                {/* STUDENTS VIEW */}
-                {viewMode === 'students' && (
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                        <TextField
-                            label="Search Student"
-                            variant="outlined"
-                            fullWidth
-                            value={search}
-                            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                            sx={{
-                                mb: 4,
-                                '& .MuiOutlinedInput-root': {
-                                    borderRadius: '16px',
-                                    bgcolor: alpha(theme.palette.background.paper, 0.6),
-                                    backdropFilter: 'blur(20px)',
-                                    color: 'text.primary',
-                                    '& fieldset': { borderColor: theme.palette.divider },
-                                    '&:hover fieldset': { borderColor: theme.palette.primary.main },
-                                },
-                                '& .MuiInputLabel-root': { color: 'text.secondary' }
-                            }}
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <SearchIcon sx={{ color: 'text.secondary' }} />
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
+  const [page, setPage]             = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch]         = useState('');
+  const [loading, setLoading]       = useState(false);
 
-                        {loading ? (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}>
-                                <CircularProgress size={60} thickness={4} />
-                            </Box>
-                        ) : (
-                            <Paper elevation={0} sx={{
-                                borderRadius: '24px', overflow: 'hidden',
-                                border: `1px solid ${theme.palette.divider}`,
-                                bgcolor: 'transparent',
-                                backdropFilter: 'none'
-                            }}>
-                                <StudentTable
-                                    students={students}
-                                    onUpdate={() => fetchStudents(true)}
-                                    subjectColorMap={subjectColors}
-                                />
-                            </Paper>
-                        )}
+  // ── Fetch grades (same as original) ──
+  const fetchGrades = async () => {
+    setLoading(true);
+    try {
+      const r = await axios.get(`${API_BASE_URL}/api/students/grades`);
+      setGrades(r.data);
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  };
 
-                        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
-                            <Pagination
-                                count={totalPages}
-                                page={page}
-                                onChange={(e, value) => setPage(value)}
-                                color="primary"
-                                shape="circular"
-                                size="large"
-                                sx={{
-                                    '& .MuiPaginationItem-root': {
-                                        color: 'text.secondary',
-                                        '&.Mui-selected': {
-                                            bgcolor: theme.palette.primary.main,
-                                            color: '#fff'
-                                        }
-                                    }
-                                }}
-                            />
-                        </Box>
-                    </motion.div>
-                )}
-            </Container>
-        </Box>
-    );
+  // ── Fetch subjects (same as original) ──
+  const fetchSubjects = async () => {
+    try {
+      const r = await axios.get(`${API_BASE_URL}/api/subjects`);
+      setSubjects(r.data);
+      const map = {};
+      r.data.forEach(sub => { map[sub.name] = sub; });
+      setSubjectColors(map);
+    } catch (e) { console.error(e); }
+  };
+
+  // ── Fetch students (same as original) ──
+  const fetchStudents = useCallback(async (background = false) => {
+    if (!background) setLoading(true);
+    try {
+      const r = await axios.get(`${API_BASE_URL}/api/students`, {
+        params: { page, search, grade: selectedGrade, subject: selectedSubject }
+      });
+      setStudents(r.data.students);
+      setTotalPages(r.data.totalPages);
+    } catch (e) { console.error(e); }
+    finally { if (!background) setLoading(false); }
+  }, [page, search, selectedGrade, selectedSubject]);
+
+  // ── Effects (same as original) ──
+  useEffect(() => {
+    fetchGrades();
+    fetchSubjects();
+  }, []);
+
+  useEffect(() => {
+    if (viewMode === 'students') fetchStudents();
+  }, [viewMode, fetchStudents]);
+
+  // ── Handlers (same as original) ──
+  const handleGradeClick  = g => { setSelectedGrade(g); setViewMode('subjects'); };
+  const handleSubjectClick = s => { setSelectedSubject(s); setViewMode('students'); setPage(1); };
+  const handleAllStudents  = () => { setSelectedGrade(null); setSelectedSubject(null); setViewMode('students'); setPage(1); };
+
+  const handleBack = () => {
+    if (viewMode === 'students') {
+      if (!selectedGrade) { setViewMode('grades'); }
+      else { setViewMode('subjects'); }
+    } else if (viewMode === 'subjects') {
+      setViewMode('grades');
+      setSelectedGrade(null);
+    }
+  };
+
+  // ── Breadcrumb ──
+  const Breadcrumb = () => (
+    <div className="breadcrumb">
+      {viewMode === 'subjects' && (
+        <><span className="bc-dim">Students</span><span className="bc-sep"> / </span><span className="bc-active">{selectedGrade}</span></>
+      )}
+      {viewMode === 'students' && !selectedGrade && (
+        <><span className="bc-dim">Students</span><span className="bc-sep"> / </span><span className="bc-active">All</span></>
+      )}
+      {viewMode === 'students' && selectedGrade && !selectedSubject && (
+        <><span className="bc-dim">Students</span><span className="bc-sep"> / </span><span className="bc-active">{selectedGrade}</span></>
+      )}
+      {viewMode === 'students' && selectedGrade && selectedSubject && (
+        <><span className="bc-dim">Students</span><span className="bc-sep"> / </span><span className="bc-dim">{selectedGrade}</span><span className="bc-sep"> / </span><span className="bc-active">{selectedSubject}</span></>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="vs">
+      <GlobalStyle />
+      <div className="vs-inner">
+
+        {/* ── Header ── */}
+        {viewMode === 'grades' ? (
+          <div className="ph fade-up">
+            <div className="ph-row">
+              <div className="ph-icon">👥</div>
+              <h1 className="ph-title">Students</h1>
+            </div>
+            <p className="ph-sub">Select a grade to browse students</p>
+          </div>
+        ) : (
+          <div className="nav-row fade-up">
+            <button className="back-btn" onClick={handleBack}>←</button>
+            <Breadcrumb />
+          </div>
+        )}
+
+        {/* ════ GRADES VIEW ════ */}
+        {viewMode === 'grades' && (
+          <div className="sel-grid stagger">
+            {/* All students hero card */}
+            <div className="sel-card hero" onClick={handleAllStudents}>
+              <div style={{ fontSize: '2.2rem' }}>👥</div>
+              <div>
+                <div className="card-name">All Students</div>
+                <div className="card-hint">View every record</div>
+              </div>
+            </div>
+
+            {/* Grade cards */}
+            {grades.map(g => (
+              <div key={g} className="sel-card" onClick={() => handleGradeClick(g)}>
+                <div className="grade-circle">{fmtGrade(g)}</div>
+                <div>
+                  <div className="card-name">{g}</div>
+                  <div className="card-hint">View students →</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ════ SUBJECTS VIEW ════ */}
+        {viewMode === 'subjects' && (
+          <div className="sel-grid stagger fade-up">
+            {subjects
+              .filter(sub => shouldShowSubject(sub.name, selectedGrade))
+              .map(sub => {
+                const sm = getSubjMeta(sub.name);
+                return (
+                  <div
+                    key={sub._id}
+                    className="sel-card"
+                    onClick={() => handleSubjectClick(sub.name)}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = sm.color + '55'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = ''; }}
+                  >
+                    <div className="subj-circle" style={{ background: sm.bg, border: `1px solid ${sm.color}30` }}>
+                      <span style={{ fontSize: '1.45rem' }}>{sm.icon}</span>
+                    </div>
+                    <div>
+                      <div className="card-name">{sub.name}</div>
+                      <div className="card-hint" style={{ color: sm.color, opacity: 0.85 }}>View students →</div>
+                    </div>
+                  </div>
+                );
+              })
+            }
+          </div>
+        )}
+
+        {/* ════ STUDENTS VIEW ════ */}
+        {viewMode === 'students' && (
+          <div className="fade-up">
+            {/* Search */}
+            <div className="search-wrap">
+              <span className="search-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle cx="11" cy="11" r="8" strokeWidth="2" />
+                  <path d="M21 21l-4.35-4.35" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </span>
+              <input
+                className="search-input"
+                placeholder="Search by name or index number…"
+                value={search}
+                onChange={e => { setSearch(e.target.value); setPage(1); }}
+              />
+            </div>
+
+            {loading ? (
+              <div className="centered"><div className="spinner" /></div>
+            ) : (
+              <div className="tbl-wrap">
+                <div className="tbl-head">
+                  <div className="th" />
+                  <div className="th">Student</div>
+                  <div className="th col-idx">Index No.</div>
+                  <div className="th">Attendance</div>
+                  <div className="th">Status</div>
+                  <div className="th" />
+                </div>
+
+                {students.length === 0
+                  ? <div className="empty">No students found</div>
+                  : students.map(s => <StudentRow key={s._id} student={s} />)
+                }
+              </div>
+            )}
+
+            <Pager page={page} total={totalPages} onChange={setPage} />
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
 }
