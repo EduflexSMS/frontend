@@ -18,10 +18,18 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  background: linear-gradient(-45deg, #0b1121, #060b14, #0b162c, #090e1a) !important;
   background-size: 400% 400% !important;
   animation: bgGradient 15s ease infinite !important;
+}
+
+body[data-theme='dark'] {
+  background: linear-gradient(-45deg, #0b1121, #060b14, #0b162c, #090e1a) !important;
   color: #fff;
+}
+
+body[data-theme='light'] {
+  background: linear-gradient(-45deg, #f8fafc, #f1f5f9, #e2e8f0, #f8fafc) !important;
+  color: #0f172a;
 }
 
 @keyframes bgGradient {
@@ -40,8 +48,12 @@ body {
   pointer-events: none;
   z-index: 9999;
   opacity: 0.02;
-  /* Reduced opacity for cleaner look */
+  transition: opacity 0.5s ease;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+body[data-theme='light'] .noise-overlay {
+  opacity: 0.08; /* slightly more visible on light mode for texture */
 }
 
 code {

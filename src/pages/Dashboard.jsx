@@ -107,10 +107,9 @@ export default function Dashboard() {
                 position: 'relative',
                 overflow: 'hidden',
                 cursor: onClick ? 'pointer' : 'default',
-                background: alpha(theme.palette.background.paper, 0.4),
-                backdropFilter: 'blur(20px)',
-                border: '1px solid',
-                borderColor: 'rgba(255, 255, 255, 0.08)',
+                background: alpha(theme.palette.background.paper, 0.6),
+                backdropFilter: 'blur(24px)',
+                border: `1px solid ${theme.palette.divider}`,
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
@@ -180,7 +179,9 @@ export default function Dashboard() {
                 }}>
                     <Box>
                         <Typography variant="h3" fontWeight="900" sx={{
-                            background: 'linear-gradient(45deg, #fff, #a5f3fc)',
+                            background: theme.palette.mode === 'dark' 
+                                ? 'linear-gradient(45deg, #fff, #a5f3fc)'
+                                : 'linear-gradient(45deg, #0ea5e9, #6366f1)',
                             backgroundClip: 'text',
                             textFillColor: 'transparent',
                             letterSpacing: '-1px',
@@ -304,10 +305,9 @@ export default function Dashboard() {
                                         p: { xs: 2, md: 3 },
                                         height: '100%',
                                         borderRadius: '20px',
-                                        background: alpha(theme.palette.background.paper, 0.4),
-                                        backdropFilter: 'blur(20px)',
-                                        border: '1px solid',
-                                        borderColor: 'rgba(255, 255, 255, 0.08)',
+                                        background: alpha(theme.palette.background.paper, 0.6),
+                                        backdropFilter: 'blur(24px)',
+                                        border: `1px solid ${theme.palette.divider}`,
                                         cursor: 'pointer',
                                         transition: 'all 0.3s ease',
                                         position: 'relative',

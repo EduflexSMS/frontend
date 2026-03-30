@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, AppBar, Toolbar, Typography, CssBaseline, IconButton, Avatar, useTheme, useMediaQuery, InputBase, alpha, Button } from '@mui/material';
-import { Dashboard, People, Class, AddBox, Assessment, Menu as MenuIcon, NotificationsOutlined, Search as SearchIcon, SettingsOutlined, Logout as LogoutIcon, Language, Today } from '@mui/icons-material';
+import { Dashboard, People, Class, AddBox, Assessment, Menu as MenuIcon, NotificationsOutlined, Search as SearchIcon, SettingsOutlined, Logout as LogoutIcon, Language, Today, WbSunny, NightlightRound } from '@mui/icons-material';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../assets/logo.jpg';
@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import Background3D from './Background3D';
 import VoiceCommander from './VoiceCommander';
 import PageTransition from './PageTransition'; // Import the new component
+import { ThemeContext } from '../contexts/ThemeContext';
 
 const drawerWidth = 280;
 
@@ -19,6 +20,7 @@ export default function Layout() {
     const location = useLocation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const { toggleColorMode, mode } = React.useContext(ThemeContext);
 
     const { t, i18n } = useTranslation();
 
@@ -160,7 +162,8 @@ export default function Layout() {
                                     primaryTypographyProps={{
                                         fontWeight: active ? 800 : 600,
                                         fontSize: '0.9rem',
-                                        letterSpacing: '0.02em'
+                                        letterSpacing: '0.02em',
+                                        color: active ? '#ffffff' : theme.palette.text.primary
                                     }}
                                 />
                             </Box>
@@ -204,8 +207,8 @@ export default function Layout() {
                 </Box>
             </Box>
 
-            <Box sx={{ p: 3, opacity: 0.4, textAlign: 'center' }}>
-                <Typography variant="caption" sx={{ color: 'white', letterSpacing: 2, fontWeight: 700 }}>
+            <Box sx={{ p: 3, opacity: 0.6, textAlign: 'center' }}>
+                <Typography variant="caption" sx={{ color: theme.palette.text.secondary, letterSpacing: 2, fontWeight: 700 }}>
                     EDUFLEX v2.5 • 2026
                 </Typography>
             </Box>
@@ -213,7 +216,7 @@ export default function Layout() {
     );
 
     return (
-        <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#020617' }}>
+        <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: theme.palette.background.default, transition: 'background-color 0.5s ease-in-out' }}>
             <Background3D />
             <div className="noise-overlay" />
             <CssBaseline />
@@ -234,7 +237,7 @@ export default function Layout() {
                         sx: {
                             boxSizing: 'border-box',
                             width: drawerWidth,
-                            background: alpha('#020617', 0.4),
+                            background: alpha(theme.palette.background.paper, 0.4),
                             border: 'none',
                             backdropFilter: 'blur(32px)',
                             height: '100vh',
@@ -258,7 +261,7 @@ export default function Layout() {
                     '& .MuiDrawer-paper': {
                         boxSizing: 'border-box',
                         width: drawerWidth,
-                        background: alpha('#020617', 0.8),
+                        background: alpha(theme.palette.background.paper, 0.8),
                         backdropFilter: 'blur(40px)',
                         border: 'none',
                         borderRight: '1px solid rgba(255,255,255,0.08)'
@@ -289,7 +292,7 @@ export default function Layout() {
                     elevation={0}
                     sx={{
                         borderRadius: { xs: '16px', md: '24px' },
-                        bgcolor: alpha('#0f172a', 0.6),
+                        bgcolor: alpha(theme.palette.background.paper, 0.6),
                         backdropFilter: 'blur(32px)',
                         border: '1px solid rgba(255,255,255,0.08)',
                         color: 'text.primary',
@@ -300,8 +303,8 @@ export default function Layout() {
                         zIndex: 1100,
                         transition: 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)',
                         '&:hover': {
-                            bgcolor: alpha('#0f172a', 0.7),
-                            borderColor: 'rgba(255,255,255,0.15)',
+                            bgcolor: alpha(theme.palette.background.paper, 0.7),
+                            borderColor: theme.palette.divider,
                         }
                     }}
                 >
@@ -316,7 +319,7 @@ export default function Layout() {
                             >
                                 <MenuIcon />
                             </IconButton>
-                            <Box sx={{ display: { xs: 'none', lg: 'flex' }, alignItems: 'center', bgcolor: alpha('#020617', 0.4), border: '1px solid rgba(255,255,255,0.05)', borderRadius: '14px', px: 2, py: 0.8 }}>
+                            <Box sx={{ display: { xs: 'none', lg: 'flex' }, alignItems: 'center', bgcolor: alpha(theme.palette.background.default, 0.4), border: `1px solid ${theme.palette.divider}`, borderRadius: '14px', px: 2, py: 0.8 }}>
                                 <SearchIcon sx={{ color: 'text.secondary', mr: 1.5, fontSize: 18 }} />
                                 <InputBase placeholder={t('search')} sx={{ fontSize: '0.85rem', color: 'text.primary', fontWeight: 500 }} />
                             </Box>
@@ -332,7 +335,7 @@ export default function Layout() {
                                 startIcon={<Language />}
                                 onClick={toggleLanguage}
                                 sx={{
-                                    color: 'white',
+                                    color: theme.palette.text.primary,
                                     fontWeight: 700,
                                     fontSize: '0.8rem',
                                     bgcolor: alpha(theme.palette.primary.main, 0.15),
@@ -352,12 +355,24 @@ export default function Layout() {
                                     {i18n.language === 'si' ? 'සිංහල' : 'English'}
                                 </Box>
                             </Button>
-
-                            <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 1 }}>
-                                <IconButton size="small" sx={{ color: 'text.secondary', bgcolor: 'rgba(255,255,255,0.03)', borderRadius: '12px', p: 1 }}>
-                                    <NotificationsOutlined fontSize="small" />
-                                </IconButton>
-                            </Box>
+                            
+                             <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 1 }}>
+                                 <IconButton 
+                                     onClick={toggleColorMode} 
+                                     size="small" 
+                                     sx={{ 
+                                         color: mode === 'dark' ? '#fbbf24' : '#64748b', 
+                                         bgcolor: alpha(theme.palette.text.primary, 0.03), 
+                                         borderRadius: '12px', 
+                                         p: 1, 
+                                         mr: 1 
+                                     }}>
+                                     {mode === 'dark' ? <WbSunny fontSize="small" /> : <NightlightRound fontSize="small" />}
+                                 </IconButton>
+                                 <IconButton size="small" sx={{ color: 'text.secondary', bgcolor: alpha(theme.palette.text.primary, 0.03), borderRadius: '12px', p: 1 }}>
+                                     <NotificationsOutlined fontSize="small" />
+                                 </IconButton>
+                             </Box>
                             
                             <Box sx={{ 
                                 display: 'flex', 
@@ -367,11 +382,11 @@ export default function Layout() {
                                 p: 0.6, 
                                 pr: { xs: 0.6, sm: 2 }, 
                                 borderRadius: '18px', 
-                                bgcolor: alpha('#020617', 0.3),
-                                border: '1px solid rgba(255,255,255,0.05)',
+                                bgcolor: alpha(theme.palette.background.default, 0.3),
+                                border: `1px solid ${theme.palette.divider}`,
                                 transition: 'all 0.3s ease',
                                 cursor: 'pointer',
-                                '&:hover': { bgcolor: alpha('#020617', 0.5), borderColor: 'rgba(255,255,255,0.1)' }
+                                '&:hover': { bgcolor: alpha(theme.palette.background.default, 0.5), borderColor: theme.palette.divider }
                             }}>
                                 <Avatar sx={{ 
                                     width: 36, 

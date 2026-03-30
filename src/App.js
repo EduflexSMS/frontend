@@ -1,8 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { ThemeProvider, CssBaseline } from '@mui/material';
+import { CssBaseline } from '@mui/material';
 import { AnimatePresence } from 'framer-motion';
-import theme from './theme'; // Import the Void Glass Theme
+import { ThemeContextProvider } from './contexts/ThemeContext';
 import Layout from './components/Layout';
 import ViewStudents from './pages/ViewStudents';
 import LoginPage from './pages/LoginPage';
@@ -91,14 +91,14 @@ function AnimatedRoutes() {
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeContextProvider>
       <CssBaseline />
       <ErrorBoundary>
         <BrowserRouter>
           <AnimatedRoutes />
         </BrowserRouter>
       </ErrorBoundary>
-    </ThemeProvider>
+    </ThemeContextProvider>
   );
 }
 
