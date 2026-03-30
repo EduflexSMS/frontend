@@ -230,9 +230,9 @@ export default function ViewStudents() {
                                 sx={{
                                     height: '100%', minHeight: 240,
                                     cursor: 'pointer', borderRadius: '24px',
-                                    background: 'rgba(59, 130, 246, 0.2)', // Semi-transparent Blue
+                                    background: alpha(theme.palette.primary.main, 0.15),
                                     backdropFilter: 'blur(20px)',
-                                    border: '1px solid rgba(59, 130, 246, 0.4)',
+                                    border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
                                     padding: { xs: 2, md: 4 }, position: 'relative', overflow: 'hidden',
                                     display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'
                                 }}
@@ -241,7 +241,7 @@ export default function ViewStudents() {
                                 <Typography variant="h5" fontWeight="800" color="text.primary" align="center" sx={{ zIndex: 1 }}>
                                     View All Students
                                 </Typography>
-                                <Paper sx={{ mt: 2, px: 2, py: 0.5, borderRadius: '20px', bgcolor: 'rgba(0,0,0,0.3)', color: 'text.secondary', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                <Paper sx={{ mt: 2, px: 2, py: 0.5, borderRadius: '20px', bgcolor: alpha(theme.palette.text.primary, 0.05), color: 'text.secondary', border: `1px solid ${theme.palette.divider}` }}>
                                     <Typography variant="caption" fontWeight="bold">Total Records</Typography>
                                 </Paper>
                             </Card>
@@ -262,9 +262,9 @@ export default function ViewStudents() {
                                         height: '100%', minHeight: 240,
                                         p: { xs: 2, md: 4 }, borderRadius: '24px',
                                         cursor: 'pointer',
-                                        bgcolor: 'rgba(30, 41, 59, 0.6)', // Dark Glass
-                                        backdropFilter: 'blur(16px)',
-                                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                                        bgcolor: alpha(theme.palette.background.paper, 0.6),
+                                        backdropFilter: 'blur(20px)',
+                                        border: `1px solid ${theme.palette.divider}`,
                                         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                                         position: 'relative', overflow: 'hidden',
                                         transition: 'border-color 0.3s'
@@ -325,9 +325,9 @@ export default function ViewStudents() {
                                             height: '100%', minHeight: 240,
                                             borderRadius: '24px', p: { xs: 2, md: 4 },
                                             cursor: 'pointer',
-                                            bgcolor: 'rgba(30, 41, 59, 0.6)', // Dark Glass
-                                            backdropFilter: 'blur(16px)',
-                                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                                            bgcolor: alpha(theme.palette.background.paper, 0.6),
+                                            backdropFilter: 'blur(20px)',
+                                            border: `1px solid ${theme.palette.divider}`,
                                             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
                                             position: 'relative', overflow: 'hidden',
                                             transition: 'border-color 0.3s'
@@ -373,10 +373,10 @@ export default function ViewStudents() {
                                 mb: 4,
                                 '& .MuiOutlinedInput-root': {
                                     borderRadius: '16px',
-                                    bgcolor: 'rgba(30, 41, 59, 0.6)',
-                                    backdropFilter: 'blur(10px)',
+                                    bgcolor: alpha(theme.palette.background.paper, 0.6),
+                                    backdropFilter: 'blur(20px)',
                                     color: 'text.primary',
-                                    '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.1)' },
+                                    '& fieldset': { borderColor: theme.palette.divider },
                                     '&:hover fieldset': { borderColor: theme.palette.primary.main },
                                 },
                                 '& .MuiInputLabel-root': { color: 'text.secondary' }
@@ -397,9 +397,9 @@ export default function ViewStudents() {
                         ) : (
                             <Paper elevation={0} sx={{
                                 borderRadius: '24px', overflow: 'hidden',
-                                border: '1px solid rgba(255, 255, 255, 0.08)',
-                                bgcolor: 'rgba(30, 41, 59, 0.6)',
-                                backdropFilter: 'blur(16px)'
+                                border: `1px solid ${theme.palette.divider}`,
+                                bgcolor: 'transparent',
+                                backdropFilter: 'none'
                             }}>
                                 <StudentTable
                                     students={students}

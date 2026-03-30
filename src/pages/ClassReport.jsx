@@ -227,7 +227,7 @@ export default function ClassReport() {
                     boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
                     background: alpha(theme.palette.background.paper, 0.5),
                     backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    border: `1px solid ${theme.palette.divider}`,
                     overflow: 'hidden',
                     transition: 'transform 0.2s',
                     '&:hover': {
@@ -407,7 +407,7 @@ export default function ClassReport() {
                     boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
                     background: alpha(theme.palette.background.paper, 0.6), // Dark Glass
                     backdropFilter: 'blur(24px)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                    border: `1px solid ${theme.palette.divider}`
                 }}
             >
                 <Grid container spacing={3} alignItems="center">
@@ -429,7 +429,7 @@ export default function ClassReport() {
                                     bgcolor: alpha(theme.palette.background.paper, 0.4),
                                     color: 'text.primary',
                                     '& .MuiSvgIcon-root': { color: 'text.secondary' },
-                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
+                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.divider },
                                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
                                 }}
                                 startAdornment={
@@ -458,7 +458,7 @@ export default function ClassReport() {
                                     bgcolor: alpha(theme.palette.background.paper, 0.4),
                                     color: 'text.primary',
                                     '& .MuiSvgIcon-root': { color: 'text.secondary' },
-                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
+                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.divider },
                                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
                                 }}
                                 startAdornment={
@@ -488,7 +488,7 @@ export default function ClassReport() {
                                     bgcolor: alpha(theme.palette.background.paper, 0.4),
                                     color: 'text.primary',
                                     '& .MuiSvgIcon-root': { color: 'text.secondary' },
-                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
+                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.divider },
                                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
                                 }}
                                 startAdornment={
@@ -522,7 +522,7 @@ export default function ClassReport() {
                                 fontSize: '1rem',
                                 background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
                                 boxShadow: '0 4px 12px rgba(6, 182, 212, 0.4)',
-                                border: '1px solid rgba(255,255,255,0.2)'
+                                border: `1px solid ${theme.palette.divider}`
                             }}
                         >
                             {loading ? <CircularProgress size={24} color="inherit" /> : "Generate Report"}
@@ -571,7 +571,7 @@ export default function ClassReport() {
                     {isMobile ? (
                         <Box>
                             {reportData.length === 0 ? (
-                                <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 4, bgcolor: alpha(theme.palette.background.paper, 0.6), backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 4, bgcolor: alpha(theme.palette.background.paper, 0.6), backdropFilter: 'blur(10px)', border: `1px solid ${theme.palette.divider}` }}>
                                     <Typography color="text.secondary">No students found matching your criteria.</Typography>
                                 </Paper>
                             ) : (
@@ -590,7 +590,7 @@ export default function ClassReport() {
                                 borderRadius: 4,
                                 overflow: 'hidden',
                                 boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                border: `1px solid ${theme.palette.divider}`,
                                 bgcolor: alpha(theme.palette.background.paper, 0.6), // Dark Glass
                                 backdropFilter: 'blur(20px)'
                             }}
@@ -629,7 +629,7 @@ export default function ClassReport() {
                                                     cursor: 'default',
                                                     '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.05) },
                                                     transition: 'background-color 0.2s',
-                                                    borderBottom: '1px solid rgba(255,255,255,0.05)'
+                                                    borderBottom: `1px solid ${theme.palette.divider}`
                                                 }}
                                             >
                                                 <TableCell sx={{ pl: 4 }}>
@@ -648,7 +648,7 @@ export default function ClassReport() {
                                                     </Box>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Chip label={row.indexNumber} size="small" sx={{ borderRadius: 1, bgcolor: alpha(theme.palette.background.paper, 0.4), fontWeight: 600, color: 'text.secondary', border: '1px solid rgba(255,255,255,0.1)' }} />
+                                                    <Chip label={row.indexNumber} size="small" sx={{ borderRadius: 1, bgcolor: alpha(theme.palette.background.paper, 0.4), fontWeight: 600, color: 'text.secondary', border: `1px solid ${theme.palette.divider}` }} />
                                                 </TableCell>
                                                 <TableCell sx={{ fontFamily: 'monospace', color: '#64748b' }}>{row.mobile}</TableCell>
                                                 <TableCell align="center">

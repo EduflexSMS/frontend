@@ -130,7 +130,7 @@ export default function DailyReport() {
             background: alpha(theme.palette.background.paper, 0.5),
             backdropFilter: 'blur(10px)',
             borderRadius: 3,
-            border: '1px solid rgba(255,255,255,0.1)',
+            border: `1px solid ${theme.palette.divider}`,
             transition: 'transform 0.2s',
             boxShadow: `0 4px 20px 0 ${alpha(color, 0.15)}`,
             '&:hover': { transform: 'translateY(-2px)', boxShadow: `0 6px 25px 0 ${alpha(color, 0.25)}` }
@@ -159,7 +159,7 @@ export default function DailyReport() {
                 </Box>
             </Box>
 
-            <MotionPaper variants={itemVariants} elevation={0} sx={{ p: { xs: 2.5, md: 3 }, mb: 4, borderRadius: 4, background: alpha(theme.palette.background.paper, 0.6), backdropFilter: 'blur(24px)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <MotionPaper variants={itemVariants} elevation={0} sx={{ p: { xs: 2.5, md: 3 }, mb: 4, borderRadius: 4, background: alpha(theme.palette.background.paper, 0.6), backdropFilter: 'blur(24px)', border: `1px solid ${theme.palette.divider}` }}>
                 <Grid container spacing={3} alignItems="center">
                     <Grid item xs={12} sm={6} md={3}>
                         <FormControl fullWidth size="small">
@@ -169,7 +169,7 @@ export default function DailyReport() {
                                 value={date}
                                 onChange={(e) => setDate(e.target.value)}
                                 style={{
-                                    height: '40px', padding: '0 14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
+                                    height: '40px', padding: '0 14px', borderRadius: '12px', border: `1px solid ${theme.palette.divider}`,
                                     backgroundColor: alpha(theme.palette.background.paper, 0.4), color: theme.palette.text.primary,
                                     fontSize: '1rem', fontFamily: 'inherit', outline: 'none'
                                 }}
@@ -248,7 +248,7 @@ export default function DailyReport() {
                         <Grid item xs={12} sm={6} md={4}><StatCard title="Left to Pay (This Month)" value={summary.unpaidMonth} color={theme.palette.error.light} icon={<Cancel />} /></Grid>
                     </Grid>
 
-                    <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 4, bgcolor: alpha(theme.palette.background.paper, 0.6), backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                    <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 4, bgcolor: alpha(theme.palette.background.paper, 0.6), backdropFilter: 'blur(20px)', border: `1px solid ${theme.palette.divider}` }}>
                         <Table>
                             <TableHead>
                                 <TableRow sx={{ background: alpha(theme.palette.primary.main, 0.05) }}>
