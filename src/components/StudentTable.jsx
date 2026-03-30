@@ -64,7 +64,7 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
                     background: open ? 'linear-gradient(90deg, rgba(0,247,255,0.05) 0%, rgba(0,0,0,0) 100%)' : 'transparent',
                     transition: 'all 0.3s ease',
                     '&:hover': {
-                        bgcolor: 'rgba(255, 255, 255, 0.02)',
+                        bgcolor: alpha(theme.palette.text.primary, 0.04),
                         transform: 'translateY(-2px)',
                         boxShadow: '0 4px 20px -5px rgba(0,0,0,0.2)'
                     }
@@ -141,7 +141,7 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
                                     />
                                 );
                             })}
-                            {row.enrollments.length > 2 && <Chip label={`+${row.enrollments.length - 2}`} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: 'rgba(255,255,255,0.05)', color: 'text.secondary' }} />}
+                            {row.enrollments.length > 2 && <Chip label={`+${row.enrollments.length - 2}`} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: alpha(theme.palette.text.primary, 0.05), color: 'text.secondary' }} />}
                         </Box>
                     ) : (
                         <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.5 }}>None</Typography>
@@ -189,9 +189,9 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
                     <Collapse in={open} timeout="auto" unmountOnExit>
                         <Box sx={{
                             m: 2, ml: 4, mr: 4, p: 3,
-                            background: 'rgba(10, 10, 20, 0.4)',
+                            background: alpha(theme.palette.background.paper, 0.6),
                             borderRadius: '16px',
-                            border: '1px solid rgba(255,255,255,0.05)',
+                            border: `1px solid ${theme.palette.divider}`,
                             boxShadow: 'inset 0 0 20px rgba(0,0,0,0.5)'
                         }}>
                             <Typography variant="subtitle2" gutterBottom component="div" sx={{
@@ -236,8 +236,8 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
                 mb: 2,
                 borderRadius: '20px',
                 boxShadow: '0 10px 30px -5px rgba(0, 0, 0, 0.3)',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-                background: 'rgba(18, 18, 30, 0.6)',
+                border: `1px solid ${theme.palette.divider}`,
+                background: alpha(theme.palette.background.paper, 0.6),
                 backdropFilter: 'blur(16px)',
                 overflow: 'visible'
             }}
@@ -262,11 +262,11 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
                             {row.name.charAt(0)}
                         </Avatar>
                         <Box>
-                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#fff', fontSize: '1.1rem' }}>{row.name}</Typography>
+                            <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '1.1rem' }}>{row.name}</Typography>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                                 <Chip label={`#${row.indexNumber}`} size="small" sx={{
                                     borderRadius: '6px', height: 20, fontSize: '0.7rem',
-                                    bgcolor: 'rgba(255,255,255,0.05)', color: 'text.secondary', border: '1px solid rgba(255,255,255,0.05)'
+                                    bgcolor: alpha(theme.palette.text.primary, 0.05), color: 'text.secondary', border: `1px solid ${theme.palette.divider}`
                                 }} />
                                 <Typography variant="caption" color="text.secondary">{row.grade}</Typography>
                             </Box>
@@ -294,7 +294,7 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
 
                 <Grid container spacing={1} sx={{ mt: 2, mb: 2 }}>
                     <Grid item xs={12}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', bgcolor: 'rgba(0,0,0,0.2)', p: 1.5, borderRadius: '12px' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', bgcolor: alpha(theme.palette.text.primary, 0.05), p: 1.5, borderRadius: '12px' }}>
                             <Phone fontSize="small" sx={{ opacity: 0.7 }} />
                             <Typography variant="caption" fontFamily="monospace" fontSize="0.85rem">{row.mobile}</Typography>
                         </Box>
@@ -328,7 +328,7 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
                 </Box>
             </CardContent>
 
-            <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+            <Box sx={{ borderTop: `1px solid ${theme.palette.divider}` }}>
                 <Button
                     fullWidth
                     variant="text"
@@ -338,7 +338,7 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
                         textTransform: 'none',
                         color: 'text.secondary',
                         py: 1.5,
-                        '&:hover': { bgcolor: 'rgba(255,255,255,0.02)', color: '#00f7ff' }
+                        '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.02), color: '#00f7ff' }
                     }}
                 >
                     {expanded ? 'Hide Details' : 'View Participation'}
@@ -346,7 +346,7 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
             </Box>
 
             <Collapse in={expanded} timeout="auto" unmountOnExit>
-                <Box sx={{ p: 1, pb: 3, bgcolor: 'rgba(0,0,0,0.1)' }}>
+                <Box sx={{ p: 1, pb: 3, bgcolor: alpha(theme.palette.text.primary, 0.04) }}>
                     <SubjectGrid
                         student={row}
                         studentId={row._id}
@@ -421,8 +421,8 @@ export default function StudentTable({ students, onUpdate, subjectColorMap }) {
                     sx={{
                         borderRadius: '24px',
                         boxShadow: '0 20px 50px -10px rgba(0, 0, 0, 0.5)',
-                        border: '1px solid rgba(255, 255, 255, 0.05)',
-                        bgcolor: 'rgba(12, 12, 24, 0.6)',
+                        border: `1px solid ${theme.palette.divider}`,
+                        bgcolor: alpha(theme.palette.background.paper, 0.6),
                         backdropFilter: 'blur(30px)',
                         overflow: 'hidden'
                     }}
@@ -430,9 +430,9 @@ export default function StudentTable({ students, onUpdate, subjectColorMap }) {
                     <Table aria-label="collapsible table" sx={{ minWidth: 650 }}>
                         <TableHead>
                             <TableRow sx={{
-                                bgcolor: 'rgba(0, 0, 0, 0.3)',
+                                bgcolor: alpha(theme.palette.text.primary, 0.04),
                                 '& th': {
-                                    borderBottom: '1px solid rgba(255,255,255,0.05)',
+                                    borderBottom: `1px solid ${theme.palette.divider}`,
                                     py: 2.5
                                 }
                             }}>
@@ -477,20 +477,20 @@ export default function StudentTable({ students, onUpdate, subjectColorMap }) {
                 PaperProps={{
                     style: {
                         borderRadius: 24,
-                        background: 'rgba(15, 15, 30, 0.95)',
+                        background: alpha(theme.palette.background.paper, 0.95),
                         backdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(255,255,255,0.1)'
+                        border: `1px solid ${theme.palette.divider}`
                     }
                 }}
             >
-                <DialogTitle sx={{ color: 'white', fontWeight: 700 }}>Confirm Delete</DialogTitle>
+                <DialogTitle sx={{ color: 'text.primary', fontWeight: 700 }}>Confirm Delete</DialogTitle>
                 <DialogContent>
-                    <DialogContentText sx={{ color: 'rgba(255,255,255,0.7)' }}>
-                        Are you sure you want to delete <strong style={{ color: '#fff' }}>{studentToDelete?.name}</strong>? This action cannot be undone.
+                    <DialogContentText sx={{ color: 'text.secondary' }}>
+                        Are you sure you want to delete <strong style={{ color: theme.palette.text.primary }}>{studentToDelete?.name}</strong>? This action cannot be undone.
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions sx={{ pb: 3, pr: 3 }}>
-                    <Button onClick={() => setDeleteConfirmOpen(false)} sx={{ color: 'rgba(255,255,255,0.5)' }}>Cancel</Button>
+                    <Button onClick={() => setDeleteConfirmOpen(false)} sx={{ color: 'text.secondary' }}>Cancel</Button>
                     <Button onClick={handleConfirmDelete} variant="contained" color="error" sx={{ borderRadius: '12px', fontWeight: 700 }}>
                         Delete Permanently
                     </Button>
