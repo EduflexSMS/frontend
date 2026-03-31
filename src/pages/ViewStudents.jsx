@@ -171,6 +171,17 @@ const GlobalStyle = () => (
     }
     .sec-lbl::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
+    /* Action Bar */
+    .action-bar { display: flex; gap: 10px; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px dashed var(--border2); }
+    .action-btn { 
+      padding: 8px 14px; border-radius: var(--r-sm); border: 1px solid var(--border);
+      background: var(--surface); color: var(--text2); font-size: 0.75rem; font-weight: 600; font-family: var(--font);
+      display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.15s;
+    }
+    .action-btn:hover { background: var(--surface2); color: var(--text); transform: translateY(-1px); border-color: var(--border3); }
+    .action-btn.wa:hover { color: #4ade80; border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.05); }
+    .action-btn.del:hover { color: #f87171; border-color: rgba(248,113,113,0.3); background: rgba(248,113,113,0.05); }
+
     /* Stats */
     .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 22px; }
     @media (max-width: 500px) { .stats-grid { grid-template-columns: repeat(2,1fr); } }
@@ -197,9 +208,11 @@ const GlobalStyle = () => (
     .mo-fee { font-size: 1rem; }
     .att-dots { display: flex; flex-wrap: wrap; gap: 5px; }
     .dot {
-      width: 19px; height: 19px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; font-size: 0.55rem; font-weight: 700;
+      width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;
+      transition: transform 0.15s, box-shadow 0.15s;
     }
+    .dot:hover { transform: scale(1.1); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
     .dot-p { background: var(--green-dim); border: 1.5px solid rgba(74,222,128,0.45); color: var(--green); }
     .dot-a { background: var(--orange-dim); border: 1.5px solid rgba(251,146,60,0.35); color: var(--orange); }
     .dot-q { background: var(--surface); border: 1.5px solid var(--border); color: var(--text3); }
@@ -262,6 +275,42 @@ const SUBJ_META = {
   Scholarship: { color: '#fbbf24', bg: 'rgba(251,191,36,0.12)',  icon: '🏆' },
 };
 
+const WHATSAPP_GROUP_LINKS = {
+    'Grade 03': 'https://chat.whatsapp.com/JDa517chrKQ9459MfzRSZC',
+    'Grade 04': 'https://chat.whatsapp.com/Il7vUb6trXOBViX4U46dfm',
+    'Grade 05': 'https://chat.whatsapp.com/K0df52vVfPoDjFuLtYrneG',
+    'Grade 06': 'https://chat.whatsapp.com/Ebz4zJgdDhDEn1p2Z6HzbX',
+    'Grade 07': 'https://chat.whatsapp.com/Ko87JpVAHdMJ3UCIDHh22a',
+    'Grade 08': 'https://chat.whatsapp.com/LfrLuuB0NmE37Bul1cSwog',
+    'Grade 09': 'https://chat.whatsapp.com/KEoJ2cotqWUA92EZA5R4W7',
+    'Grade 10': 'https://chat.whatsapp.com/KOJD2PNrd936IHgWxLGotB',
+    'Grade 11': 'https://chat.whatsapp.com/IuCquSU1EPHB9TcORCUdrz',
+};
+
+const sendWhatsAppGroupLink = (student) => {
+    try {
+        if (!student.mobile) {
+            alert('No mobile number provided for this student.');
+            return;
+        }
+        let formattedNumber = student.mobile.trim().replace(/[\s-]/g, '');
+        if (formattedNumber.startsWith('0')) formattedNumber = '94' + formattedNumber.substring(1);
+        else if (formattedNumber.startsWith('+94')) formattedNumber = formattedNumber.substring(1);
+        else if (formattedNumber.length === 9 && !formattedNumber.startsWith('94')) formattedNumber = '94' + formattedNumber;
+        
+        const groupLink = WHATSAPP_GROUP_LINKS[student.grade];
+        if (!groupLink) {
+            alert(`No WhatsApp group link configured for ${student.grade}`);
+            return;
+        }
+        const message = `Welcome to Eduflex!\nHere is your ${student.grade} WhatsApp Group Link: ${groupLink}`;
+        const url = `https://wa.me/${formattedNumber}?text=${encodeURIComponent(message)}`;
+        window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+        console.error("Error opening WhatsApp link:", error);
+    }
+};
+
 const getSubjMeta = name => {
   for (const [k, v] of Object.entries(SUBJ_META)) {
     if (name?.includes(k)) return v;
@@ -307,21 +356,27 @@ function Pager({ page, total, onChange }) {
 function StudentRow({ student, onUpdate }) {
   const [open, setOpen] = useState(false);
 
-  const handleToggleAttendance = async (subjectName, monthIndex, weekIndex) => {
+  const handleToggleAttendance = async (subjectName, monthIndex, weekIndex, currentStatus) => {
     try {
-      await axios.patch(`${API_BASE_URL}/api/attendance/${student._id}/${subjectName}/${monthIndex}/${weekIndex}`);
+      let newStatus = 'present';
+      if (currentStatus === 'present' || currentStatus === true || currentStatus === 'true') newStatus = 'absent';
+      else if (currentStatus === 'absent') newStatus = 'pending';
+
+      await axios.patch(`${API_BASE_URL}/api/attendance/${student._id}/${encodeURIComponent(subjectName)}/${monthIndex}/${weekIndex}`, { status: newStatus });
       if (onUpdate) onUpdate();
     } catch (e) {
       console.error(e);
+      alert('Error updating attendance: ' + (e.response?.data?.message || e.message));
     }
   };
 
   const handleToggleFee = async (subjectName, monthIndex) => {
     try {
-      await axios.patch(`${API_BASE_URL}/api/records/${student._id}/${subjectName}/${monthIndex}/fee`);
+      await axios.patch(`${API_BASE_URL}/api/records/${student._id}/${encodeURIComponent(subjectName)}/${monthIndex}/fee`, {});
       if (onUpdate) onUpdate();
     } catch (e) {
       console.error(e);
+      alert('Error updating fee: ' + (e.response?.data?.message || e.message));
     }
   };
 
@@ -374,6 +429,22 @@ function StudentRow({ student, onUpdate }) {
       {open && (
         <div className="stu-detail slide-in">
           <div className="detail-body">
+            
+            {/* Action Bar */}
+            <div className="action-bar">
+              <button className="action-btn wa" onClick={() => sendWhatsAppGroupLink(student)}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                WhatsApp Group
+              </button>
+              <button className="action-btn del" onClick={async () => {
+                if(window.confirm(`Delete ${student.name}?`)) {
+                   try { await axios.delete(API_BASE_URL + '/api/students/' + student._id); if (onUpdate) onUpdate(); } catch(e) { console.error(e); alert('Error deleting'); }
+                }
+              }}>
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                Delete Student
+              </button>
+            </div>
 
             {/* Overview stats */}
             <div className="sec-lbl">📊 Overview</div>
@@ -432,7 +503,7 @@ function StudentRow({ student, onUpdate }) {
                                   const isP = s === 'present' || s === true || s === 'true';
                                   const isQ = s === 'pending';
                                   return (
-                                    <div key={i} className={`dot ${isQ ? 'dot-q' : isP ? 'dot-p' : 'dot-a'}`} onClick={(e) => { e.stopPropagation(); handleToggleAttendance(subj.name, mi, i); }} style={{ cursor: 'pointer' }}>
+                                    <div key={i} className={`dot ${isQ ? 'dot-q' : isP ? 'dot-p' : 'dot-a'}`} onClick={(e) => { e.stopPropagation(); handleToggleAttendance(subj.name, mi, i, s); }}>
                                       {isQ ? '' : isP ? '✓' : '✗'}
                                     </div>
                                   );
