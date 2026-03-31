@@ -366,8 +366,27 @@ export default function LoginPage() {
       .catch(() => {});
   }, []);
 
+  // Cancellation ref — if user clicks back while a request is in-flight,
+  // we discard the result and don't update state on an unmounted/stale role.
+  const loginCancelRef = useRef(false);
+
+  const goBack = () => {
+    loginCancelRef.current = true; // cancel any in-flight request
+    setSelectedRole(null);
+    setError('');
+    setLoading(false);
+    setUsername('');
+    setPassword('');
+    setStudentId('');
+    setSelectedSubject('');
+    setShowPassword(false);
+    // Allow new requests after a tick
+    setTimeout(() => { loginCancelRef.current = false; }, 100);
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
+    loginCancelRef.current = false;
     setLoading(true);
     setError('');
     try {
@@ -382,16 +401,19 @@ export default function LoginPage() {
       } else {
         if (!username || !password) throw new Error('Username and password required');
         const { data } = await axios.post(`${API_BASE_URL}/api/auth/login`, loginData);
+        if (loginCancelRef.current) return; // user went back, discard
         userData = data;
         if (userData.role !== selectedRole)
           throw new Error(`Access Denied: You cannot login as ${selectedRole} with a ${userData.role} account.`);
         redirectUrl = selectedRole === 'teacher' ? '/teacher-dashboard' : '/';
       }
 
+      if (loginCancelRef.current) return; // user went back, discard
       sessionStorage.setItem('userInfo', JSON.stringify(userData));
       localStorage.removeItem('userInfo');
       window.location.href = redirectUrl;
     } catch (err) {
+      if (loginCancelRef.current) return; // user went back, ignore error
       setError(err.message || err.response?.data?.message || 'Login failed');
       setLoading(false);
     }
@@ -541,7 +563,7 @@ export default function LoginPage() {
                   {/* Header */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 32 }}>
                     <button
-                      onClick={() => { setSelectedRole(null); setError(''); }}
+                      onClick={goBack}
                       style={{
                         width: 40, height: 40, borderRadius: 12,
                         background: 'rgba(255,255,255,0.06)',
