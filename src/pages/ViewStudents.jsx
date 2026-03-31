@@ -469,11 +469,15 @@ function StudentRow({ student, onUpdate, subjectColors }) {
 
   const stats = React.useMemo(() => {
     let total = 0, attended = 0;
+    
+    const isP = s => s === 'present' || s === true || s === 'true' || (typeof s === 'string' && s.toLowerCase() === 'present');
+    const isA = s => s === 'absent' || (typeof s === 'string' && s.toLowerCase() === 'absent');
+
     (student.enrollments || []).forEach(e => {
       (e.monthlyRecords || []).forEach(r => {
         (r.attendance || []).forEach(s => {
-          if (s !== 'pending') total++;
-          if (s === 'present' || s === true || s === 'true') attended++;
+          if (isP(s) || isA(s)) total++;
+          if (isP(s)) attended++;
         });
       });
     });
@@ -482,8 +486,8 @@ function StudentRow({ student, onUpdate, subjectColors }) {
       let st = 0, sa = 0;
       (e.monthlyRecords || []).forEach(r => {
         (r.attendance || []).forEach(s => {
-          if (s !== 'pending') st++;
-          if (s === 'present' || s === true || s === 'true') sa++;
+          if (isP(s) || isA(s)) st++;
+          if (isP(s)) sa++;
         });
       });
       const feesTotal = e.monthlyRecords?.length || 0;
