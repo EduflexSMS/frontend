@@ -353,11 +353,17 @@ function Pager({ page, total, onChange }) {
 }
 
 // ─── Student Row ──────────────────────────────────────────────────────────────
-function StudentRow({ student, onUpdate }) {
+function StudentRow({ student, onUpdate, subjectColors }) {
   const [open, setOpen] = useState(false);
 
   const handleToggleAttendance = async (subjectName, monthIndex, weekIndex, currentStatus) => {
     try {
+      if (currentStatus && currentStatus !== 'pending') {
+        if (!window.confirm(`Are you sure you want to change this attendance mark? It is currently marked as ${currentStatus}.`)) {
+          return;
+        }
+      }
+
       let newStatus = 'present';
       if (currentStatus === 'present' || currentStatus === true || currentStatus === 'true') newStatus = 'absent';
       else if (currentStatus === 'absent') newStatus = 'pending';
@@ -370,9 +376,29 @@ function StudentRow({ student, onUpdate }) {
     }
   };
 
-  const handleToggleFee = async (subjectName, monthIndex) => {
+  const handleToggleFee = async (subjectName, monthIndex, isPaid) => {
     try {
+      if (isPaid) {
+        if (!window.confirm("Are you sure you want to unmark this fee as paid?")) return;
+      }
+
       await axios.patch(`${API_BASE_URL}/api/records/${student._id}/${encodeURIComponent(subjectName)}/${monthIndex}/fee`, {});
+      
+      if (!isPaid && student.mobile) {
+        let mobile = student.mobile.trim();
+        if (mobile.startsWith('0')) mobile = '94' + mobile.substring(1);
+        else if (mobile.startsWith('+')) mobile = mobile.substring(1);
+        else if (!mobile.startsWith('94')) mobile = '94' + mobile;
+
+        const monthsList = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const monthName = monthsList[monthIndex];
+        const feeAmount = subjectColors?.[subjectName]?.fee || 0;
+        
+        const message = `Hello ${student.name},\n\nYour payment of Rs. ${feeAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} for the *${subjectName}* class (${monthName}) has been received successfully.\n\nThank you!\nEduflex Institute\nContact: +94789232752`;
+        
+        window.open(`https://wa.me/${mobile}?text=${encodeURIComponent(message)}`, '_blank');
+      }
+
       if (onUpdate) onUpdate();
     } catch (e) {
       console.error(e);
@@ -486,8 +512,11 @@ function StudentRow({ student, onUpdate }) {
                         <div key={m} className={`mo-card${isCurrent ? ' now' : ''}`} style={{ opacity: isFuture ? 0.3 : 1 }}>
                           <div className="mo-name">{m}</div>
                           <div className="mo-meta">
-                            <span className="mo-fee" title={rec?.feePaid ? 'Fee paid' : 'Fee pending'} onClick={(e) => { e.stopPropagation(); handleToggleFee(subj.name, mi); }} style={{ cursor: 'pointer' }}>
-                              {rec?.feePaid ? '💛' : '🩶'}
+                            <span className="mo-fee" title={rec?.feePaid ? 'Fee paid' : 'Fee pending'} onClick={(e) => { e.stopPropagation(); handleToggleFee(subj.name, mi, !!rec?.feePaid); }} style={{ cursor: 'pointer', display: 'flex' }}>
+                              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{color: rec?.feePaid ? '#4ade80' : 'var(--text3)'}}>
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                              </svg>
                             </span>
                             {att.length > 0 && (
                               <span>
@@ -753,7 +782,7 @@ export default function ViewStudents() {
 
                 {students.length === 0
                   ? <div className="empty">No students found</div>
-                  : students.map(s => <StudentRow key={s._id} student={s} onUpdate={() => fetchStudents(true)} />)
+                  : students.map(s => <StudentRow key={s._id} student={s} onUpdate={() => fetchStudents(true)} subjectColors={subjectColors} />)
                 }
               </div>
             )}
