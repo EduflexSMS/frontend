@@ -400,12 +400,8 @@ function StudentRow({ student, onUpdate, onEdit, subjectColors }) {
   const [confirmOpts, setConfirmOpts] = useState(null);
 
   const handleToggleAttendance = async (subjectName, monthIndex, weekIndex, currentStatus) => {
-    const applyUpdate = async () => {
+    const applyUpdate = async (newStatus) => {
       try {
-        let newStatus = 'present';
-        if (currentStatus === 'present' || currentStatus === true || currentStatus === 'true') newStatus = 'absent';
-        else if (currentStatus === 'absent') newStatus = 'pending';
-
         await axios.patch(`${API_BASE_URL}/api/attendance/${student._id}/${encodeURIComponent(subjectName)}/${monthIndex}/${weekIndex}`, { status: newStatus });
         if (onUpdate) onUpdate();
       } catch (e) {
@@ -415,17 +411,40 @@ function StudentRow({ student, onUpdate, onEdit, subjectColors }) {
       setConfirmOpts(null);
     };
 
-    if (currentStatus && currentStatus !== 'pending') {
-      setConfirmOpts({
-        title: 'Change Attendance',
-        desc: `Are you sure you want to change this attendance mark? It is currently marked as ${currentStatus}.`,
-        iconType: 'warning',
-        confirmText: 'Change Status',
-        onConfirm: applyUpdate
-      });
-      return;
-    }
-    applyUpdate();
+    setConfirmOpts({
+      title: 'Update Attendance',
+      desc: `Select the attendance status. Currently it is ${currentStatus || 'pending'}.`,
+      iconType: 'info',
+      customBody: (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
+          <button 
+            onClick={() => applyUpdate('present')}
+            style={{ padding: '10px', borderRadius: '8px', border: 'none', background: 'var(--green)', color: '#fff', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+          >
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Mark Present
+          </button>
+          
+          <button 
+            onClick={() => applyUpdate('absent')}
+            style={{ padding: '10px', borderRadius: '8px', border: 'none', background: 'var(--orange)', color: '#fff', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+          >
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            Mark Absent
+          </button>
+
+          <button 
+            onClick={() => applyUpdate('pending')}
+            style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface2)', color: 'var(--text2)', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '4px' }}
+          >
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/></svg>
+            Clear (Pending)
+          </button>
+          
+          <button className="confirm-btn cancel" onClick={() => setConfirmOpts(null)} style={{ marginTop: '8px', justifyContent: 'center', width: '100%' }}>Cancel</button>
+        </div>
+      )
+    });
   };
 
   const handleToggleFee = async (subjectName, monthIndex, isPaid) => {
@@ -729,12 +748,14 @@ function StudentRow({ student, onUpdate, onEdit, subjectColors }) {
               <div className="confirm-title">{confirmOpts.title}</div>
             </div>
             <div className="confirm-desc">{confirmOpts.desc}</div>
-            <div className="confirm-actions">
-              <button className="confirm-btn cancel" onClick={() => setConfirmOpts(null)}>Cancel</button>
-              <button className={`confirm-btn ${confirmOpts.iconType}`} onClick={() => confirmOpts.onConfirm()}>
-                {confirmOpts.confirmText}
-              </button>
-            </div>
+            {confirmOpts.customBody ? confirmOpts.customBody : (
+              <div className="confirm-actions">
+                <button className="confirm-btn cancel" onClick={() => setConfirmOpts(null)}>Cancel</button>
+                <button className={`confirm-btn ${confirmOpts.iconType}`} onClick={() => confirmOpts.onConfirm()}>
+                  {confirmOpts.confirmText}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
