@@ -29,6 +29,7 @@ const GlobalStyle = () => (
       --orange:      #fb923c;
       --orange-dim:  rgba(251,146,60,0.12);
       --red:         #f87171;
+      --red-dim:     rgba(248,113,113,0.12);
       --gold:        #fbbf24;
       --text:        #fafafa;
       --text2:       #a1a1aa;
@@ -245,6 +246,45 @@ const GlobalStyle = () => (
     .centered { display: flex; justify-content: center; align-items: center; padding: 56px 0; }
     .empty { text-align: center; padding: 44px; font-size: 0.85rem; color: var(--text3); }
 
+    /* ── Confirm Popup ── */
+    .confirm-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+      z-index: 9999; display: flex; align-items: center; justify-content: center;
+      animation: vs-fadein 0.2s ease;
+    }
+    .confirm-box {
+      background: var(--bg2); border: 1px solid var(--border2);
+      border-radius: var(--r-xl); width: 100%; max-width: 360px;
+      padding: 24px; box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05) inset;
+      animation: vs-zoom-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .confirm-header { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+    .confirm-icon {
+      width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .confirm-icon.warning { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(251,146,60,0.25); }
+    .confirm-icon.danger { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.25); }
+    .confirm-title { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+    .confirm-desc { font-size: 0.85rem; color: var(--text3); line-height: 1.5; margin-bottom: 24px; }
+    
+    .confirm-actions { display: flex; gap: 10px; }
+    .confirm-btn {
+      flex: 1; padding: 11px 0; border-radius: var(--r); font-family: var(--font);
+      font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.15s; outline: none;
+    }
+    .confirm-btn.cancel { background: var(--surface); color: var(--text2); border: 1px solid var(--border); }
+    .confirm-btn.cancel:hover { background: var(--surface2); color: var(--text); border-color: var(--border3); }
+    .confirm-btn.danger { background: var(--red); color: #fff; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 4px 12px rgba(248,113,113,0.25); }
+    .confirm-btn.danger:hover { background: #ef4444; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(248,113,113,0.4); }
+    .confirm-btn.warning { background: var(--orange); color: #fff; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 4px 12px rgba(251,146,60,0.25); }
+    .confirm-btn.warning:hover { background: #f97316; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(251,146,60,0.4); }
+
+    @keyframes vs-zoom-in {
+      from { opacity: 0; transform: scale(0.92) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
     /* ── Animations ── */
     .fade-up { animation: vs-fadein 0.22s ease both; }
     @keyframes vs-fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -355,55 +395,76 @@ function Pager({ page, total, onChange }) {
 // ─── Student Row ──────────────────────────────────────────────────────────────
 function StudentRow({ student, onUpdate, subjectColors }) {
   const [open, setOpen] = useState(false);
+  const [confirmOpts, setConfirmOpts] = useState(null);
 
   const handleToggleAttendance = async (subjectName, monthIndex, weekIndex, currentStatus) => {
-    try {
-      if (currentStatus && currentStatus !== 'pending') {
-        if (!window.confirm(`Are you sure you want to change this attendance mark? It is currently marked as ${currentStatus}.`)) {
-          return;
-        }
+    const applyUpdate = async () => {
+      try {
+        let newStatus = 'present';
+        if (currentStatus === 'present' || currentStatus === true || currentStatus === 'true') newStatus = 'absent';
+        else if (currentStatus === 'absent') newStatus = 'pending';
+
+        await axios.patch(`${API_BASE_URL}/api/attendance/${student._id}/${encodeURIComponent(subjectName)}/${monthIndex}/${weekIndex}`, { status: newStatus });
+        if (onUpdate) onUpdate();
+      } catch (e) {
+        console.error(e);
+        alert('Error updating attendance: ' + (e.response?.data?.message || e.message));
       }
+      setConfirmOpts(null);
+    };
 
-      let newStatus = 'present';
-      if (currentStatus === 'present' || currentStatus === true || currentStatus === 'true') newStatus = 'absent';
-      else if (currentStatus === 'absent') newStatus = 'pending';
-
-      await axios.patch(`${API_BASE_URL}/api/attendance/${student._id}/${encodeURIComponent(subjectName)}/${monthIndex}/${weekIndex}`, { status: newStatus });
-      if (onUpdate) onUpdate();
-    } catch (e) {
-      console.error(e);
-      alert('Error updating attendance: ' + (e.response?.data?.message || e.message));
+    if (currentStatus && currentStatus !== 'pending') {
+      setConfirmOpts({
+        title: 'Change Attendance',
+        desc: `Are you sure you want to change this attendance mark? It is currently marked as ${currentStatus}.`,
+        iconType: 'warning',
+        confirmText: 'Change Status',
+        onConfirm: applyUpdate
+      });
+      return;
     }
+    applyUpdate();
   };
 
   const handleToggleFee = async (subjectName, monthIndex, isPaid) => {
-    try {
-      if (isPaid) {
-        if (!window.confirm("Are you sure you want to unmark this fee as paid?")) return;
-      }
-
-      await axios.patch(`${API_BASE_URL}/api/records/${student._id}/${encodeURIComponent(subjectName)}/${monthIndex}/fee`, {});
-      
-      if (!isPaid && student.mobile) {
-        let mobile = student.mobile.trim();
-        if (mobile.startsWith('0')) mobile = '94' + mobile.substring(1);
-        else if (mobile.startsWith('+')) mobile = mobile.substring(1);
-        else if (!mobile.startsWith('94')) mobile = '94' + mobile;
-
-        const monthsList = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        const monthName = monthsList[monthIndex];
-        const feeAmount = subjectColors?.[subjectName]?.fee || 0;
+    const applyUpdate = async () => {
+      try {
+        await axios.patch(`${API_BASE_URL}/api/records/${student._id}/${encodeURIComponent(subjectName)}/${monthIndex}/fee`, {});
         
-        const message = `Hello ${student.name},\n\nYour payment of Rs. ${feeAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} for the *${subjectName}* class (${monthName}) has been received successfully.\n\nThank you!\nEduflex Institute\nContact: +94789232752`;
-        
-        window.open(`https://wa.me/${mobile}?text=${encodeURIComponent(message)}`, '_blank');
-      }
+        if (!isPaid && student.mobile) {
+          let mobile = student.mobile.trim();
+          if (mobile.startsWith('0')) mobile = '94' + mobile.substring(1);
+          else if (mobile.startsWith('+')) mobile = mobile.substring(1);
+          else if (!mobile.startsWith('94')) mobile = '94' + mobile;
 
-      if (onUpdate) onUpdate();
-    } catch (e) {
-      console.error(e);
-      alert('Error updating fee: ' + (e.response?.data?.message || e.message));
+          const monthsList = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+          const monthName = monthsList[monthIndex];
+          const feeAmount = subjectColors?.[subjectName]?.fee || 0;
+          
+          const message = `Hello ${student.name},\n\nYour payment of Rs. ${feeAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} for the *${subjectName}* class (${monthName}) has been received successfully.\n\nThank you!\nEduflex Institute\nContact: +94789232752`;
+          
+          window.open(`https://wa.me/${mobile}?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        if (onUpdate) onUpdate();
+      } catch (e) {
+        console.error(e);
+        alert('Error updating fee: ' + (e.response?.data?.message || e.message));
+      }
+      setConfirmOpts(null);
+    };
+
+    if (isPaid) {
+      setConfirmOpts({
+        title: 'Unmark Fee',
+        desc: 'Are you sure you want to unmark this fee as paid? This will revert the record to pending.',
+        iconType: 'warning',
+        confirmText: 'Unmark Fee',
+        onConfirm: applyUpdate
+      });
+      return;
     }
+    applyUpdate();
   };
 
   const stats = React.useMemo(() => {
@@ -462,10 +523,23 @@ function StudentRow({ student, onUpdate, subjectColors }) {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
                 WhatsApp Group
               </button>
-              <button className="action-btn del" onClick={async () => {
-                if(window.confirm(`Delete ${student.name}?`)) {
-                   try { await axios.delete(API_BASE_URL + '/api/students/' + student._id); if (onUpdate) onUpdate(); } catch(e) { console.error(e); alert('Error deleting'); }
-                }
+              <button className="action-btn del" onClick={() => {
+                setConfirmOpts({
+                  title: 'Delete Student',
+                  desc: `Are you sure you want to permanently delete ${student.name}? This action cannot be undone.`,
+                  iconType: 'danger',
+                  confirmText: 'Delete Permanently',
+                  onConfirm: async () => {
+                    try { 
+                      await axios.delete(API_BASE_URL + '/api/students/' + student._id); 
+                      if (onUpdate) onUpdate(); 
+                    } catch(e) { 
+                      console.error(e); 
+                      alert('Error deleting'); 
+                    }
+                    setConfirmOpts(null);
+                  }
+                });
               }}>
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                 Delete Student
@@ -572,6 +646,31 @@ function StudentRow({ student, onUpdate, subjectColors }) {
               </>
             )}
 
+          </div>
+        </div>
+      )}
+
+      {/* ── Confirm Dialog Overlay ── */}
+      {confirmOpts && (
+        <div className="confirm-overlay" onClick={() => setConfirmOpts(null)}>
+          <div className="confirm-box" onClick={e => e.stopPropagation()}>
+            <div className="confirm-header">
+              <div className={`confirm-icon ${confirmOpts.iconType}`}>
+                {confirmOpts.iconType === 'danger' ? (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                ) : (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                )}
+              </div>
+              <div className="confirm-title">{confirmOpts.title}</div>
+            </div>
+            <div className="confirm-desc">{confirmOpts.desc}</div>
+            <div className="confirm-actions">
+              <button className="confirm-btn cancel" onClick={() => setConfirmOpts(null)}>Cancel</button>
+              <button className={`confirm-btn ${confirmOpts.iconType}`} onClick={() => confirmOpts.onConfirm()}>
+                {confirmOpts.confirmText}
+              </button>
+            </div>
           </div>
         </div>
       )}
