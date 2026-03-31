@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import API_BASE_URL from '../config';
 import StudentTable from '../components/StudentTable';
+import { generateFeeReport } from '../utils/generateFeeReport';
 
 // ─── Global Styles ─────────────────────────────────────────────────────────
 const GlobalStyle = () => (
@@ -547,6 +548,10 @@ function StudentRow({ student, onUpdate, subjectColors }) {
               }}>
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                 Delete Student
+              </button>
+              <button className="action-btn" onClick={() => generateFeeReport(student, subjectColors, stats)} style={{ marginLeft: 'auto', background: 'var(--accent-dim)', color: 'var(--accent)', borderColor: 'rgba(99,102,241,0.25)' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Download Report
               </button>
             </div>
 
