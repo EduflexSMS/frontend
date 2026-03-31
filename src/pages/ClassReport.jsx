@@ -74,8 +74,13 @@ export default function ClassReport() {
     const [month, setMonth] = useState('');
     const [subjectsList, setSubjectsList] = useState([]);
     const [reportData, setReportData] = useState(null);
+    const [gradeReportData, setGradeReportData] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [generatingPDF, setGeneratingPDF] = useState(false);
     const [error, setError] = useState(null);
+    
+    const [reportType, setReportType] = useState('single');
+    const [language, setLanguage] = useState('en');
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -98,28 +103,42 @@ export default function ClassReport() {
     }, []);
 
     const handleGenerate = async () => {
-        if (!grade || !subject || month === '') {
-            setError("Please select all fields");
+        if (!grade || month === '') {
+            setError("Please select grade and month");
             return;
         }
+        if (reportType === 'single' && !subject) {
+            setError("Please select a subject");
+            return;
+        }
+        
         setError(null);
         setLoading(true);
         // Simulate a small delay for animation feel if network is too fast
         setTimeout(async () => {
             try {
-                const response = await axios.get(`${API_BASE_URL}/api/reports/class-report`, {
-                    params: { grade, subject, month }
-                });
-                setReportData(response.data);
+                if (reportType === 'single') {
+                    const response = await axios.get(`${API_BASE_URL}/api/reports/class-report`, {
+                        params: { grade, subject, month }
+                    });
+                    setReportData(response.data);
+                    setGradeReportData(null);
+                } else {
+                    const response = await axios.get(`${API_BASE_URL}/api/reports/grade-report`, {
+                        params: { grade, month }
+                    });
+                    setGradeReportData(response.data);
+                    setReportData(null);
+                }
             } catch (err) {
                 console.error("Error fetching report", err);
                 setError("Failed to fetch report");
                 setReportData(null);
+                setGradeReportData(null);
             } finally {
                 setLoading(false);
             }
         }, 600);
-
     };
 
     const countAttendance = (attendanceArray) => {
@@ -206,6 +225,51 @@ export default function ClassReport() {
             link.click();
         } catch (err) {
             console.error("Failed to generate PNG", err);
+        }
+    };
+
+    const handleDownloadGradePDF = async () => {
+        if (!gradeReportData) return;
+        setGeneratingPDF(true);
+
+        try {
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const subjects = Object.keys(gradeReportData);
+            
+            for (let i = 0; i < subjects.length; i++) {
+                const element = document.getElementById(`report-subject-${i}`);
+                if (!element) continue;
+
+                // Temporarily make it visible for html2canvas to render reliably
+                const originalLeft = element.style.left;
+                element.style.left = '0';
+                element.style.position = 'relative';
+
+                const canvas = await html2canvas(element, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    windowWidth: document.documentElement.offsetWidth
+                });
+
+                // Revert styles
+                element.style.position = 'absolute';
+                element.style.left = originalLeft;
+
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const pdfWidth = doc.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+                if (i > 0) doc.addPage();
+                doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+            }
+
+            doc.save(`Eduflex_Grade_Report_${grade}_${months[month]}.pdf`);
+        } catch (error) {
+            console.error("Error generating full PDF:", error);
+            setError("Failed to generate PDF. Make sure all images are loaded.");
+        } finally {
+            setGeneratingPDF(false);
         }
     };
 
@@ -358,12 +422,12 @@ export default function ClassReport() {
                     </Box>
                 </Box>
 
-                {reportData && reportData.length > 0 && (
+                {reportType === 'single' && reportData && reportData.length > 0 && (
                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} style={{ display: 'flex', gap: '10px' }}>
                         <Button
                             variant="contained"
                             onClick={handleDownloadPNG}
-                            startIcon={<Download />} // Using same icon for now, or could use Image icon
+                            startIcon={<Download />}
                             sx={{
                                 borderRadius: 3,
                                 textTransform: 'none',
@@ -371,7 +435,7 @@ export default function ClassReport() {
                                 px: 3,
                                 py: 1,
                                 boxShadow: '0 4px 14px 0 rgba(234, 88, 12, 0.3)',
-                                background: 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)' // Orange-ish for PNG
+                                background: 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)'
                             }}
                         >
                             Export PNG
@@ -395,6 +459,30 @@ export default function ClassReport() {
                         </Button>
                     </motion.div>
                 )}
+
+                {reportType === 'full' && gradeReportData && (
+                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+                        <Button
+                            variant="contained"
+                            color="success"
+                            startIcon={generatingPDF ? <CircularProgress size={20} color="inherit" /> : <Download />}
+                            disabled={generatingPDF}
+                            onClick={handleDownloadGradePDF}
+                            sx={{
+                                borderRadius: 3,
+                                textTransform: 'none',
+                                fontWeight: 700,
+                                px: 3,
+                                py: 1.5,
+                                fontSize: '1rem',
+                                boxShadow: '0 4px 14px 0 rgba(22, 163, 74, 0.3)',
+                                background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)'
+                            }}
+                        >
+                            {generatingPDF ? "Compiling PDF..." : language === 'si' ? "සිංහල PDF ලබාගන්න" : "Download Grade PDF"}
+                        </Button>
+                    </motion.div>
+                )}
             </Box>
 
             <MotionPaper
@@ -412,9 +500,27 @@ export default function ClassReport() {
             >
                 <Grid container spacing={3} alignItems="center">
                     <Grid item xs={12}>
-                        <Typography variant="h6" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1, fontSize: '1.1rem', fontWeight: 600, color: 'text.primary' }}>
-                            <FilterList fontSize="small" sx={{ color: 'primary.main' }} /> Report Filters
-                        </Typography>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+                            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '1.1rem', fontWeight: 600, color: 'text.primary' }}>
+                                <FilterList fontSize="small" sx={{ color: 'primary.main' }} /> Report Filters
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                <Chip 
+                                    label="Single Subject" 
+                                    onClick={() => setReportType('single')} 
+                                    color={reportType === 'single' ? 'primary' : 'default'} 
+                                    variant={reportType === 'single' ? 'filled' : 'outlined'} 
+                                    sx={{ fontWeight: 600 }}
+                                />
+                                <Chip 
+                                    label="Entire Grade" 
+                                    onClick={() => setReportType('full')} 
+                                    color={reportType === 'full' ? 'primary' : 'default'} 
+                                    variant={reportType === 'full' ? 'filled' : 'outlined'} 
+                                    sx={{ fontWeight: 600 }}
+                                />
+                            </Box>
+                        </Box>
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={3}>
@@ -446,35 +552,59 @@ export default function ClassReport() {
                         </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
-                        <FormControl fullWidth size="small">
-                            <InputLabel>Subject</InputLabel>
-                            <Select
-                                value={subject}
-                                label="Subject"
-                                onChange={(e) => setSubject(e.target.value)}
-                                sx={{
-                                    borderRadius: 2.5,
-                                    bgcolor: alpha(theme.palette.background.paper, 0.4),
-                                    color: 'text.primary',
-                                    '& .MuiSvgIcon-root': { color: 'text.secondary' },
-                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.divider },
-                                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
-                                }}
-                                startAdornment={
-                                    <InputAdornment position="start">
-                                        <Book color="action" fontSize="small" />
-                                    </InputAdornment>
-                                }
-                            >
-                                {subjectsList.map((sub) => (
-                                    <MenuItem key={sub._id} value={sub.name}>
-                                        {sub.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </Grid>
+                    {reportType === 'single' ? (
+                        <Grid item xs={12} sm={6} md={3}>
+                            <FormControl fullWidth size="small">
+                                <InputLabel>Subject</InputLabel>
+                                <Select
+                                    value={subject}
+                                    label="Subject"
+                                    onChange={(e) => setSubject(e.target.value)}
+                                    sx={{
+                                        borderRadius: 2.5,
+                                        bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                        color: 'text.primary',
+                                        '& .MuiSvgIcon-root': { color: 'text.secondary' },
+                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.divider },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
+                                    }}
+                                    startAdornment={
+                                        <InputAdornment position="start">
+                                            <Book color="action" fontSize="small" />
+                                        </InputAdornment>
+                                    }
+                                >
+                                    {subjectsList.map((sub) => (
+                                        <MenuItem key={sub._id} value={sub.name}>
+                                            {sub.name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                    ) : (
+                        <Grid item xs={12} sm={6} md={3}>
+                            <FormControl fullWidth size="small">
+                                <InputLabel>Report Language</InputLabel>
+                                <Select
+                                    value={language}
+                                    label="Report Language"
+                                    onChange={(e) => setLanguage(e.target.value)}
+                                    sx={{
+                                        borderRadius: 2.5,
+                                        bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                        color: 'text.primary',
+                                        '& .MuiSvgIcon-root': { color: 'text.secondary' },
+                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.divider },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
+                                    }}
+                                >
+                                    <MenuItem value="en">English View (Downloading is instant)</MenuItem>
+                                    <MenuItem value="si">Sinhala Print (සිංහල)</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                    )}
 
                     <Grid item xs={12} sm={6} md={3}>
                         <FormControl fullWidth size="small">
@@ -694,6 +824,157 @@ export default function ClassReport() {
                     )}
                 </motion.div>
             )}
+
+            {!loading && reportType === 'full' && gradeReportData && (
+                <motion.div initial="hidden" animate="visible" variants={containerVariants}>
+                    <Alert severity="success" sx={{ mb: 3, borderRadius: 3, alignItems: 'center' }}>
+                        <Typography variant="body1" fontWeight={600}>
+                            {language === 'si' ? "වාර්තාව සූදානම්!" : "Grade Report Ready!"}
+                        </Typography>
+                        <Typography variant="body2">
+                            {language === 'si' 
+                                ? `${grade} ශ්‍රේණියේ විෂයන් ${Object.keys(gradeReportData).length} ක දත්ත ඇතුලත් වේ. ` 
+                                : `Contains data for ${Object.keys(gradeReportData).length} subjects in ${grade}. `}
+                            {language === 'si' ? "ඉහත බොත්තම ඔබා PDF ලබාගන්න." : "Click the button above to generate the compiled PDF."}
+                        </Typography>
+                    </Alert>
+                </motion.div>
+            )}
+
+            {/* Hidden Templates for Full Grade PDF Generation */}
+            {gradeReportData && (
+                <Box sx={{ position: 'absolute', left: '-9999px', top: 0, width: '210mm' }}>
+                    {Object.keys(gradeReportData).map((subjectKey, i) => {
+                        const students = gradeReportData[subjectKey];
+                        const isSi = language === 'si';
+                        
+                        return (
+                            <Paper
+                                key={subjectKey}
+                                id={`report-subject-${i}`}
+                                sx={{
+                                    width: '210mm',
+                                    p: '20mm',
+                                    bgcolor: '#fff',
+                                    borderRadius: 0,
+                                    fontFamily: 'sans-serif'
+                                }}
+                            >
+                                {/* PDF Header */}
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, borderBottom: '2px solid #2563eb', pb: 2 }}>
+                                    <Box>
+                                        <Typography sx={{ fontWeight: 800, fontSize: '28px', color: '#1e293b' }}>Eduflex Institute</Typography>
+                                        <Typography sx={{ fontWeight: 600, fontSize: '18px', color: '#2563eb', mt: 0.5 }}>
+                                            {isSi ? `${grade} ශ්‍රේණිය - ${subjectKey}` : `${grade} - ${subjectKey} Overview`}
+                                        </Typography>
+                                    </Box>
+                                    <Box sx={{ textAlign: 'right' }}>
+                                        <Typography sx={{ fontWeight: 700, fontSize: '18px', color: '#475569' }}>
+                                            {isSi ? 'මාසික වාර්තාව' : 'Monthly Performance'}
+                                        </Typography>
+                                        <Typography sx={{ color: '#64748b', fontSize: '14px', mt: 0.5 }}>
+                                            {isSi ? 'මාසය: ' : 'Month: '} {months[month]}
+                                        </Typography>
+                                    </Box>
+                                </Box>
+
+                                {/* PDF Stats Summary */}
+                                <Grid container spacing={2} sx={{ mb: 4 }}>
+                                    <Grid item xs={4}>
+                                        <Box sx={{ bgcolor: '#f1f5f9', p: 2, borderRadius: 2, borderLeft: '4px solid #3b82f6' }}>
+                                            <Typography sx={{ color: '#64748b', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>
+                                                {isSi ? 'මුළු සිසුන්' : 'Total Enrolled'}
+                                            </Typography>
+                                            <Typography sx={{ color: '#0f172a', fontSize: '24px', fontWeight: 800 }}>{students.length}</Typography>
+                                        </Box>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                        <Box sx={{ bgcolor: '#f0fdf4', p: 2, borderRadius: 2, borderLeft: '4px solid #22c55e' }}>
+                                            <Typography sx={{ color: '#166534', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>
+                                                {isSi ? 'පන්ති ගාස්තු ගෙවා ඇති' : 'Fees Paid'}
+                                            </Typography>
+                                            <Typography sx={{ color: '#15803d', fontSize: '24px', fontWeight: 800 }}>
+                                                {students.filter(s => s.feePaid).length}
+                                            </Typography>
+                                        </Box>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                        <Box sx={{ bgcolor: '#fef2f2', p: 2, borderRadius: 2, borderLeft: '4px solid #ef4444' }}>
+                                            <Typography sx={{ color: '#991b1b', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>
+                                                {isSi ? 'පන්ති ගාස්තු ගෙවිය යුතු' : 'Fees Pending'}
+                                            </Typography>
+                                            <Typography sx={{ color: '#b91c1c', fontSize: '24px', fontWeight: 800 }}>
+                                                {students.filter(s => !s.feePaid).length}
+                                            </Typography>
+                                        </Box>
+                                    </Grid>
+                                </Grid>
+
+                                {/* Table */}
+                                <Table size="small" sx={{ border: '1px solid #e2e8f0', borderRadius: 2, overflow: 'hidden' }}>
+                                    <TableHead>
+                                        <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                                            <TableCell sx={{ fontWeight: 700, color: '#334155' }}>
+                                                {isSi ? 'සිසුවාගේ නම' : 'Student Name'}
+                                            </TableCell>
+                                            <TableCell sx={{ fontWeight: 700, color: '#334155' }}>Index</TableCell>
+                                            <TableCell align="center" sx={{ fontWeight: 700, color: '#334155', minWidth: '150px' }}>
+                                                {isSi ? 'පැමිණීම' : 'Attendance'}
+                                            </TableCell>
+                                            <TableCell align="center" sx={{ fontWeight: 700, color: '#334155' }}>
+                                                {isSi ? 'ගාස්තු තත්වය' : 'Fee Status'}
+                                            </TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {students.map((row) => {
+                                            const attCount = countAttendance(row.attendance);
+                                            return (
+                                                <TableRow key={row.id} sx={{ '&:last-child td': { border: 0 }}}>
+                                                    <TableCell>
+                                                        <Typography sx={{ fontWeight: 600, color: '#0f172a' }}>{row.name}</Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Typography sx={{ color: '#64748b', fontSize: '13px' }}>{row.indexNumber}</Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                            {/* Mini Progress Bar instead of circle for clean PDF */}
+                                                            <Box sx={{ flexGrow: 1, height: '8px', bgcolor: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                                                                <Box sx={{ width: `${(attCount / 5) * 100}%`, height: '100%', bgcolor: attCount >= 4 ? '#22c55e' : (attCount >= 2 ? '#f59e0b' : '#3b82f6') }} />
+                                                            </Box>
+                                                            <Typography sx={{ fontWeight: 700, fontSize: '13px', color: '#475569' }}>
+                                                                {attCount}/5
+                                                            </Typography>
+                                                        </Box>
+                                                    </TableCell>
+                                                    <TableCell align="center">
+                                                        {row.feePaid ? (
+                                                            <Box sx={{ display: 'inline-block', bgcolor: '#dcfce7', color: '#166534', px: 1.5, py: 0.5, borderRadius: '4px', fontSize: '12px', fontWeight: 700 }}>
+                                                                {isSi ? 'ගෙවා ඇත' : 'Paid'} ✓
+                                                            </Box>
+                                                        ) : (
+                                                            <Box sx={{ display: 'inline-block', bgcolor: '#ffe4e6', color: '#be123c', px: 1.5, py: 0.5, borderRadius: '4px', fontSize: '12px', fontWeight: 700 }}>
+                                                                {isSi ? 'ගෙවා නැත' : 'Pending'} ✗
+                                                            </Box>
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
+                                            )
+                                        })}
+                                    </TableBody>
+                                </Table>
+
+                                {/* Footer Note */}
+                                <Typography sx={{ mt: 4, textAlign: 'center', color: '#cbd5e1', fontSize: '12px' }}>
+                                    Generated automatically by Eduflex System
+                                </Typography>
+                            </Paper>
+                        );
+                    })}
+                </Box>
+            )}
+
         </MotionContainer>
     );
 }
