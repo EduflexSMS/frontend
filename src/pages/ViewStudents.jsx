@@ -603,10 +603,15 @@ function StudentRow({ student, onUpdate, subjectColors }) {
                             {att.length === 0
                               ? <span className="no-data">No data</span>
                               : att.map((s, i) => {
-                                  const isP = s === 'present' || s === true || s === 'true';
-                                  const isQ = s === 'pending';
+                                  const isA = s === 'absent' || (typeof s === 'string' && s.toLowerCase() === 'absent');
+                                  const isP = s === 'present' || s === true || s === 'true' || (typeof s === 'string' && s.toLowerCase() === 'present');
+                                  const isQ = !isA && !isP;
+                                  
+                                  // Determine current normalized status to pass to toggle
+                                  const normStatus = isA ? 'absent' : isP ? 'present' : 'pending';
+
                                   return (
-                                    <div key={i} className={`dot ${isQ ? 'dot-q' : isP ? 'dot-p' : 'dot-a'}`} onClick={(e) => { e.stopPropagation(); handleToggleAttendance(subj.name, mi, i, s); }}>
+                                    <div key={i} className={`dot ${isQ ? 'dot-q' : isP ? 'dot-p' : 'dot-a'}`} onClick={(e) => { e.stopPropagation(); handleToggleAttendance(subj.name, mi, i, normStatus); }}>
                                       {isQ ? '' : isP ? '✓' : '✗'}
                                     </div>
                                   );
