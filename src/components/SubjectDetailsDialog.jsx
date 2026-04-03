@@ -35,6 +35,10 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
             doc.setFontSize(10);
             doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 40);
 
+            const totalStudents = details.reduce((sum, row) => sum + (row.totalStudents || 0), 0);
+            const totalPaid = details.reduce((sum, row) => sum + (row.paidStudents || 0), 0);
+            const totalCollected = totalPaid * subjectFee;
+
             autoTable(doc, {
                 startY: 50,
                 head: [['Grade', 'Total Students', `Paid Count (${months[selectedMonth]})`, 'Collected Amount']],
@@ -44,8 +48,10 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                     row.paidStudents,
                     `LKR ${(row.paidStudents * subjectFee).toLocaleString()}`
                 ]),
+                foot: [['Total', totalStudents, totalPaid, `LKR ${totalCollected.toLocaleString()}`]],
                 theme: 'striped',
                 headStyles: { fillColor: [66, 133, 244] },
+                footStyles: { fillColor: [40, 44, 52], fontStyle: 'bold' },
                 columnStyles: { 3: { halign: 'right' } }
             });
             doc.save(`${subjectName}_Report.pdf`);
@@ -215,6 +221,18 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                                         </TableCell>
                                     </TableRow>
                                 ))}
+                                <TableRow sx={{ bgcolor: 'action.hover' }}>
+                                    <TableCell sx={{ fontWeight: 'bold' }}>Total</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                                        {details.reduce((sum, row) => sum + (row.totalStudents || 0), 0)}
+                                    </TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                                        {details.reduce((sum, row) => sum + (row.paidStudents || 0), 0)}
+                                    </TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 'bold', color: 'success.main' }}>
+                                        LKR {(details.reduce((sum, row) => sum + (row.paidStudents || 0), 0) * subjectFee).toLocaleString()}
+                                    </TableCell>
+                                </TableRow>
                             </TableBody>
                         </Table>
                     </TableContainer>
