@@ -54,6 +54,39 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                 footStyles: { fillColor: [40, 44, 52], fontStyle: 'bold' },
                 columnStyles: { 3: { halign: 'right' } }
             });
+
+            // Add Payment Summary Box
+            const finalY = doc.lastAutoTable.finalY || 50;
+            const instituteShare = totalCollected * 0.20;
+            const netPayable = totalCollected * 0.80;
+
+            doc.setDrawColor(200, 200, 200);
+            doc.setFillColor(248, 249, 250);
+            doc.roundedRect(14, finalY + 15, 182, 45, 3, 3, 'FD');
+
+            doc.setFontSize(14);
+            doc.setTextColor(33, 37, 41);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Payment Summary', 20, finalY + 25);
+
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Total Collected Amount:`, 20, finalY + 35);
+            doc.text(`LKR ${totalCollected.toLocaleString()}`, 190, finalY + 35, { align: 'right' });
+
+            doc.text(`Less: Institute Share (20%):`, 20, finalY + 42);
+            doc.text(`- LKR ${instituteShare.toLocaleString()}`, 190, finalY + 42, { align: 'right' });
+
+            // Draw a line
+            doc.setDrawColor(200, 200, 200);
+            doc.line(20, finalY + 46, 190, finalY + 46);
+
+            doc.setFontSize(13);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(40, 167, 69); // Success Green
+            doc.text(`Amount to Pay (80%):`, 20, finalY + 54);
+            doc.text(`LKR ${netPayable.toLocaleString()}`, 190, finalY + 54, { align: 'right' });
+
             doc.save(`${subjectName}_Report.pdf`);
         } catch (err) {
             console.error("PDF Generation Error:", err);
