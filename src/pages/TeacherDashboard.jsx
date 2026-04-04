@@ -104,7 +104,11 @@ export default function TeacherDashboard() {
                 const assignedSubject = user?.assignedSubject;
 
                 const filteredClasses = assignedSubject
-                    ? flatClasses.filter(c => c.name.includes(assignedSubject))
+                    ? flatClasses.filter(c => {
+                        const subjectName = c.name.split(' - ')[0].toLowerCase().trim();
+                        const teacherSubject = assignedSubject.toLowerCase().replace('teacher', '').trim();
+                        return subjectName.includes(teacherSubject) || teacherSubject.includes(subjectName);
+                    })
                     : flatClasses;
 
                 setTeacherData({
