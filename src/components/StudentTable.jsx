@@ -10,6 +10,7 @@ import SubjectGrid from './SubjectGrid';
 import EditStudentDialog from '../components/EditStudentDialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generateFeeReport } from '../utils/generateFeeReport';
+import { useTranslation } from 'react-i18next';
 
 const WHATSAPP_GROUP_LINKS = {
     'Grade 03': 'https://chat.whatsapp.com/JDa517chrKQ9459MfzRSZC',
@@ -48,6 +49,7 @@ export const sendWhatsAppGroupLink = (student) => {
 };
 
 function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
+    const { t, i18n } = useTranslation();
     const [open, setOpen] = useState(false);
     const theme = useTheme();
 
@@ -144,12 +146,12 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
                             {row.enrollments.length > 2 && <Chip label={`+${row.enrollments.length - 2}`} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: alpha(theme.palette.text.primary, 0.05), color: 'text.secondary' }} />}
                         </Box>
                     ) : (
-                        <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.5 }}>None</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.5 }}>{t('no_students')}</Typography>
                     )}
                 </TableCell>
                 <TableCell>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', opacity: 0.7, '&:hover': { opacity: 1 } }}>
-                        <Tooltip title="Send WhatsApp Group Link">
+                        <Tooltip title={t('send_wa_group')}>
                             <IconButton
                                 onClick={(e) => { e.stopPropagation(); sendWhatsAppGroupLink(row); }}
                                 sx={{ mr: 1, '&:hover': { color: '#25D366' } }}
@@ -157,15 +159,15 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
                                 <WhatsApp fontSize="small" />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title="Download Fee Report">
+                        <Tooltip title={t('download_pdf')}>
                             <IconButton
-                                onClick={(e) => { e.stopPropagation(); generateFeeReport(row, subjectColorMap); }}
+                                onClick={(e) => { e.stopPropagation(); generateFeeReport(row, subjectColorMap, null, t, i18n.language); }}
                                 sx={{ mr: 1, '&:hover': { color: '#00ccff' } }}
                             >
                                 <FileDownload fontSize="small" />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title="Edit Student">
+                        <Tooltip title={t('edit_student')}>
                             <IconButton
                                 onClick={(e) => { e.stopPropagation(); onEdit(row); }}
                                 sx={{ mr: 1, '&:hover': { color: '#00f7ff' } }}
@@ -173,7 +175,7 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
                                 <Edit fontSize="small" />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title="Delete Student">
+                        <Tooltip title={t('delete_student')}>
                             <IconButton
                                 onClick={(e) => { e.stopPropagation(); onDelete(row); }}
                                 sx={{ '&:hover': { color: '#ff2a2a' } }}
@@ -205,7 +207,7 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
                                 textTransform: 'uppercase',
                                 fontSize: '0.75rem'
                             }}>
-                                <OpenInNew sx={{ fontSize: 16 }} /> Progress & Attendance
+                                <OpenInNew sx={{ fontSize: 16 }} /> {t('participation')}
                             </Typography>
                             <SubjectGrid
                                 student={row}
@@ -224,6 +226,7 @@ function Row({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
 }
 
 function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }) {
+    const { t, i18n } = useTranslation();
     const [expanded, setExpanded] = useState(false);
     const theme = useTheme();
 
@@ -274,13 +277,13 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
                         </Box>
                     </Box>
                     <Box>
-                        <Tooltip title="Send WhatsApp Group Link">
+                        <Tooltip title={t('send_wa_group')}>
                             <IconButton onClick={(e) => { e.stopPropagation(); sendWhatsAppGroupLink(row); }} size="small" sx={{ color: 'text.secondary', '&:hover': { color: '#25D366' } }}>
                                 <WhatsApp fontSize="small" />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title="Download Fee Report">
-                            <IconButton onClick={(e) => { e.stopPropagation(); generateFeeReport(row, subjectColorMap); }} size="small" sx={{ color: 'text.secondary', '&:hover': { color: '#00ccff' } }}>
+                        <Tooltip title={t('download_pdf')}>
+                            <IconButton onClick={(e) => { e.stopPropagation(); generateFeeReport(row, subjectColorMap, null, t, i18n.language); }} size="small" sx={{ color: 'text.secondary', '&:hover': { color: '#00ccff' } }}>
                                 <FileDownload fontSize="small" />
                             </IconButton>
                         </Tooltip>
@@ -324,7 +327,7 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
                             })}
                         </Box>
                     ) : (
-                        <Typography variant="caption" color="text.secondary" fontStyle="italic">No enrollments</Typography>
+                        <Typography variant="caption" color="text.secondary" fontStyle="italic">{t('no_students')}</Typography>
                     )}
                 </Box>
             </CardContent>
@@ -342,7 +345,7 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
                         '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.02), color: '#00f7ff' }
                     }}
                 >
-                    {expanded ? 'Hide Details' : 'View Participation'}
+                    {expanded ? t('close') : t('participation')}
                 </Button>
             </Box>
 
@@ -364,6 +367,7 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
 }
 
 export default function StudentTable({ students, onUpdate, subjectColorMap }) {
+    const { t } = useTranslation();
     const [editingStudent, setEditingStudent] = useState(null);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [studentToDelete, setStudentToDelete] = useState(null);
@@ -389,11 +393,11 @@ export default function StudentTable({ students, onUpdate, subjectColorMap }) {
                 setStudentToDelete(null);
             } else {
                 console.error("Failed to delete student");
-                alert("Failed to delete student");
+                alert(t('failed_to_delete'));
             }
         } catch (error) {
             console.error("Error deleting student:", error);
-            alert("Error deleting student");
+            alert(t('failed_to_delete'));
         }
     };
 
@@ -438,12 +442,12 @@ export default function StudentTable({ students, onUpdate, subjectColorMap }) {
                                 }
                             }}>
                                 <TableCell />
-                                <TableCell sx={{ color: 'text.secondary', fontWeight: '700', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em' }}>Student Name</TableCell>
-                                <TableCell sx={{ color: 'text.secondary', fontWeight: '700', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em' }}>Index No.</TableCell>
-                                <TableCell sx={{ color: 'text.secondary', fontWeight: '700', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em' }}>Grade</TableCell>
+                                <TableCell sx={{ color: 'text.secondary', fontWeight: '700', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em' }}>{t('student_name')}</TableCell>
+                                <TableCell sx={{ color: 'text.secondary', fontWeight: '700', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em' }}>{t('index_number')}</TableCell>
+                                <TableCell sx={{ color: 'text.secondary', fontWeight: '700', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em' }}>{t('grade')}</TableCell>
                                 <TableCell sx={{ color: 'text.secondary', fontWeight: '700', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em' }}>Mobile</TableCell>
-                                <TableCell sx={{ color: 'text.secondary', fontWeight: '700', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em' }}>Enrolled</TableCell>
-                                <TableCell sx={{ color: 'text.secondary', fontWeight: '700', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em', textAlign: 'right' }}>Actions</TableCell>
+                                <TableCell sx={{ color: 'text.secondary', fontWeight: '700', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em' }}>{t('enrolled')}</TableCell>
+                                <TableCell sx={{ color: 'text.secondary', fontWeight: '700', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em', textAlign: 'right' }}>{t('actions')}</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -484,16 +488,16 @@ export default function StudentTable({ students, onUpdate, subjectColorMap }) {
                     }
                 }}
             >
-                <DialogTitle sx={{ color: 'text.primary', fontWeight: 700 }}>Confirm Delete</DialogTitle>
+                <DialogTitle sx={{ color: 'text.primary', fontWeight: 700 }}>{t('confirm_delete')}</DialogTitle>
                 <DialogContent>
                     <DialogContentText sx={{ color: 'text.secondary' }}>
-                        Are you sure you want to delete <strong style={{ color: theme.palette.text.primary }}>{studentToDelete?.name}</strong>? This action cannot be undone.
+                        {t('confirm_delete_msg', { name: studentToDelete?.name })}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions sx={{ pb: 3, pr: 3 }}>
-                    <Button onClick={() => setDeleteConfirmOpen(false)} sx={{ color: 'text.secondary' }}>Cancel</Button>
+                    <Button onClick={() => setDeleteConfirmOpen(false)} sx={{ color: 'text.secondary' }}>{t('cancel')}</Button>
                     <Button onClick={handleConfirmDelete} variant="contained" color="error" sx={{ borderRadius: '12px', fontWeight: 700 }}>
-                        Delete Permanently
+                        {t('delete_permanently')}
                     </Button>
                 </DialogActions>
             </Dialog>

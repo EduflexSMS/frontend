@@ -45,6 +45,8 @@ import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import API_BASE_URL from '../config';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { setupPdfFont, formatDate } from '../utils/pdfUtils';
 
 const MotionContainer = motion(Container);
 const MotionPaper = motion(Paper);
@@ -69,6 +71,7 @@ const itemVariants = {
 };
 
 export default function ClassReport() {
+    const { t, i18n } = useTranslation();
     const [grade, setGrade] = useState('');
     const [subject, setSubject] = useState('');
     const [month, setMonth] = useState('');
@@ -150,36 +153,42 @@ export default function ClassReport() {
         if (!reportData || reportData.length === 0) return;
 
         const doc = new jsPDF();
-        const monthName = months[month];
+        const currentLang = i18n.language;
+        setupPdfFont(doc, currentLang);
+
+        const monthName = t(months[month].toLowerCase());
+        const dateStr = formatDate(new Date(), currentLang);
 
         // Header
         doc.setFontSize(22);
         doc.setTextColor(37, 99, 235); // Primary Blue
+        doc.setFont(currentLang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'bold');
         doc.text("Eduflex Institute", 14, 20);
 
         doc.setFontSize(16);
         doc.setTextColor(40, 40, 40);
-        doc.text("Class Performance Report", 14, 30);
+        doc.text(t('class_performance'), 14, 30);
 
         doc.setFontSize(10);
         doc.setTextColor(100);
-        doc.text(`Grade: ${grade}`, 14, 40);
-        doc.text(`Subject: ${subject}`, 14, 45);
-        doc.text(`Month: ${monthName}`, 14, 50);
-        doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 55);
+        doc.setFont(currentLang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'normal');
+        doc.text(`${t('grade')}: ${grade}`, 14, 40);
+        doc.text(`${t('add_subject').replace(' එක් කරන්න', '').replace('Add ', '')}: ${subject}`, 14, 45);
+        doc.text(`${t('month')}: ${monthName}`, 14, 50);
+        doc.text(`${t('generated_on')}: ${dateStr}`, 14, 55);
 
         // Table
-        const tableColumn = ["Index", "Name", "Attendance", "Fee Status", "Tutes"];
+        const tableColumn = ["#", t('student_name'), t('attendance'), t('fee_status'), "Tutes"];
         const tableRows = [];
 
-        reportData.forEach(student => {
+        reportData.forEach((student, idx) => {
             const attendanceCount = countAttendance(student.attendance);
             const studentData = [
-                student.indexNumber,
+                idx + 1,
                 student.name,
                 `${attendanceCount}/5`,
-                student.feePaid ? "Paid" : "Unpaid",
-                student.tutesGiven ? "Given" : "Pending"
+                student.feePaid ? t('paid') : t('not_paid'),
+                student.tutesGiven ? (currentLang === 'si' ? "ලබාදී ඇත" : "Given") : (currentLang === 'si' ? "ප්‍රමාදයි" : "Pending")
             ];
             tableRows.push(studentData);
         });
@@ -192,10 +201,14 @@ export default function ClassReport() {
             headStyles: {
                 fillColor: [37, 99, 235],
                 textColor: 255,
-                halign: 'center'
+                halign: 'center',
+                font: currentLang === 'si' ? 'NotoSansSinhala' : 'helvetica'
+            },
+            bodyStyles: {
+                font: currentLang === 'si' ? 'NotoSansSinhala' : 'helvetica'
             },
             columnStyles: {
-                0: { cellWidth: 30 }, // Index
+                0: { cellWidth: 15 }, // Index
                 1: { cellWidth: 'auto' }, // Name
                 2: { halign: 'center' }, // Attendance
                 3: { halign: 'center' }, // Fee
@@ -502,33 +515,33 @@ export default function ClassReport() {
                     <Grid item xs={12}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
                             <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '1.1rem', fontWeight: 600, color: 'text.primary' }}>
-                                <FilterList fontSize="small" sx={{ color: 'primary.main' }} /> Report Filters
+                                <FilterList fontSize="small" sx={{ color: 'primary.main' }} /> {t('report_filters')}
                             </Typography>
                             <Box sx={{ display: 'flex', gap: 1 }}>
                                 <Chip 
-                                    label="Single Subject" 
-                                    onClick={() => setReportType('single')} 
-                                    color={reportType === 'single' ? 'primary' : 'default'} 
-                                    variant={reportType === 'single' ? 'filled' : 'outlined'} 
-                                    sx={{ fontWeight: 600 }}
-                                />
+                                     label={t('single_subject')} 
+                                     onClick={() => setReportType('single')} 
+                                     color={reportType === 'single' ? 'primary' : 'default'} 
+                                     variant={reportType === 'single' ? 'filled' : 'outlined'} 
+                                     sx={{ fontWeight: 600 }}
+                                 />
                                 <Chip 
-                                    label="Entire Grade" 
-                                    onClick={() => setReportType('full')} 
-                                    color={reportType === 'full' ? 'primary' : 'default'} 
-                                    variant={reportType === 'full' ? 'filled' : 'outlined'} 
-                                    sx={{ fontWeight: 600 }}
-                                />
+                                     label={t('entire_grade')} 
+                                     onClick={() => setReportType('full')} 
+                                     color={reportType === 'full' ? 'primary' : 'default'} 
+                                     variant={reportType === 'full' ? 'filled' : 'outlined'} 
+                                     sx={{ fontWeight: 600 }}
+                                 />
                             </Box>
                         </Box>
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={3}>
                         <FormControl fullWidth size="small" variant="outlined">
-                            <InputLabel>Grade</InputLabel>
+                            <InputLabel>{t('grade')}</InputLabel>
                             <Select
                                 value={grade}
-                                label="Grade"
+                                label={t('grade')}
                                 onChange={(e) => setGrade(e.target.value)}
                                 sx={{
                                     borderRadius: 2.5,
@@ -546,7 +559,7 @@ export default function ClassReport() {
                             >
                                 {[...Array(13)].map((_, i) => {
                                     const gradeNum = (i + 1).toString().padStart(2, '0');
-                                    return <MenuItem key={gradeNum} value={`Grade ${gradeNum}`}>Grade {gradeNum}</MenuItem>;
+                                    return <MenuItem key={gradeNum} value={`Grade ${gradeNum}`}>{t('grade')} {gradeNum}</MenuItem>;
                                 })}
                             </Select>
                         </FormControl>
@@ -555,10 +568,10 @@ export default function ClassReport() {
                     {reportType === 'single' ? (
                         <Grid item xs={12} sm={6} md={3}>
                             <FormControl fullWidth size="small">
-                                <InputLabel>Subject</InputLabel>
+                                <InputLabel>{t('add_subject').replace(' එක් කරන්න', '').replace('Add ', '')}</InputLabel>
                                 <Select
                                     value={subject}
-                                    label="Subject"
+                                    label={t('add_subject').replace(' එක් කරන්න', '').replace('Add ', '')}
                                     onChange={(e) => setSubject(e.target.value)}
                                     sx={{
                                         borderRadius: 2.5,
@@ -585,10 +598,10 @@ export default function ClassReport() {
                     ) : (
                         <Grid item xs={12} sm={6} md={3}>
                             <FormControl fullWidth size="small">
-                                <InputLabel>Report Language</InputLabel>
+                                <InputLabel>{t('report_language')}</InputLabel>
                                 <Select
                                     value={language}
-                                    label="Report Language"
+                                    label={t('report_language')}
                                     onChange={(e) => setLanguage(e.target.value)}
                                     sx={{
                                         borderRadius: 2.5,
@@ -608,10 +621,10 @@ export default function ClassReport() {
 
                     <Grid item xs={12} sm={6} md={3}>
                         <FormControl fullWidth size="small">
-                            <InputLabel>Month</InputLabel>
+                            <InputLabel>{t('month')}</InputLabel>
                             <Select
                                 value={month}
-                                label="Month"
+                                label={t('month')}
                                 onChange={(e) => setMonth(e.target.value)}
                                 sx={{
                                     borderRadius: 2.5,
@@ -628,7 +641,7 @@ export default function ClassReport() {
                                 }
                             >
                                 {months.map((m, index) => (
-                                    <MenuItem key={index} value={index}>{m}</MenuItem>
+                                    <MenuItem key={index} value={index}>{t(m.toLowerCase())}</MenuItem>
                                 ))}
                             </Select>
                         </FormControl>
@@ -655,7 +668,7 @@ export default function ClassReport() {
                                 border: `1px solid ${theme.palette.divider}`
                             }}
                         >
-                            {loading ? <CircularProgress size={24} color="inherit" /> : "Generate Report"}
+                            {loading ? <CircularProgress size={24} color="inherit" /> : t('generate_report')}
                         </Button>
                     </Grid>
                 </Grid>
@@ -846,7 +859,7 @@ export default function ClassReport() {
                 <Box sx={{ position: 'absolute', left: '-9999px', top: 0, width: '210mm' }}>
                     {Object.keys(gradeReportData).map((subjectKey, i) => {
                         const students = gradeReportData[subjectKey];
-                        const isSi = language === 'si';
+                        const isSi = i18n.language === 'si';
                         
                         return (
                             <Paper
@@ -857,23 +870,23 @@ export default function ClassReport() {
                                     p: '20mm',
                                     bgcolor: '#fff',
                                     borderRadius: 0,
-                                    fontFamily: 'sans-serif'
+                                    fontFamily: isSi ? "'Noto Sans Sinhala', sans-serif" : "'Inter', sans-serif"
                                 }}
                             >
                                 {/* PDF Header */}
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, borderBottom: '2px solid #2563eb', pb: 2 }}>
                                     <Box>
-                                        <Typography sx={{ fontWeight: 800, fontSize: '28px', color: '#1e293b' }}>Eduflex Institute</Typography>
-                                        <Typography sx={{ fontWeight: 600, fontSize: '18px', color: '#2563eb', mt: 0.5 }}>
-                                            {isSi ? `${grade} ශ්‍රේණිය - ${subjectKey}` : `${grade} - ${subjectKey} Overview`}
+                                        <Typography sx={{ fontWeight: 800, fontSize: '28px', color: '#1e293b', fontFamily: 'inherit' }}>Eduflex Institute</Typography>
+                                        <Typography sx={{ fontWeight: 600, fontSize: '18px', color: '#2563eb', mt: 0.5, fontFamily: 'inherit' }}>
+                                            {isSi ? `${grade} ${t('grade')} - ${subjectKey}` : `${grade} - ${subjectKey} Overview`}
                                         </Typography>
                                     </Box>
                                     <Box sx={{ textAlign: 'right' }}>
-                                        <Typography sx={{ fontWeight: 700, fontSize: '18px', color: '#475569' }}>
-                                            {isSi ? 'මාසික වාර්තාව' : 'Monthly Performance'}
+                                        <Typography sx={{ fontWeight: 700, fontSize: '18px', color: '#475569', fontFamily: 'inherit' }}>
+                                            {t('class_performance')}
                                         </Typography>
-                                        <Typography sx={{ color: '#64748b', fontSize: '14px', mt: 0.5 }}>
-                                            {isSi ? 'මාසය: ' : 'Month: '} {months[month]}
+                                        <Typography sx={{ color: '#64748b', fontSize: '14px', mt: 0.5, fontFamily: 'inherit' }}>
+                                            {t('month')}: {t(months[month].toLowerCase())}
                                         </Typography>
                                     </Box>
                                 </Box>
@@ -882,28 +895,28 @@ export default function ClassReport() {
                                 <Grid container spacing={2} sx={{ mb: 4 }}>
                                     <Grid item xs={4}>
                                         <Box sx={{ bgcolor: '#f1f5f9', p: 2, borderRadius: 2, borderLeft: '4px solid #3b82f6' }}>
-                                            <Typography sx={{ color: '#64748b', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>
-                                                {isSi ? 'මුළු සිසුන්' : 'Total Enrolled'}
+                                            <Typography sx={{ color: '#64748b', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'inherit' }}>
+                                                {t('total_students')}
                                             </Typography>
-                                            <Typography sx={{ color: '#0f172a', fontSize: '24px', fontWeight: 800 }}>{students.length}</Typography>
+                                            <Typography sx={{ color: '#0f172a', fontSize: '24px', fontWeight: 800, fontFamily: 'inherit' }}>{students.length}</Typography>
                                         </Box>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Box sx={{ bgcolor: '#f0fdf4', p: 2, borderRadius: 2, borderLeft: '4px solid #22c55e' }}>
-                                            <Typography sx={{ color: '#166534', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>
-                                                {isSi ? 'පන්ති ගාස්තු ගෙවා ඇති' : 'Fees Paid'}
+                                            <Typography sx={{ color: '#166534', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'inherit' }}>
+                                                {t('paid_count')}
                                             </Typography>
-                                            <Typography sx={{ color: '#15803d', fontSize: '24px', fontWeight: 800 }}>
+                                            <Typography sx={{ color: '#15803d', fontSize: '24px', fontWeight: 800, fontFamily: 'inherit' }}>
                                                 {students.filter(s => s.feePaid).length}
                                             </Typography>
                                         </Box>
                                     </Grid>
                                     <Grid item xs={4}>
                                         <Box sx={{ bgcolor: '#fef2f2', p: 2, borderRadius: 2, borderLeft: '4px solid #ef4444' }}>
-                                            <Typography sx={{ color: '#991b1b', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>
-                                                {isSi ? 'පන්ති ගාස්තු ගෙවිය යුතු' : 'Fees Pending'}
+                                            <Typography sx={{ color: '#991b1b', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'inherit' }}>
+                                                {t('pending')}
                                             </Typography>
-                                            <Typography sx={{ color: '#b91c1c', fontSize: '24px', fontWeight: 800 }}>
+                                            <Typography sx={{ color: '#b91c1c', fontSize: '24px', fontWeight: 800, fontFamily: 'inherit' }}>
                                                 {students.filter(s => !s.feePaid).length}
                                             </Typography>
                                         </Box>
@@ -914,15 +927,15 @@ export default function ClassReport() {
                                 <Table size="small" sx={{ border: '1px solid #e2e8f0', borderRadius: 2, overflow: 'hidden' }}>
                                     <TableHead>
                                         <TableRow sx={{ bgcolor: '#f8fafc' }}>
-                                            <TableCell sx={{ fontWeight: 700, color: '#334155' }}>
-                                                {isSi ? 'සිසුවාගේ නම' : 'Student Name'}
+                                            <TableCell sx={{ fontWeight: 700, color: '#334155', fontFamily: 'inherit' }}>
+                                                {t('student_name')}
                                             </TableCell>
-                                            <TableCell sx={{ fontWeight: 700, color: '#334155' }}>Index</TableCell>
-                                            <TableCell align="center" sx={{ fontWeight: 700, color: '#334155', minWidth: '150px' }}>
-                                                {isSi ? 'පැමිණීම' : 'Attendance'}
+                                            <TableCell sx={{ fontWeight: 700, color: '#334155', fontFamily: 'inherit' }}>{t('index_number')}</TableCell>
+                                            <TableCell align="center" sx={{ fontWeight: 700, color: '#334155', minWidth: '150px', fontFamily: 'inherit' }}>
+                                                {t('attendance')}
                                             </TableCell>
-                                            <TableCell align="center" sx={{ fontWeight: 700, color: '#334155' }}>
-                                                {isSi ? 'ගාස්තු තත්වය' : 'Fee Status'}
+                                            <TableCell align="center" sx={{ fontWeight: 700, color: '#334155', fontFamily: 'inherit' }}>
+                                                {t('fee_status')}
                                             </TableCell>
                                         </TableRow>
                                     </TableHead>
@@ -932,10 +945,10 @@ export default function ClassReport() {
                                             return (
                                                 <TableRow key={row.id} sx={{ '&:last-child td': { border: 0 }}}>
                                                     <TableCell>
-                                                        <Typography sx={{ fontWeight: 600, color: '#0f172a' }}>{row.name}</Typography>
+                                                        <Typography sx={{ fontWeight: 600, color: '#0f172a', fontFamily: 'inherit' }}>{row.name}</Typography>
                                                     </TableCell>
                                                     <TableCell>
-                                                        <Typography sx={{ color: '#64748b', fontSize: '13px' }}>{row.indexNumber}</Typography>
+                                                        <Typography sx={{ color: '#64748b', fontSize: '13px', fontFamily: 'inherit' }}>{row.indexNumber}</Typography>
                                                     </TableCell>
                                                     <TableCell>
                                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -943,19 +956,19 @@ export default function ClassReport() {
                                                             <Box sx={{ flexGrow: 1, height: '8px', bgcolor: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
                                                                 <Box sx={{ width: `${(attCount / 5) * 100}%`, height: '100%', bgcolor: attCount >= 4 ? '#22c55e' : (attCount >= 2 ? '#f59e0b' : '#3b82f6') }} />
                                                             </Box>
-                                                            <Typography sx={{ fontWeight: 700, fontSize: '13px', color: '#475569' }}>
+                                                            <Typography sx={{ fontWeight: 700, fontSize: '13px', color: '#475569', fontFamily: 'inherit' }}>
                                                                 {attCount}/5
                                                             </Typography>
                                                         </Box>
                                                     </TableCell>
                                                     <TableCell align="center">
                                                         {row.feePaid ? (
-                                                            <Box sx={{ display: 'inline-block', bgcolor: '#dcfce7', color: '#166534', px: 1.5, py: 0.5, borderRadius: '4px', fontSize: '12px', fontWeight: 700 }}>
-                                                                {isSi ? 'ගෙවා ඇත' : 'Paid'} ✓
+                                                            <Box sx={{ display: 'inline-block', bgcolor: '#dcfce7', color: '#166534', px: 1.5, py: 0.5, borderRadius: '4px', fontSize: '12px', fontWeight: 700, fontFamily: 'inherit' }}>
+                                                                {t('paid')} ✓
                                                             </Box>
                                                         ) : (
-                                                            <Box sx={{ display: 'inline-block', bgcolor: '#ffe4e6', color: '#be123c', px: 1.5, py: 0.5, borderRadius: '4px', fontSize: '12px', fontWeight: 700 }}>
-                                                                {isSi ? 'ගෙවා නැත' : 'Pending'} ✗
+                                                            <Box sx={{ display: 'inline-block', bgcolor: '#ffe4e6', color: '#be123c', px: 1.5, py: 0.5, borderRadius: '4px', fontSize: '12px', fontWeight: 700, fontFamily: 'inherit' }}>
+                                                                {t('not_paid')} ✗
                                                             </Box>
                                                         )}
                                                     </TableCell>
@@ -966,8 +979,8 @@ export default function ClassReport() {
                                 </Table>
 
                                 {/* Footer Note */}
-                                <Typography sx={{ mt: 4, textAlign: 'center', color: '#cbd5e1', fontSize: '12px' }}>
-                                    Generated automatically by Eduflex System
+                                <Typography sx={{ mt: 4, textAlign: 'center', color: '#cbd5e1', fontSize: '12px', fontFamily: 'inherit' }}>
+                                    {t('generated_on')}: {formatDate(new Date(), i18n.language)} | Eduflex System
                                 </Typography>
                             </Paper>
                         );

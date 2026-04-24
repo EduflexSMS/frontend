@@ -13,15 +13,17 @@ import { useTranslation } from 'react-i18next';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { setupPdfFont, getTranslatedMonth, formatDate } from '../utils/pdfUtils';
 
 const StudentListDialog = ({ open, onClose, classData }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
 
     if (!classData) return null;
 
     const { name, studentList } = classData;
     const students = studentList || [];
+    const currentLang = i18n.language;
 
     const filteredStudents = students.filter(student =>
         student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -62,7 +64,7 @@ const StudentListDialog = ({ open, onClose, classData }) => {
             const dataUrl = canvas.toDataURL('image/png');
             const link = document.createElement('a');
             link.href = dataUrl;
-            link.download = `${name}-StudentList.png`;
+            link.download = `${name}-${t('student_list')}.png`;
             link.click();
         } catch (err) {
             console.error("PNG Export Error", err);
@@ -72,8 +74,10 @@ const StudentListDialog = ({ open, onClose, classData }) => {
     const handleExportPDF = () => {
         try {
             const doc = new jsPDF();
-            const date = new Date().toLocaleDateString();
-            const month = new Date().toLocaleString('default', { month: 'long' });
+            setupPdfFont(doc, currentLang);
+            
+            const dateStr = formatDate(new Date(), currentLang);
+            const monthStr = getTranslatedMonth(new Date().getMonth(), t);
 
             // Branding / Header
             doc.setFontSize(18);
@@ -82,29 +86,33 @@ const StudentListDialog = ({ open, onClose, classData }) => {
 
             doc.setFontSize(10);
             doc.setTextColor(100, 100, 100);
-            doc.text(`${students.length} Students | Month: ${month}`, 14, 26);
-            doc.text(`Generated on: ${date}`, 14, 32);
+            doc.text(`${students.length} ${t('students')} | ${t('month')}: ${monthStr}`, 14, 26);
+            doc.text(`${t('generated_on')}: ${dateStr}`, 14, 32);
 
             // Table Data Preparation
             const tableRows = filteredStudents.map(student => {
                 return [
                     student.name,
                     student.indexNumber,
-                    student.feePaid ? 'Paid' : 'Not Paid',
+                    student.feePaid ? t('paid') : t('not_paid'),
                     '' // Placeholder for graphical attendance
                 ];
             });
 
             autoTable(doc, {
                 startY: 40,
-                head: [['Student Name', 'Index Number', 'Fee Status', 'Attendance (W1 | W2 | W3 | W4)']],
+                head: [[t('student_name'), t('index_number'), t('fee_status'), t('attendance_w')]],
                 body: tableRows,
                 theme: 'striped',
                 headStyles: {
                     fillColor: [59, 130, 246], // Blue color matching theme
                     textColor: 255,
                     fontSize: 10,
-                    fontStyle: 'bold'
+                    fontStyle: 'bold',
+                    font: currentLang === 'si' ? 'NotoSansSinhala' : 'helvetica'
+                },
+                bodyStyles: {
+                    font: currentLang === 'si' ? 'NotoSansSinhala' : 'helvetica'
                 },
                 styles: {
                     fontSize: 9,
@@ -120,7 +128,7 @@ const StudentListDialog = ({ open, onClose, classData }) => {
                     // Color code Fee Status
                     if (data.section === 'body' && data.column.index === 2) {
                         const text = data.cell.raw;
-                        if (text === 'Paid') {
+                        if (text === t('paid')) {
                             data.cell.styles.textColor = [16, 185, 129]; // Green
                             data.cell.styles.fontStyle = 'bold';
                         } else {
@@ -174,7 +182,7 @@ const StudentListDialog = ({ open, onClose, classData }) => {
                 }
             });
 
-            doc.save(`${name}-StudentList.pdf`);
+            doc.save(`${name}-${t('student_list')}.pdf`);
         } catch (err) {
             console.error("PDF Generation Error", err);
             alert("Failed to generate PDF. Please try again.");
@@ -194,12 +202,12 @@ const StudentListDialog = ({ open, onClose, classData }) => {
             <DialogTitle sx={{ fontWeight: 'bold', pb: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                     <Typography variant="h5">{name}</Typography>
-                    <Chip label={`${students.length} Students`} color="primary" size="small" />
+                    <Chip label={`${students.length} ${t('students')}`} color="primary" size="small" />
                 </Box>
                 <TextField
                     fullWidth
                     variant="outlined"
-                    placeholder="Search by name or index..."
+                    placeholder={t('search_placeholder')}
                     size="small"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -218,21 +226,23 @@ const StudentListDialog = ({ open, onClose, classData }) => {
                     {/* Hidden Header for Export */}
                     <Box className="export-header" sx={{ display: 'none', mb: 2, textAlign: 'center' }}>
                         <Typography variant="h5" fontWeight="bold">{name}</Typography>
-                        <Typography variant="subtitle1" color="text.secondary">{students.length} Students | Month: {new Date().toLocaleString('default', { month: 'long' })}</Typography>
+                        <Typography variant="subtitle1" color="text.secondary">
+                            {students.length} {t('students')} | {t('month')}: {getTranslatedMonth(new Date().getMonth(), t)}
+                        </Typography>
                     </Box>
 
                     {filteredStudents.length === 0 ? (
                         <Box sx={{ p: 4, textAlign: 'center' }}>
-                            <Typography color="text.secondary">No students found.</Typography>
+                            <Typography color="text.secondary">{t('no_students')}</Typography>
                         </Box>
                     ) : (
                         <TableContainer sx={{ maxHeight: '60vh' }}>
                             <Table stickyHeader size="small">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>Student</TableCell>
-                                        <TableCell align="center">Fee Status</TableCell>
-                                        <TableCell align="center">Attendance (This Month)</TableCell>
+                                        <TableCell>{t('student_name')}</TableCell>
+                                        <TableCell align="center">{t('fee_status')}</TableCell>
+                                        <TableCell align="center">{t('attendance_month')}</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -255,7 +265,7 @@ const StudentListDialog = ({ open, onClose, classData }) => {
                                             </TableCell>
                                             <TableCell align="center">
                                                 <Chip
-                                                    label={student.feePaid ? "Paid" : "Not Paid"}
+                                                    label={student.feePaid ? t('paid') : t('not_paid')}
                                                     color={student.feePaid ? "success" : "error"}
                                                     size="small"
                                                     variant={student.feePaid ? "filled" : "outlined"}
@@ -282,13 +292,13 @@ const StudentListDialog = ({ open, onClose, classData }) => {
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleExportPNG} variant="outlined" color="secondary">
-                    Download PNG
+                    {t('download_png')}
                 </Button>
                 <Button onClick={handleExportPDF} variant="outlined" color="primary">
-                    Download PDF
+                    {t('download_pdf')}
                 </Button>
                 <Button onClick={onClose} variant="contained" sx={{ borderRadius: 2 }}>
-                    Close
+                    {t('close')}
                 </Button>
             </DialogActions>
         </Dialog>

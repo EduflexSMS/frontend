@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, Button, Box } from '@mui/material';
 import axios from 'axios';
 import API_BASE_URL from '../config';
-
-const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+import { useTranslation } from 'react-i18next';
 
 export default function ReportDialog({ open, onClose }) {
+    const { t } = useTranslation();
     const [subjects, setSubjects] = useState([]);
     const [grade, setGrade] = useState('');
     const [subject, setSubject] = useState('');
     const [month, setMonth] = useState(new Date().getMonth());
+
+    const monthKeys = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
 
     useEffect(() => {
         if (open) {
@@ -38,7 +40,7 @@ export default function ReportDialog({ open, onClose }) {
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `Report_${subject}_Grade${grade}_${months[month]}.xlsx`);
+            link.setAttribute('download', `Report_${subject}_${grade}_${t(monthKeys[month])}.xlsx`);
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -51,15 +53,15 @@ export default function ReportDialog({ open, onClose }) {
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-            <DialogTitle>Generate Monthly Report</DialogTitle>
+            <DialogTitle>{t('generate_report')}</DialogTitle>
             <DialogContent>
                 <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
 
                     <FormControl fullWidth>
-                        <InputLabel>Subject</InputLabel>
+                        <InputLabel>{t('add_subject').replace(' එක් කරන්න', '').replace('Add ', '')}</InputLabel>
                         <Select
                             value={subject}
-                            label="Subject"
+                            label={t('add_subject').replace(' එක් කරන්න', '').replace('Add ', '')}
                             onChange={(e) => setSubject(e.target.value)}
                         >
                             {subjects.map((sub) => (
@@ -69,29 +71,29 @@ export default function ReportDialog({ open, onClose }) {
                     </FormControl>
 
                     <FormControl fullWidth>
-                        <InputLabel id="report-grade-label">Grade</InputLabel>
+                        <InputLabel id="report-grade-label">{t('grade')}</InputLabel>
                         <Select
                             labelId="report-grade-label"
                             value={grade}
-                            label="Grade"
+                            label={t('grade')}
                             onChange={(e) => setGrade(e.target.value)}
                         >
                             {[...Array(13)].map((_, i) => {
                                 const gradeNum = (i + 1).toString().padStart(2, '0');
-                                return <MenuItem key={gradeNum} value={`Grade ${gradeNum}`}>Grade {gradeNum}</MenuItem>;
+                                return <MenuItem key={gradeNum} value={`Grade ${gradeNum}`}>{t('grade')} {gradeNum}</MenuItem>;
                             })}
                         </Select>
                     </FormControl>
 
                     <FormControl fullWidth>
-                        <InputLabel>Month</InputLabel>
+                        <InputLabel>{t('month')}</InputLabel>
                         <Select
                             value={month}
-                            label="Month"
+                            label={t('month')}
                             onChange={(e) => setMonth(e.target.value)}
                         >
-                            {months.map((m, index) => (
-                                <MenuItem key={index} value={index}>{m}</MenuItem>
+                            {monthKeys.map((m, index) => (
+                                <MenuItem key={index} value={index}>{t(m)}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
@@ -99,13 +101,13 @@ export default function ReportDialog({ open, onClose }) {
                 </Box>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose}>Cancel</Button>
+                <Button onClick={onClose}>{t('cancel')}</Button>
                 <Button
                     variant="contained"
                     onClick={handleGenerate}
                     disabled={!subject || !grade}
                 >
-                    Download Excel
+                    {t('download_excel')}
                 </Button>
             </DialogActions>
         </Dialog>

@@ -1,8 +1,10 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { setupPdfFont, formatDate } from './pdfUtils';
 
-export const generateFeeReport = (student, subjectMap, stats) => {
+export const generateFeeReport = (student, subjectMap, stats, t, lang) => {
     const doc = new jsPDF();
+    setupPdfFont(doc, lang);
 
     // Header Background
     doc.setFillColor(15, 23, 42); // Dark slate header
@@ -11,21 +13,19 @@ export const generateFeeReport = (student, subjectMap, stats) => {
     // Title text
     doc.setFontSize(24);
     doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(lang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'bold');
     doc.text("EDUFLEX INSTITUTE", 14, 22);
 
     doc.setFontSize(13);
     doc.setTextColor(148, 163, 184); // slate-400
-    doc.setFont('helvetica', 'normal');
-    doc.text("Performance & Fee Statement", 14, 32);
+    doc.setFont(lang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'normal');
+    doc.text(t('performance_analytics'), 14, 32);
 
     // Generation Date
     doc.setFontSize(9);
     doc.setTextColor(100, 116, 139);
-    const date = new Date().toLocaleDateString('en-US', {
-        year: 'numeric', month: 'long', day: 'numeric'
-    });
-    doc.text(`Generated: ${date}`, 14, 40);
+    const dateStr = formatDate(new Date(), lang);
+    doc.text(`${t('generated_on')}: ${dateStr}`, 14, 40);
 
     // Student Profile Section
     doc.setFillColor(248, 250, 252); // slate-50
@@ -37,44 +37,44 @@ export const generateFeeReport = (student, subjectMap, stats) => {
     doc.setTextColor(71, 85, 105);
     
     // Left Column
-    doc.setFont('helvetica', 'bold');
-    doc.text("Student Name:", 20, 62);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(lang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'bold');
+    doc.text(`${t('student_name')}:`, 20, 62);
+    doc.setFont(lang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'normal');
     doc.setTextColor(15, 23, 42);
     doc.text(student.name || "N/A", 52, 62);
 
     doc.setTextColor(71, 85, 105);
-    doc.setFont('helvetica', 'bold');
-    doc.text("Index No:", 20, 72);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(lang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'bold');
+    doc.text(`${t('index_number')}:`, 20, 72);
+    doc.setFont(lang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'normal');
     doc.setTextColor(15, 23, 42);
     doc.text(student.indexNumber || "N/A", 52, 72);
 
     doc.setTextColor(71, 85, 105);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(lang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'bold');
     doc.text("Mobile:", 20, 82);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(lang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'normal');
     doc.setTextColor(15, 23, 42);
     doc.text(student.mobile || "N/A", 52, 82);
 
     // Right Column
     doc.setTextColor(71, 85, 105);
-    doc.setFont('helvetica', 'bold');
-    doc.text("Grade:", 115, 62);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(lang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'bold');
+    doc.text(`${t('grade')}:`, 115, 62);
+    doc.setFont(lang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'normal');
     doc.setTextColor(15, 23, 42);
     doc.text(student.grade || "N/A", 135, 62);
 
     doc.setTextColor(71, 85, 105);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(lang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'bold');
     doc.text("Overall Att:", 115, 72);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(lang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'bold');
     const attColor = stats?.pct >= 75 ? [34, 197, 94] : stats?.pct >= 50 ? [234, 179, 8] : [239, 68, 68];
     doc.setTextColor(attColor[0], attColor[1], attColor[2]);
     doc.text(`${stats?.pct || 0}%`, 140, 72);
 
     // ── Table Data PREP ──
-    const tableHeaders = [["Subject Enrolled", "Monthly Fee (LKR)"]];
+    const tableHeaders = [[t('add_subject').replace(' එක් කරන්න', '').replace('Add ', ''), t('monthly_collection')]];
     const tableData = [];
     let totalFee = 0;
 
@@ -91,11 +91,11 @@ export const generateFeeReport = (student, subjectMap, stats) => {
         });
 
         tableData.push([
-            { content: 'Total Expected Monthly Fee:', styles: { fontStyle: 'bold', halign: 'right', fillColor: [241, 245, 249] } },
+            { content: `${t('total')}:`, styles: { fontStyle: 'bold', halign: 'right', fillColor: [241, 245, 249] } },
             { content: `Rs. ${totalFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, styles: { fontStyle: 'bold', textColor: [15, 23, 42], fillColor: [241, 245, 249] } }
         ]);
     } else {
-        tableData.push([{ content: 'No classes enrolled', colSpan: 2, styles: { halign: 'center', fontStyle: 'italic', textColor: 150 } }]);
+        tableData.push([{ content: t('no_students'), colSpan: 2, styles: { halign: 'center', fontStyle: 'italic', textColor: 150 } }]);
     }
 
     // ── Generate Fee Table ──
@@ -108,7 +108,11 @@ export const generateFeeReport = (student, subjectMap, stats) => {
             fillColor: [71, 85, 105], 
             textColor: 255,
             fontSize: 10,
-            halign: 'center'
+            halign: 'center',
+            font: lang === 'si' ? 'NotoSansSinhala' : 'helvetica'
+        },
+        bodyStyles: {
+            font: lang === 'si' ? 'NotoSansSinhala' : 'helvetica'
         },
         styles: { 
             fontSize: 10,
@@ -130,15 +134,15 @@ export const generateFeeReport = (student, subjectMap, stats) => {
     if (stats?.subjects && stats.subjects.length > 0) {
         doc.setFontSize(14);
         doc.setTextColor(15, 23, 42);
-        doc.setFont('helvetica', 'bold');
-        doc.text("Subject Attendance Performance", 14, currentY + 8);
+        doc.setFont(lang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'bold');
+        doc.text(t('performance_analytics'), 14, currentY + 8);
         
         currentY += 16;
         
         stats.subjects.forEach(subj => {
             doc.setFontSize(11);
             doc.setTextColor(71, 85, 105);
-            doc.setFont('helvetica', 'bold');
+            doc.setFont(lang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'bold');
             doc.text(subj.name, 14, currentY);
             
             // Draw track
@@ -159,7 +163,7 @@ export const generateFeeReport = (student, subjectMap, stats) => {
             
             // Percentage Text
             doc.setFontSize(9);
-            doc.setFont('helvetica', 'bold');
+            doc.setFont(lang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'bold');
             doc.setTextColor(15, 23, 42);
             doc.text(`${pct}%`, 184, currentY + 1);
             
@@ -171,8 +175,8 @@ export const generateFeeReport = (student, subjectMap, stats) => {
     currentY += 15;
     doc.setFontSize(9);
     doc.setTextColor(148, 163, 184);
-    doc.setFont('helvetica', 'italic');
-    doc.text("This is a system-generated report and does not require a physical signature.", 105, currentY, { align: 'center' });
+    doc.setFont(lang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'italic');
+    doc.text(lang === 'si' ? "මෙය පරිගණකයෙන් සැකසූ වාර්තාවක් වන අතර අත්සනක් අවශ්‍ය නොවේ." : "This is a system-generated report and does not require a physical signature.", 105, currentY, { align: 'center' });
     
     // Page bottom border/color accent
     doc.setDrawColor(99, 102, 241); // Indigo accent line

@@ -9,8 +9,11 @@ import API_BASE_URL from '../config';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import StudentListDialog from './StudentListDialog';
+import { useTranslation } from 'react-i18next';
+import { setupPdfFont, getTranslatedMonth, formatDate } from '../utils/pdfUtils';
 
 export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
+    const { t, i18n } = useTranslation();
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [details, setDetails] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -18,22 +21,30 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
     const [subjectFee, setSubjectFee] = useState(0);
     const [editingFee, setEditingFee] = useState(false);
     const [newFee, setNewFee] = useState(0);
+    const currentLang = i18n.language;
 
-    const months = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
+    const monthNames = [
+        "january", "february", "march", "april", "may", "june",
+        "july", "august", "september", "october", "november", "december"
     ];
 
     const handleDownloadPDF = () => {
         try {
             const doc = new jsPDF();
+            setupPdfFont(doc, currentLang);
+
+            const dateStr = formatDate(new Date(), currentLang);
+            const monthStr = getTranslatedMonth(selectedMonth, t);
+
             doc.setFontSize(18);
-            doc.text(`${subjectName} - Grade Breakdown`, 14, 20);
+            doc.text(`${subjectName} - ${t('grade_breakdown')}`, 14, 20);
+            
             doc.setFontSize(12);
-            doc.text(`Month: ${months[selectedMonth]}`, 14, 28);
-            doc.text(`Fee: ${subjectFee}`, 14, 34);
+            doc.text(`${t('month')}: ${monthStr}`, 14, 28);
+            doc.text(`${t('fee')}: LKR ${subjectFee.toLocaleString()}`, 14, 34);
+            
             doc.setFontSize(10);
-            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 40);
+            doc.text(`${t('generated_on')}: ${dateStr}`, 14, 40);
 
             const totalStudents = details.reduce((sum, row) => sum + (row.totalStudents || 0), 0);
             const totalPaid = details.reduce((sum, row) => sum + (row.paidStudents || 0), 0);
@@ -41,17 +52,27 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
 
             autoTable(doc, {
                 startY: 50,
-                head: [['Grade', 'Total Students', `Paid Count (${months[selectedMonth]})`, 'Collected Amount']],
+                head: [[t('grade'), t('total_students'), `${t('paid_count')} (${monthStr})`, t('collected_amount')]],
                 body: details.map(row => [
                     row.grade,
                     row.totalStudents,
                     row.paidStudents,
                     `LKR ${(row.paidStudents * subjectFee).toLocaleString()}`
                 ]),
-                foot: [['Total', totalStudents, totalPaid, `LKR ${totalCollected.toLocaleString()}`]],
+                foot: [[t('total'), totalStudents, totalPaid, `LKR ${totalCollected.toLocaleString()}`]],
                 theme: 'striped',
-                headStyles: { fillColor: [66, 133, 244] },
-                footStyles: { fillColor: [40, 44, 52], fontStyle: 'bold' },
+                headStyles: { 
+                    fillColor: [66, 133, 244],
+                    font: currentLang === 'si' ? 'NotoSansSinhala' : 'helvetica'
+                },
+                bodyStyles: {
+                    font: currentLang === 'si' ? 'NotoSansSinhala' : 'helvetica'
+                },
+                footStyles: { 
+                    fillColor: [40, 44, 52], 
+                    fontStyle: 'bold',
+                    font: currentLang === 'si' ? 'NotoSansSinhala' : 'helvetica'
+                },
                 columnStyles: { 3: { halign: 'right' } }
             });
 
@@ -66,15 +87,15 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
 
             doc.setFontSize(14);
             doc.setTextColor(33, 37, 41);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Payment Summary', 20, finalY + 25);
+            doc.setFont(currentLang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'bold');
+            doc.text(t('payment_summary'), 20, finalY + 25);
 
             doc.setFontSize(11);
-            doc.setFont('helvetica', 'normal');
-            doc.text(`Total Collected Amount:`, 20, finalY + 35);
+            doc.setFont(currentLang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'normal');
+            doc.text(`${t('total_collected')}:`, 20, finalY + 35);
             doc.text(`LKR ${totalCollected.toLocaleString()}`, 190, finalY + 35, { align: 'right' });
 
-            doc.text(`Less: Institute Share (20%):`, 20, finalY + 42);
+            doc.text(`${t('institute_share')}:`, 20, finalY + 42);
             doc.text(`- LKR ${instituteShare.toLocaleString()}`, 190, finalY + 42, { align: 'right' });
 
             // Draw a line
@@ -82,12 +103,12 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
             doc.line(20, finalY + 46, 190, finalY + 46);
 
             doc.setFontSize(13);
-            doc.setFont('helvetica', 'bold');
+            doc.setFont(currentLang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'bold');
             doc.setTextColor(40, 167, 69); // Success Green
-            doc.text(`Amount to Pay (80%):`, 20, finalY + 54);
+            doc.text(`${t('amount_to_pay')}:`, 20, finalY + 54);
             doc.text(`LKR ${netPayable.toLocaleString()}`, 190, finalY + 54, { align: 'right' });
 
-            doc.save(`${subjectName}_Report.pdf`);
+            doc.save(`${subjectName}_${t('grade_breakdown')}.pdf`);
         } catch (err) {
             console.error("PDF Generation Error:", err);
             alert(`Failed to generate PDF: ${err.message}`);
@@ -111,7 +132,7 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
             setDetails(response.data);
         } catch (err) {
             console.error("Error fetching subject details:", err);
-            setError("Failed to load details");
+            setError(t('failed_to_load'));
         } finally {
             setLoading(false);
         }
@@ -119,9 +140,6 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
 
     const fetchSubjectInfo = async () => {
         try {
-            // Need a way to get subject info specifically (fee). 
-            // The existing getAllSubjects returns all, maybe we can filter or use a new endpoint.
-            // For now, let's fetch all and find ours. Not efficient but works for now.
             const { data } = await axios.get(`${API_BASE_URL}/api/subjects`);
             const sub = data.find(s => s.name === subjectName);
             if (sub) {
@@ -155,7 +173,7 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
             setStudentListOpen(true);
         } catch (err) {
             console.error("Failed to fetch student list", err);
-            alert("Failed to load student list");
+            alert(t('failed_to_load_students'));
         } finally {
             setFetchingStudents(false);
         }
@@ -168,19 +186,19 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
             setEditingFee(false);
         } catch (err) {
             console.error("Error updating fee", err);
-            alert("Failed to update fee");
+            alert(t('failed_to_update'));
         }
     };
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
             <DialogTitle sx={{ fontWeight: 'bold' }}>
-                {subjectName} - Grade Breakdown
+                {subjectName} - {t('grade_breakdown')}
             </DialogTitle>
             <DialogContent dividers>
                 <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Typography variant="subtitle1">Fee: <strong>{editingFee ? '' : `LKR ${subjectFee.toLocaleString()}`}</strong></Typography>
+                        <Typography variant="subtitle1">{t('fee')}: <strong>{editingFee ? '' : `LKR ${subjectFee.toLocaleString()}`}</strong></Typography>
                         {editingFee ? (
                             <Box sx={{ display: 'flex', gap: 1 }}>
                                 <input
@@ -189,23 +207,23 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                                     onChange={(e) => setNewFee(e.target.value)}
                                     style={{ width: '80px', padding: '5px' }}
                                 />
-                                <Button size="small" variant="contained" onClick={handleSaveFee}>Save</Button>
-                                <Button size="small" onClick={() => setEditingFee(false)}>Cancel</Button>
+                                <Button size="small" variant="contained" onClick={handleSaveFee}>{t('save')}</Button>
+                                <Button size="small" onClick={() => setEditingFee(false)}>{t('cancel')}</Button>
                             </Box>
                         ) : (
-                            <Button size="small" onClick={() => setEditingFee(true)}>Edit Fee</Button>
+                            <Button size="small" onClick={() => setEditingFee(true)}>{t('edit_fee')}</Button>
                         )}
                     </Box>
 
                     <FormControl size="small" sx={{ minWidth: 120 }}>
-                        <InputLabel>Month</InputLabel>
+                        <InputLabel>{t('month')}</InputLabel>
                         <Select
                             value={selectedMonth}
-                            label="Month"
+                            label={t('month')}
                             onChange={(e) => setSelectedMonth(e.target.value)}
                         >
-                            {months.map((month, index) => (
-                                <MenuItem key={index} value={index}>{month}</MenuItem>
+                            {monthNames.map((m, index) => (
+                                <MenuItem key={index} value={index}>{t(m)}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
@@ -217,16 +235,16 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                 ) : error ? (
                     <Typography color="error" align="center">{error}</Typography>
                 ) : details.length === 0 ? (
-                    <Typography align="center" color="text.secondary">No students enrolled yet.</Typography>
+                    <Typography align="center" color="text.secondary">{t('no_students')}</Typography>
                 ) : (
                     <TableContainer component={Paper} elevation={0} variant="outlined">
                         <Table size="small">
                             <TableHead>
                                 <TableRow sx={{ bgcolor: 'action.hover' }}>
-                                    <TableCell sx={{ fontWeight: 'bold' }}>Grade</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Total Students</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Paid Count ({months[selectedMonth]})</TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>Collected Amount</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold' }}>{t('grade')}</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('total_students')}</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('paid_count')} ({t(monthNames[selectedMonth])})</TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('collected_amount')}</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -255,7 +273,7 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                                     </TableRow>
                                 ))}
                                 <TableRow sx={{ bgcolor: 'action.hover' }}>
-                                    <TableCell sx={{ fontWeight: 'bold' }}>Total</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold' }}>{t('total')}</TableCell>
                                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>
                                         {details.reduce((sum, row) => sum + (row.totalStudents || 0), 0)}
                                     </TableCell>
@@ -273,9 +291,9 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleDownloadPDF} variant="contained" color="primary" disabled={details.length === 0}>
-                    Download PDF
+                    {t('download_pdf')}
                 </Button>
-                <Button onClick={onClose}>Close</Button>
+                <Button onClick={onClose}>{t('close')}</Button>
             </DialogActions>
 
             <StudentListDialog
