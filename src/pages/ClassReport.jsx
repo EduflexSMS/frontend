@@ -246,41 +246,126 @@ export default function ClassReport() {
         setGeneratingPDF(true);
 
         try {
-            const doc = new jsPDF('p', 'mm', 'a4');
+            const doc = new jsPDF();
+            const currentLang = i18n.language;
+            setupPdfFont(doc, currentLang);
+
+            const monthName = t(months[month].toLowerCase());
+            const dateStr = formatDate(new Date(), currentLang);
+
             const subjects = Object.keys(gradeReportData);
-            
-            for (let i = 0; i < subjects.length; i++) {
-                const element = document.getElementById(`report-subject-${i}`);
-                if (!element) continue;
 
-                // Temporarily make it visible for html2canvas to render reliably
-                const originalLeft = element.style.left;
-                element.style.left = '0';
-                element.style.position = 'relative';
+            subjects.forEach((subjectKey, index) => {
+                if (index > 0) {
+                    doc.addPage();
+                }
 
-                const canvas = await html2canvas(element, {
-                    scale: 2,
-                    useCORS: true,
-                    backgroundColor: '#ffffff',
-                    windowWidth: document.documentElement.offsetWidth
+                const students = gradeReportData[subjectKey];
+
+                doc.setFontSize(22);
+                doc.setTextColor(30, 41, 59); // Slate 800
+                doc.setFont(currentLang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'bold');
+                doc.text("Eduflex Institute", 14, 20);
+
+                doc.setFontSize(14);
+                doc.setTextColor(37, 99, 235); // Blue 600
+                doc.text(currentLang === 'si' ? `${grade} ${t('grade')} - ${subjectKey}` : `${grade} - ${subjectKey} Overview`, 14, 28);
+
+                doc.setFontSize(10);
+                doc.setTextColor(100);
+                doc.setFont(currentLang === 'si' ? 'NotoSansSinhala' : 'helvetica', 'normal');
+                doc.text(`${t('class_performance')} | ${t('month')}: ${monthName}`, 14, 34);
+
+                // Summary Stats
+                const totalStudents = students.length;
+                const paidCount = students.filter(s => s.feePaid).length;
+                const pendingCount = totalStudents - paidCount;
+
+                doc.setDrawColor(59, 130, 246); // Blue 500
+                doc.setFillColor(241, 245, 249); // Slate 100
+                doc.roundedRect(14, 40, 55, 20, 2, 2, 'FD');
+                doc.setLineWidth(1);
+                doc.line(14, 40, 14, 60); // Left border
+
+                doc.setFontSize(8);
+                doc.setTextColor(100);
+                doc.text(t('total_students').toUpperCase(), 18, 46);
+                doc.setFontSize(16);
+                doc.setTextColor(15, 23, 42);
+                doc.text(`${totalStudents}`, 18, 55);
+
+                doc.setDrawColor(34, 197, 94); // Green 500
+                doc.setFillColor(240, 253, 244); // Green 50
+                doc.roundedRect(74, 40, 55, 20, 2, 2, 'FD');
+                doc.setFillColor(34, 197, 94);
+                doc.rect(74, 40, 2, 20, 'F');
+
+                doc.setFontSize(8);
+                doc.setTextColor(22, 101, 52);
+                doc.text(t('paid_count').toUpperCase(), 78, 46);
+                doc.setFontSize(16);
+                doc.setTextColor(21, 128, 61);
+                doc.text(`${paidCount}`, 78, 55);
+
+                doc.setDrawColor(239, 68, 68); // Red 500
+                doc.setFillColor(254, 242, 242); // Red 50
+                doc.roundedRect(134, 40, 55, 20, 2, 2, 'FD');
+                doc.setFillColor(239, 68, 68); 
+                doc.rect(134, 40, 2, 20, 'F');
+
+                doc.setFontSize(8);
+                doc.setTextColor(153, 27, 27);
+                doc.text(t('pending').toUpperCase(), 138, 46);
+                doc.setFontSize(16);
+                doc.setTextColor(185, 28, 28);
+                doc.text(`${pendingCount}`, 138, 55);
+
+                // Table
+                const tableColumn = ["#", t('student_name'), t('index_number'), t('attendance'), t('fee_status')];
+                const tableRows = [];
+
+                students.forEach((student, idx) => {
+                    const attendanceCount = countAttendance(student.attendance);
+                    const studentData = [
+                        idx + 1,
+                        student.name,
+                        student.indexNumber,
+                        `${attendanceCount}/5`,
+                        student.feePaid ? t('paid') : t('not_paid')
+                    ];
+                    tableRows.push(studentData);
                 });
 
-                // Revert styles
-                element.style.position = 'absolute';
-                element.style.left = originalLeft;
-
-                const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                const pdfWidth = doc.internal.pageSize.getWidth();
-                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-                if (i > 0) doc.addPage();
-                doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-            }
+                autoTable(doc, {
+                    head: [tableColumn],
+                    body: tableRows,
+                    startY: 65,
+                    theme: 'striped',
+                    headStyles: {
+                        fillColor: [37, 99, 235],
+                        textColor: 255,
+                        halign: 'center',
+                        font: currentLang === 'si' ? 'NotoSansSinhala' : 'helvetica'
+                    },
+                    bodyStyles: {
+                        font: currentLang === 'si' ? 'NotoSansSinhala' : 'helvetica'
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 15 },
+                        1: { cellWidth: 'auto' },
+                        2: { cellWidth: 40 },
+                        3: { halign: 'center', cellWidth: 30 },
+                        4: { halign: 'center', cellWidth: 30 }
+                    },
+                    alternateRowStyles: { fillColor: [245, 247, 250] },
+                    margin: { top: 60 }
+                });
+            });
 
             doc.save(`Eduflex_Grade_Report_${grade}_${months[month]}.pdf`);
         } catch (error) {
             console.error("Error generating full PDF:", error);
-            setError("Failed to generate PDF. Make sure all images are loaded.");
+            setError("Failed to generate PDF.");
         } finally {
             setGeneratingPDF(false);
         }
@@ -854,139 +939,7 @@ export default function ClassReport() {
                 </motion.div>
             )}
 
-            {/* Hidden Templates for Full Grade PDF Generation */}
-            {gradeReportData && (
-                <Box sx={{ position: 'absolute', left: '-9999px', top: 0, width: '210mm' }}>
-                    {Object.keys(gradeReportData).map((subjectKey, i) => {
-                        const students = gradeReportData[subjectKey];
-                        const isSi = i18n.language === 'si';
-                        
-                        return (
-                            <Paper
-                                key={subjectKey}
-                                id={`report-subject-${i}`}
-                                sx={{
-                                    width: '210mm',
-                                    p: '20mm',
-                                    bgcolor: '#fff',
-                                    borderRadius: 0,
-                                    fontFamily: isSi ? "'Noto Sans Sinhala', sans-serif" : "'Inter', sans-serif"
-                                }}
-                            >
-                                {/* PDF Header */}
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, borderBottom: '2px solid #2563eb', pb: 2 }}>
-                                    <Box>
-                                        <Typography sx={{ fontWeight: 800, fontSize: '28px', color: '#1e293b', fontFamily: 'inherit' }}>Eduflex Institute</Typography>
-                                        <Typography sx={{ fontWeight: 600, fontSize: '18px', color: '#2563eb', mt: 0.5, fontFamily: 'inherit' }}>
-                                            {isSi ? `${grade} ${t('grade')} - ${subjectKey}` : `${grade} - ${subjectKey} Overview`}
-                                        </Typography>
-                                    </Box>
-                                    <Box sx={{ textAlign: 'right' }}>
-                                        <Typography sx={{ fontWeight: 700, fontSize: '18px', color: '#475569', fontFamily: 'inherit' }}>
-                                            {t('class_performance')}
-                                        </Typography>
-                                        <Typography sx={{ color: '#64748b', fontSize: '14px', mt: 0.5, fontFamily: 'inherit' }}>
-                                            {t('month')}: {t(months[month].toLowerCase())}
-                                        </Typography>
-                                    </Box>
-                                </Box>
-
-                                {/* PDF Stats Summary */}
-                                <Grid container spacing={2} sx={{ mb: 4 }}>
-                                    <Grid item xs={4}>
-                                        <Box sx={{ bgcolor: '#f1f5f9', p: 2, borderRadius: 2, borderLeft: '4px solid #3b82f6' }}>
-                                            <Typography sx={{ color: '#64748b', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'inherit' }}>
-                                                {t('total_students')}
-                                            </Typography>
-                                            <Typography sx={{ color: '#0f172a', fontSize: '24px', fontWeight: 800, fontFamily: 'inherit' }}>{students.length}</Typography>
-                                        </Box>
-                                    </Grid>
-                                    <Grid item xs={4}>
-                                        <Box sx={{ bgcolor: '#f0fdf4', p: 2, borderRadius: 2, borderLeft: '4px solid #22c55e' }}>
-                                            <Typography sx={{ color: '#166534', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'inherit' }}>
-                                                {t('paid_count')}
-                                            </Typography>
-                                            <Typography sx={{ color: '#15803d', fontSize: '24px', fontWeight: 800, fontFamily: 'inherit' }}>
-                                                {students.filter(s => s.feePaid).length}
-                                            </Typography>
-                                        </Box>
-                                    </Grid>
-                                    <Grid item xs={4}>
-                                        <Box sx={{ bgcolor: '#fef2f2', p: 2, borderRadius: 2, borderLeft: '4px solid #ef4444' }}>
-                                            <Typography sx={{ color: '#991b1b', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'inherit' }}>
-                                                {t('pending')}
-                                            </Typography>
-                                            <Typography sx={{ color: '#b91c1c', fontSize: '24px', fontWeight: 800, fontFamily: 'inherit' }}>
-                                                {students.filter(s => !s.feePaid).length}
-                                            </Typography>
-                                        </Box>
-                                    </Grid>
-                                </Grid>
-
-                                {/* Table */}
-                                <Table size="small" sx={{ border: '1px solid #e2e8f0', borderRadius: 2, overflow: 'hidden' }}>
-                                    <TableHead>
-                                        <TableRow sx={{ bgcolor: '#f8fafc' }}>
-                                            <TableCell sx={{ fontWeight: 700, color: '#334155', fontFamily: 'inherit' }}>
-                                                {t('student_name')}
-                                            </TableCell>
-                                            <TableCell sx={{ fontWeight: 700, color: '#334155', fontFamily: 'inherit' }}>{t('index_number')}</TableCell>
-                                            <TableCell align="center" sx={{ fontWeight: 700, color: '#334155', minWidth: '150px', fontFamily: 'inherit' }}>
-                                                {t('attendance')}
-                                            </TableCell>
-                                            <TableCell align="center" sx={{ fontWeight: 700, color: '#334155', fontFamily: 'inherit' }}>
-                                                {t('fee_status')}
-                                            </TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {students.map((row) => {
-                                            const attCount = countAttendance(row.attendance);
-                                            return (
-                                                <TableRow key={row.id} sx={{ '&:last-child td': { border: 0 }}}>
-                                                    <TableCell>
-                                                        <Typography sx={{ fontWeight: 600, color: '#0f172a', fontFamily: 'inherit' }}>{row.name}</Typography>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Typography sx={{ color: '#64748b', fontSize: '13px', fontFamily: 'inherit' }}>{row.indexNumber}</Typography>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                            {/* Mini Progress Bar instead of circle for clean PDF */}
-                                                            <Box sx={{ flexGrow: 1, height: '8px', bgcolor: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                                                                <Box sx={{ width: `${(attCount / 5) * 100}%`, height: '100%', bgcolor: attCount >= 4 ? '#22c55e' : (attCount >= 2 ? '#f59e0b' : '#3b82f6') }} />
-                                                            </Box>
-                                                            <Typography sx={{ fontWeight: 700, fontSize: '13px', color: '#475569', fontFamily: 'inherit' }}>
-                                                                {attCount}/5
-                                                            </Typography>
-                                                        </Box>
-                                                    </TableCell>
-                                                    <TableCell align="center">
-                                                        {row.feePaid ? (
-                                                            <Box sx={{ display: 'inline-block', bgcolor: '#dcfce7', color: '#166534', px: 1.5, py: 0.5, borderRadius: '4px', fontSize: '12px', fontWeight: 700, fontFamily: 'inherit' }}>
-                                                                {t('paid')} ✓
-                                                            </Box>
-                                                        ) : (
-                                                            <Box sx={{ display: 'inline-block', bgcolor: '#ffe4e6', color: '#be123c', px: 1.5, py: 0.5, borderRadius: '4px', fontSize: '12px', fontWeight: 700, fontFamily: 'inherit' }}>
-                                                                {t('not_paid')} ✗
-                                                            </Box>
-                                                        )}
-                                                    </TableCell>
-                                                </TableRow>
-                                            )
-                                        })}
-                                    </TableBody>
-                                </Table>
-
-                                {/* Footer Note */}
-                                <Typography sx={{ mt: 4, textAlign: 'center', color: '#cbd5e1', fontSize: '12px', fontFamily: 'inherit' }}>
-                                    {t('generated_on')}: {formatDate(new Date(), i18n.language)} | Eduflex System
-                                </Typography>
-                            </Paper>
-                        );
-                    })}
-                </Box>
-            )}
+            {/* Removed Hidden Templates */}
 
         </MotionContainer>
     );
