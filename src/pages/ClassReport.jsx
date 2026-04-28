@@ -215,7 +215,20 @@ export default function ClassReport() {
                 4: { halign: 'center' } // Tutes
             },
             alternateRowStyles: { fillColor: [245, 247, 250] },
-            margin: { top: 60 }
+            margin: { top: 60 },
+            didParseCell: (data) => {
+                if (data.section === 'body' && data.column.index === 3) {
+                    if (data.cell.raw === t('paid')) {
+                        data.cell.styles.fillColor = [34, 197, 94]; // Green 500
+                        data.cell.styles.textColor = [255, 255, 255];
+                        data.cell.styles.fontStyle = 'bold';
+                    } else if (data.cell.raw === t('not_paid')) {
+                        data.cell.styles.fillColor = [239, 68, 68]; // Red 500
+                        data.cell.styles.textColor = [255, 255, 255];
+                        data.cell.styles.fontStyle = 'bold';
+                    }
+                }
+            }
         });
 
         doc.save(`Eduflex_Report_${grade}_${subject}_${monthName}.pdf`);
@@ -358,7 +371,20 @@ export default function ClassReport() {
                         4: { halign: 'center', cellWidth: 30 }
                     },
                     alternateRowStyles: { fillColor: [245, 247, 250] },
-                    margin: { top: 60 }
+                    margin: { top: 60 },
+                    didParseCell: (data) => {
+                        if (data.section === 'body' && data.column.index === 4) {
+                            if (data.cell.raw === t('paid')) {
+                                data.cell.styles.fillColor = [34, 197, 94]; // Green 500
+                                data.cell.styles.textColor = [255, 255, 255];
+                                data.cell.styles.fontStyle = 'bold';
+                            } else if (data.cell.raw === t('not_paid')) {
+                                data.cell.styles.fillColor = [239, 68, 68]; // Red 500
+                                data.cell.styles.textColor = [255, 255, 255];
+                                data.cell.styles.fontStyle = 'bold';
+                            }
+                        }
+                    }
                 });
             });
 
