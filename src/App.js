@@ -16,6 +16,7 @@ import AddSubject from './pages/AddSubject';
 import Dashboard from './pages/Dashboard';
 import PageTransition from './components/PageTransition';
 import QRScanner from './pages/QRScanner';
+import POS from './pages/POS';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -66,6 +67,7 @@ function AnimatedRoutes() {
           <Route path="add-subject" element={<AddSubject />} />
           <Route path="reports" element={<ClassReport />} />
           <Route path="daily-report" element={<DailyReport />} />
+          <Route path="pos" element={<POS />} />
         </Route>
 
         {/* Role-Based Dashboards */}
