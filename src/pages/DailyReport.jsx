@@ -104,20 +104,21 @@ export default function DailyReport() {
             const reportDateObj = new Date(date);
             const month = reportDateObj.getMonth();
             
-            await axios.patch(`${API_BASE_URL}/api/attendance/${studentId}/${subject}/${month}/${weekIndex}`, {
+            await axios.patch(`${API_BASE_URL}/api/attendance/${studentId}/${encodeURIComponent(subject)}/${month}/${weekIndex}`, {
                 status: status
             });
             
-            // Refresh data locally
-            const updatedData = reportData.map(student => {
-                if (student.id === studentId) {
-                    return { ...student, attendanceToday: status };
-                }
-                return student;
+            // Refresh data locally safely using functional update
+            setReportData(prevData => {
+                const updatedData = prevData.map(student => {
+                    if (student.id === studentId) {
+                        return { ...student, attendanceToday: status };
+                    }
+                    return student;
+                });
+                calculateSummary(updatedData);
+                return updatedData;
             });
-            
-            setReportData(updatedData);
-            calculateSummary(updatedData);
         } catch (error) {
             console.error("Error updating attendance:", error);
             alert("Failed to update attendance.");
