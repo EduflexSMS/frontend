@@ -6,6 +6,53 @@ import axios from 'axios';
 import API_BASE_URL from '../config';
 import { useNavigate } from 'react-router-dom';
 
+// Sound generators and Speech Synthesizer
+const playSuccessSound = () => {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.2);
+    } catch(e){}
+};
+
+const playErrorSound = () => {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(100, ctx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
+    } catch(e){}
+};
+
+const speakText = (text) => {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'en-US';
+        msg.rate = 1.1; // Slightly faster
+        window.speechSynthesis.speak(msg);
+    }
+};
+
 export default function QRScanner() {
     const [subjects, setSubjects] = useState([]);
     const [selectedSubject, setSelectedSubject] = useState('');
@@ -66,20 +113,22 @@ export default function QRScanner() {
                     lastScanTime.current = now;
 
                     try {
-                        const audio = new Audio('/beep.mp3');
-                        if (audio) audio.play().catch(e => console.log('Audio play failed', e));
-
                         const response = await axios.post(`${API_BASE_URL}/api/attendance/qr`, {
                             indexNumber: decodedText,
                             subject: selectedSubject
                         });
 
                         const { student, week, status } = response.data;
+                        const firstName = student ? student.split(' ')[0] : 'Student';
 
                         if (status === 'already_marked') {
                             setMessage({ type: 'info', text: `Already Marked: ${student}` });
+                            playSuccessSound();
+                            speakText(`${firstName} is already marked.`);
                         } else {
                             setMessage({ type: 'success', text: `Marked Present: ${student} (Week ${week})` });
+                            playSuccessSound();
+                            speakText(`${firstName} is marked present.`);
                         }
                         setOpenSnackbar(true);
 
@@ -88,6 +137,8 @@ export default function QRScanner() {
                         const errMsg = error.response?.data?.message || "Scan Failed";
                         setMessage({ type: 'error', text: errMsg });
                         setOpenSnackbar(true);
+                        playErrorSound();
+                        speakText("Error. Attendance not marked.");
                     }
                 };
 
