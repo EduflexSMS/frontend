@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Container, Paper, Typography, MenuItem, Select, FormControl, InputLabel, Button, Alert, Snackbar } from '@mui/material';
-import { QrCodeScanner, ArrowBack } from '@mui/icons-material';
+import { QrCodeScanner, ArrowBack, Cameraswitch } from '@mui/icons-material';
 import { Html5Qrcode } from 'html5-qrcode';
 import axios from 'axios';
 import API_BASE_URL from '../config';
@@ -58,6 +58,7 @@ export default function QRScanner() {
     const [selectedSubject, setSelectedSubject] = useState('');
     const [message, setMessage] = useState({ type: '', text: '' });
     const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [facingMode, setFacingMode] = useState('environment');
     
     // We use a ref to ensure we don't start multiple scanners
     const scannerRef = useRef(null);
@@ -146,27 +147,32 @@ export default function QRScanner() {
                     // Ignore frame failures
                 };
 
-                // Try to start with environment camera first
                 try {
                     await scannerRef.current.start(
-                        { facingMode: "environment" },
+                        { facingMode: facingMode },
                         config,
                         onScanSuccess,
                         onScanFailure
                     );
                 } catch (err) {
-                    console.warn("Environment camera failed, falling back to any available camera", err);
-                    // Fallback to any camera
-                    try {
-                        await scannerRef.current.start(
-                            { facingMode: "user" },
-                            config,
-                            onScanSuccess,
-                            onScanFailure
-                        );
-                    } catch (fallbackErr) {
-                         console.error("All camera fallback failed:", fallbackErr);
-                         setMessage({ type: 'error', text: 'Camera access failed. Please grant camera permissions.' });
+                    console.error("Camera start failed:", err);
+                    if (facingMode === 'environment') {
+                        try {
+                            console.warn("Falling back to user camera...");
+                            await scannerRef.current.start(
+                                { facingMode: "user" },
+                                config,
+                                onScanSuccess,
+                                onScanFailure
+                            );
+                            setFacingMode("user");
+                        } catch (fallbackErr) {
+                             console.error("All camera fallback failed:", fallbackErr);
+                             setMessage({ type: 'error', text: 'Camera access failed. Please grant camera permissions.' });
+                             setOpenSnackbar(true);
+                        }
+                    } else {
+                         setMessage({ type: 'error', text: 'Failed to access camera. It might be in use or permissions denied.' });
                          setOpenSnackbar(true);
                     }
                 }
@@ -190,7 +196,7 @@ export default function QRScanner() {
                 });
             }
         };
-    }, [selectedSubject]);
+    }, [selectedSubject, facingMode]);
 
     const handleCloseSnackbar = () => {
         setOpenSnackbar(false);
@@ -224,30 +230,38 @@ export default function QRScanner() {
                 </FormControl>
 
                 {selectedSubject && (
-                    <Box sx={{
-                        mt: 2,
-                        border: '2px dashed #ccc',
-                        borderRadius: '16px',
-                        overflow: 'hidden',
-                        maxWidth: '500px',
-                        margin: '0 auto',
-                        bgcolor: '#000',
-                        position: 'relative'
-                    }}>
-                        <div id="qr-reader" style={{ width: '100%', minHeight: '300px' }}></div>
-                        <Typography variant="caption" sx={{ 
-                            color: 'white', 
-                            display: 'block', 
-                            p: 1, 
-                            position: 'absolute', 
-                            bottom: 0, 
-                            width: '100%', 
-                            textAlign: 'center', 
-                            background: 'rgba(0,0,0,0.5)',
-                            zIndex: 10
+                    <Box sx={{ maxWidth: '500px', margin: '0 auto', textAlign: 'right' }}>
+                        <Button 
+                            variant="outlined" 
+                            color="primary" 
+                            startIcon={<Cameraswitch />} 
+                            onClick={() => setFacingMode(prev => prev === 'environment' ? 'user' : 'environment')}
+                            sx={{ mb: 2, borderRadius: '20px', textTransform: 'none' }}
+                        >
+                            Switch Camera
+                        </Button>
+                        <Box sx={{
+                            border: '2px dashed #ccc',
+                            borderRadius: '16px',
+                            overflow: 'hidden',
+                            bgcolor: '#000',
+                            position: 'relative'
                         }}>
-                            Point camera at student QR code
-                        </Typography>
+                            <div id="qr-reader" style={{ width: '100%', minHeight: '300px' }}></div>
+                            <Typography variant="caption" sx={{ 
+                                color: 'white', 
+                                display: 'block', 
+                                p: 1, 
+                                position: 'absolute', 
+                                bottom: 0, 
+                                width: '100%', 
+                                textAlign: 'center', 
+                                background: 'rgba(0,0,0,0.5)',
+                                zIndex: 10
+                            }}>
+                                Point camera at student QR code
+                            </Typography>
+                        </Box>
                     </Box>
                 )}
 
