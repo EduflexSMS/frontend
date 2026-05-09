@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Container, Paper, Typography, MenuItem, Select, FormControl, InputLabel, Button, Alert, Snackbar } from '@mui/material';
 import { QrCodeScanner, ArrowBack } from '@mui/icons-material';
-import QrReader from 'react-qr-scanner';
+import { Html5Qrcode } from 'html5-qrcode';
 import axios from 'axios';
 import API_BASE_URL from '../config';
 import { useNavigate } from 'react-router-dom';
@@ -9,14 +9,17 @@ import { useNavigate } from 'react-router-dom';
 export default function QRScanner() {
     const [subjects, setSubjects] = useState([]);
     const [selectedSubject, setSelectedSubject] = useState('');
-    const [scanResult, setScanResult] = useState('');
     const [message, setMessage] = useState({ type: '', text: '' });
     const [openSnackbar, setOpenSnackbar] = useState(false);
-    const [lastScanned, setLastScanned] = useState('');
+    
+    // We use a ref to ensure we don't start multiple scanners
+    const scannerRef = useRef(null);
+    const lastScanData = useRef('');
+    const lastScanTime = useRef(0);
+    
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Fetch subjects for the teacher
         const fetchSubjects = async () => {
             try {
                 const user = JSON.parse(sessionStorage.getItem('userInfo'));
@@ -26,7 +29,6 @@ export default function QRScanner() {
                 }
 
                 const { data } = await axios.get(`${API_BASE_URL}/api/subjects`);
-                // Filter if teacher is assigned to specific subject, or show all
                 const assigned = user.assignedSubject;
                 if (assigned) {
                     setSubjects(data.filter(s => s.name === assigned));
@@ -41,53 +43,103 @@ export default function QRScanner() {
         fetchSubjects();
     }, [navigate]);
 
-    const handleScan = async (data) => {
-        if (data && data.text && data.text !== lastScanned) {
-            setLastScanned(data.text);
-            const indexNumber = data.text;
+    useEffect(() => {
+        if (!selectedSubject) return;
 
-            if (!selectedSubject) {
-                setMessage({ type: 'warning', text: 'Please select a subject first' });
-                setOpenSnackbar(true);
-                return;
-            }
-
+        const startScanner = async () => {
             try {
-                // Play beep sound
-                const audio = new Audio('/beep.mp3'); // Ensure beep.mp3 exists or remove
-                if (audio) audio.play().catch(e => console.log('Audio play failed', e));
-
-                const response = await axios.post(`${API_BASE_URL}/api/attendance/qr`, {
-                    indexNumber: indexNumber,
-                    subject: selectedSubject
-                });
-
-                const { student, week, status } = response.data;
-
-                if (status === 'already_marked') {
-                    setMessage({ type: 'info', text: `Already Marked: ${student}` });
-                } else {
-                    setMessage({ type: 'success', text: `Marked Present: ${student} (Week ${week})` });
+                // Initialize if not already initialized
+                if (!scannerRef.current) {
+                    scannerRef.current = new Html5Qrcode("qr-reader");
                 }
-                setOpenSnackbar(true);
 
-                // Reset last scanned after delay to allow re-scanning same code if needed (e.g. mistake)
-                // But for now, we keep it to prevent double hits
-                setTimeout(() => setLastScanned(''), 3000);
+                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+                
+                const onScanSuccess = async (decodedText) => {
+                    const now = Date.now();
+                    // Prevent duplicate scans within 3 seconds
+                    if (decodedText === lastScanData.current && (now - lastScanTime.current) < 3000) {
+                        return;
+                    }
+                    
+                    lastScanData.current = decodedText;
+                    lastScanTime.current = now;
 
-            } catch (error) {
-                console.error("Scan Error", error);
-                const errMsg = error.response?.data?.message || "Scan Failed";
-                setMessage({ type: 'error', text: errMsg });
-                setOpenSnackbar(true);
-                setTimeout(() => setLastScanned(''), 3000);
+                    try {
+                        const audio = new Audio('/beep.mp3');
+                        if (audio) audio.play().catch(e => console.log('Audio play failed', e));
+
+                        const response = await axios.post(`${API_BASE_URL}/api/attendance/qr`, {
+                            indexNumber: decodedText,
+                            subject: selectedSubject
+                        });
+
+                        const { student, week, status } = response.data;
+
+                        if (status === 'already_marked') {
+                            setMessage({ type: 'info', text: `Already Marked: ${student}` });
+                        } else {
+                            setMessage({ type: 'success', text: `Marked Present: ${student} (Week ${week})` });
+                        }
+                        setOpenSnackbar(true);
+
+                    } catch (error) {
+                        console.error("Scan Error", error);
+                        const errMsg = error.response?.data?.message || "Scan Failed";
+                        setMessage({ type: 'error', text: errMsg });
+                        setOpenSnackbar(true);
+                    }
+                };
+
+                const onScanFailure = (error) => {
+                    // Ignore frame failures
+                };
+
+                // Try to start with environment camera first
+                try {
+                    await scannerRef.current.start(
+                        { facingMode: "environment" },
+                        config,
+                        onScanSuccess,
+                        onScanFailure
+                    );
+                } catch (err) {
+                    console.warn("Environment camera failed, falling back to any available camera", err);
+                    // Fallback to any camera
+                    try {
+                        await scannerRef.current.start(
+                            { facingMode: "user" },
+                            config,
+                            onScanSuccess,
+                            onScanFailure
+                        );
+                    } catch (fallbackErr) {
+                         console.error("All camera fallback failed:", fallbackErr);
+                         setMessage({ type: 'error', text: 'Camera access failed. Please grant camera permissions.' });
+                         setOpenSnackbar(true);
+                    }
+                }
+            } catch (err) {
+                console.error("Error initializing scanner:", err);
             }
-        }
-    };
+        };
 
-    const handleError = (err) => {
-        console.error(err);
-    };
+        // Delay starting slightly to ensure DOM element is mounted
+        const timer = setTimeout(() => {
+            startScanner();
+        }, 300);
+
+        return () => {
+            clearTimeout(timer);
+            if (scannerRef.current && scannerRef.current.isScanning) {
+                scannerRef.current.stop().then(() => {
+                    scannerRef.current.clear();
+                }).catch(err => {
+                    console.error("Failed to stop scanner", err);
+                });
+            }
+        };
+    }, [selectedSubject]);
 
     const handleCloseSnackbar = () => {
         setOpenSnackbar(false);
@@ -128,20 +180,21 @@ export default function QRScanner() {
                         overflow: 'hidden',
                         maxWidth: '500px',
                         margin: '0 auto',
-                        bgcolor: '#000'
+                        bgcolor: '#000',
+                        position: 'relative'
                     }}>
-                        {/* Note: react-qr-scanner might need legacy Mode or specific styling */}
-                        <QrReader
-                            delay={300}
-                            style={{ width: '100%' }}
-                            onError={handleError}
-                            onScan={handleScan}
-                            constraints={{
-                                audio: false,
-                                video: { facingMode: "environment" }
-                            }}
-                        />
-                        <Typography variant="caption" sx={{ color: 'white', display: 'block', p: 1 }}>
+                        <div id="qr-reader" style={{ width: '100%', minHeight: '300px' }}></div>
+                        <Typography variant="caption" sx={{ 
+                            color: 'white', 
+                            display: 'block', 
+                            p: 1, 
+                            position: 'absolute', 
+                            bottom: 0, 
+                            width: '100%', 
+                            textAlign: 'center', 
+                            background: 'rgba(0,0,0,0.5)',
+                            zIndex: 10
+                        }}>
                             Point camera at student QR code
                         </Typography>
                     </Box>
