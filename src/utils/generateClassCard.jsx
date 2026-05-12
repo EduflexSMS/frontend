@@ -12,7 +12,7 @@ const ClassCard = ({ student }) => {
       display: 'flex',
       flexDirection: 'row',
       position: 'relative',
-      fontFamily: "'Inter', sans-serif",
+      fontFamily: "Arial, Helvetica, sans-serif",
       color: '#09090b',
       overflow: 'hidden',
       border: '4px solid #f4f4f5',
@@ -63,15 +63,26 @@ const ClassCard = ({ student }) => {
           
           <div style={{ 
             display: 'inline-block',
-            background: '#f4f4f5',
-            border: '2px solid #e4e4e7',
-            padding: '10px 24px',
-            borderRadius: '12px',
-            marginBottom: '50px'
+            background: '#eeeeee',
+            border: '3px solid #333333',
+            padding: '15px 35px',
+            borderRadius: '15px',
+            marginBottom: '50px',
+            minWidth: '200px',
+            textAlign: 'center',
+            boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
           }}>
-            <p style={{ margin: 0, fontSize: '28px', color: '#3f3f46', fontWeight: 700, fontFamily: "'Inter', sans-serif" }}>
-              {student.indexNumber || 'N/A'}
-            </p>
+            <span style={{ 
+              margin: 0, 
+              fontSize: '36px', 
+              color: '#000000', 
+              fontWeight: '900', 
+              fontFamily: 'Arial, Helvetica, sans-serif',
+              display: 'block',
+              lineHeight: '1'
+            }}>
+              {student.indexNumber || 'ID MISSING'}
+            </span>
           </div>
 
           {/* Info Grid */}
@@ -173,7 +184,7 @@ export const generateClassCard = async (student) => {
           if(document.body.contains(container)) document.body.removeChild(container);
           reject(err);
         }
-      }, 800); 
+      }, 1500); 
     } catch (error) {
       console.error('Error in generateClassCard', error);
       reject(error);
@@ -212,7 +223,7 @@ export const generateAllClassCardsPDF = async (students, prefixName) => {
         // Render current student
         await new Promise(r => {
           root.render(<ClassCard student={student} />);
-          setTimeout(r, 400); // give it time to render and fonts to load
+          setTimeout(r, 800); // give it time to render and fonts to load
         });
 
         const canvas = await html2canvas(container.firstChild, {

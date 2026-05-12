@@ -964,10 +964,23 @@ export default function ViewStudents() {
                 <button 
                   className="action-btn" 
                   onClick={() => generateAllClassCardsPDF(students, `${selectedGrade}${selectedSubject ? `_${selectedSubject}` : ''}`)}
-                  style={{ background: 'var(--accent)', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: 'var(--r-lg)', height: '44px', margin: 0 }}
+                  style={{ 
+                    background: 'linear-gradient(135deg, #6366f1, #4f46e5)', 
+                    color: '#fff', 
+                    border: 'none', 
+                    padding: '12px 24px', 
+                    borderRadius: 'var(--r-lg)', 
+                    height: '44px', 
+                    margin: 0,
+                    fontWeight: '800',
+                    boxShadow: '0 4px 15px rgba(99,102,241,0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                  }}
                 >
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                  Print All Cards
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                  PRINT ALL ID CARDS
                 </button>
               )}
             </div>
