@@ -4,7 +4,7 @@ import API_BASE_URL from '../config';
 import StudentTable from '../components/StudentTable';
 import EditStudentDialog from '../components/EditStudentDialog';
 import { generateFeeReport } from '../utils/generateFeeReport';
-import { generateClassCard } from '../utils/generateClassCard';
+import { generateClassCard, generateAllClassCardsPDF } from '../utils/generateClassCard';
 import { useTranslation } from 'react-i18next';
 
 // ─── Global Styles ─────────────────────────────────────────────────────────
@@ -945,19 +945,31 @@ export default function ViewStudents() {
         {viewMode === 'students' && (
           <div className="fade-up">
             {/* Search */}
-            <div className="search-wrap">
-              <span className="search-icon">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <circle cx="11" cy="11" r="8" strokeWidth="2" />
-                  <path d="M21 21l-4.35-4.35" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </span>
-              <input
-                className="search-input"
-                placeholder="Search by name or index number…"
-                value={search}
-                onChange={e => { setSearch(e.target.value); setPage(1); }}
-              />
+            <div className="search-wrap" style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <span className="search-icon">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8" strokeWidth="2" />
+                    <path d="M21 21l-4.35-4.35" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </span>
+                <input
+                  className="search-input"
+                  placeholder="Search by name or index number…"
+                  value={search}
+                  onChange={e => { setSearch(e.target.value); setPage(1); }}
+                />
+              </div>
+              {selectedGrade && (
+                <button 
+                  className="action-btn" 
+                  onClick={() => generateAllClassCardsPDF(students, `${selectedGrade}${selectedSubject ? `_${selectedSubject}` : ''}`)}
+                  style={{ background: 'var(--accent)', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: 'var(--r-lg)', height: '44px', margin: 0 }}
+                >
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                  Print All Cards
+                </button>
+              )}
             </div>
 
             {loading ? (

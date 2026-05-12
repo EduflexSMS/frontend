@@ -69,8 +69,8 @@ const ClassCard = ({ student }) => {
             borderRadius: '12px',
             marginBottom: '50px'
           }}>
-            <p style={{ margin: 0, fontSize: '28px', color: '#3f3f46', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
-              {student.indexNumber}
+            <p style={{ margin: 0, fontSize: '28px', color: '#3f3f46', fontWeight: 700, fontFamily: "'Inter', sans-serif" }}>
+              {student.indexNumber || 'N/A'}
             </p>
           </div>
 
@@ -176,6 +176,68 @@ export const generateClassCard = async (student) => {
       }, 800); 
     } catch (error) {
       console.error('Error in generateClassCard', error);
+      reject(error);
+    }
+  });
+};
+
+export const generateAllClassCardsPDF = async (students, prefixName) => {
+  if (!students || students.length === 0) {
+    alert("No students to generate cards for.");
+    return;
+  }
+
+  // Import jsPDF dynamically to avoid bloat if not used
+  const { jsPDF } = await import('jspdf');
+
+  return new Promise(async (resolve, reject) => {
+    try {
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: [1000, 600]
+      });
+
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.top = '-9999px';
+      container.style.left = '-9999px';
+      document.body.appendChild(container);
+
+      const root = createRoot(container);
+
+      for (let i = 0; i < students.length; i++) {
+        const student = students[i];
+        
+        // Render current student
+        await new Promise(r => {
+          root.render(<ClassCard student={student} />);
+          setTimeout(r, 400); // give it time to render and fonts to load
+        });
+
+        const canvas = await html2canvas(container.firstChild, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        
+        if (i > 0) {
+          pdf.addPage([1000, 600], 'landscape');
+        }
+        pdf.addImage(imgData, 'PNG', 0, 0, 1000, 600);
+      }
+
+      root.unmount();
+      document.body.removeChild(container);
+
+      pdf.save(`${prefixName}_All_ID_Cards.pdf`);
+      resolve();
+    } catch (error) {
+      console.error('Error generating batch PDF', error);
+      alert("Error generating PDF cards");
       reject(error);
     }
   });
