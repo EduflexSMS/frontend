@@ -35,12 +35,9 @@ export default function AddSubject() {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
-        classDay: 'Monday',
         fee: 0,
         color: colors[0]
     });
-
-    const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -191,40 +188,7 @@ export default function AddSubject() {
                                         />
                                     </motion.div>
 
-                                    <motion.div variants={itemVariants}>
-                                        <TextField
-                                            select
-                                            fullWidth
-                                            label="Class Day"
-                                            name="classDay"
-                                            value={formData.classDay}
-                                            required
-                                            onChange={handleChange}
-                                            InputProps={{
-                                                startAdornment: (
-                                                    <InputAdornment position="start">
-                                                        <CalendarToday sx={{ color: 'primary.main' }} />
-                                                    </InputAdornment>
-                                                ),
-                                            }}
-                                            sx={{
-                                                '& .MuiOutlinedInput-root': {
-                                                    borderRadius: 2,
-                                                    bgcolor: alpha(theme.palette.background.paper, 0.4),
-                                                    color: 'text.primary',
-                                                    border: '1px solid rgba(255,255,255,0.1)',
-                                                    '&:hover fieldset': { borderColor: 'primary.main' },
-                                                },
-                                                '& .MuiInputLabel-root': { color: 'text.secondary' }
-                                            }}
-                                        >
-                                            {daysOfWeek.map((day) => (
-                                                <MenuItem key={day} value={day}>
-                                                    {day}
-                                                </MenuItem>
-                                            ))}
-                                        </TextField>
-                                    </motion.div>
+
 
                                     <motion.div variants={itemVariants}>
                                         <TextField
