@@ -62,27 +62,27 @@ const ClassCard = ({ student }) => {
           </h2>
           
           <div style={{ 
-            display: 'inline-block',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             background: '#eeeeee',
             border: '3px solid #333333',
-            padding: '15px 35px',
+            padding: '10px 30px',
             borderRadius: '15px',
             marginBottom: '50px',
             minWidth: '200px',
-            textAlign: 'center',
+            minHeight: '60px',
             boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
           }}>
-            <span style={{ 
+            <div style={{ 
               margin: 0, 
               fontSize: '36px', 
               color: '#000000', 
               fontWeight: '900', 
-              fontFamily: 'Arial, Helvetica, sans-serif',
-              display: 'block',
-              lineHeight: '1'
+              fontFamily: 'Arial, Helvetica, sans-serif'
             }}>
               {student.indexNumber || 'ID MISSING'}
-            </span>
+            </div>
           </div>
 
           {/* Info Grid */}
