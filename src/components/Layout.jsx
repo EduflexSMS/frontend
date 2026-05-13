@@ -1,418 +1,434 @@
 import React, { useState } from 'react';
-import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, AppBar, Toolbar, Typography, CssBaseline, IconButton, Avatar, useTheme, useMediaQuery, InputBase, alpha, Button } from '@mui/material';
-import { Dashboard, People, Class, AddBox, Assessment, Menu as MenuIcon, NotificationsOutlined, Search as SearchIcon, SettingsOutlined, Logout as LogoutIcon, Language, Today, WbSunny, NightlightRound, PointOfSale } from '@mui/icons-material';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { ThemeContext } from '../contexts/ThemeContext';
 import logo from '../assets/logo.jpg';
 
-import { containerStagger, itemFadeUp, tapScale, springFast } from '../utils/animations';
-import { useTranslation } from 'react-i18next';
-import Background3D from './Background3D';
-import VoiceCommander from './VoiceCommander';
-import PageTransition from './PageTransition'; // Import the new component
-import { ThemeContext } from '../contexts/ThemeContext';
+// ─── DESIGN TOKENS ────────────────────────────────────────────────────────────
+const NAV = {
+  dark: {
+    bg: '#12152e',
+    sidebar: '#0d1025',
+    card: 'rgba(255,255,255,0.05)',
+    border: 'rgba(255,255,255,0.08)',
+    text: '#f0f0f8',
+    sub: '#7b82a8',
+    active: '#ff6584',
+    activeGlow: 'rgba(255,101,132,0.35)',
+    bottomBar: 'rgba(13,16,37,0.92)',
+  },
+  light: {
+    bg: '#f0f2ff',
+    sidebar: '#ffffff',
+    card: 'rgba(255,255,255,0.85)',
+    border: 'rgba(0,0,0,0.07)',
+    text: '#1a1d3a',
+    sub: '#8890b5',
+    active: '#ff6584',
+    activeGlow: 'rgba(255,101,132,0.25)',
+    bottomBar: 'rgba(255,255,255,0.95)',
+  },
+};
 
-const drawerWidth = 280;
+const ACCENT = {
+  coral:   '#ff6584',
+  indigo:  '#6c63ff',
+  cyan:    '#00d4ff',
+  emerald: '#00c896',
+  amber:   '#ffb547',
+  navy:    '#1a2050',
+};
 
+// ─── NAV ITEMS ────────────────────────────────────────────────────────────────
+const NAV_ITEMS = [
+  { path: '/',            icon: '🏠', label: 'Home' },
+  { path: '/students',    icon: '👥', label: 'Students' },
+  { path: '/reports',     icon: '📊', label: 'Reports' },
+  { path: '/pos',         icon: '🛒', label: 'POS' },
+  { path: '/daily-report',icon: '📅', label: 'Daily' },
+];
+
+const SIDEBAR_EXTRA = [
+  { path: '/add-student', icon: '➕', label: 'Add Student' },
+  { path: '/add-subject', icon: '📚', label: 'Add Subject' },
+  { path: '/qr-scanner',  icon: '📷', label: 'QR Scan' },
+];
+
+// ─── BOTTOM NAV ITEM ──────────────────────────────────────────────────────────
+const BottomNavItem = ({ item, active, onClick, theme }) => (
+  <motion.button
+    onClick={onClick}
+    whileTap={{ scale: 0.88 }}
+    style={{
+      flex: 1, display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      gap: 4, background: 'none', border: 'none',
+      cursor: 'pointer', padding: '8px 4px', position: 'relative',
+    }}
+  >
+    {active && (
+      <motion.div
+        layoutId="bottomNavPill"
+        style={{
+          position: 'absolute', top: 4,
+          width: 44, height: 44, borderRadius: '50%',
+          background: ACCENT.coral,
+          boxShadow: `0 6px 20px ${NAV[theme].activeGlow}`,
+        }}
+        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+      />
+    )}
+    <span style={{
+      fontSize: 20, position: 'relative', zIndex: 1,
+      filter: active ? 'brightness(10)' : 'none',
+      transition: 'filter 0.2s',
+    }}>{item.icon}</span>
+    <span style={{
+      fontSize: 9, fontWeight: 700, letterSpacing: '0.5px',
+      color: active ? ACCENT.coral : NAV[theme].sub,
+      textTransform: 'uppercase', transition: 'color 0.2s',
+    }}>{item.label}</span>
+  </motion.button>
+);
+
+// ─── SIDEBAR NAV ITEM ─────────────────────────────────────────────────────────
+const SideNavItem = ({ item, active, onClick, theme }) => (
+  <motion.div
+    onClick={onClick}
+    whileHover={{ x: 6 }}
+    whileTap={{ scale: 0.97 }}
+    style={{
+      display: 'flex', alignItems: 'center', gap: 14,
+      padding: '13px 18px', borderRadius: 16, cursor: 'pointer',
+      marginBottom: 4,
+      background: active
+        ? `linear-gradient(135deg, ${ACCENT.coral}, #ff8fa3)`
+        : 'transparent',
+      boxShadow: active ? `0 8px 24px ${NAV[theme].activeGlow}` : 'none',
+      transition: 'background 0.3s, box-shadow 0.3s',
+      position: 'relative', overflow: 'hidden',
+    }}
+  >
+    {!active && (
+      <motion.div
+        whileHover={{ opacity: 1 }}
+        style={{
+          position: 'absolute', inset: 0,
+          background: `rgba(255,101,132,0.06)`, borderRadius: 16,
+          opacity: 0, transition: 'opacity 0.2s',
+        }}
+      />
+    )}
+    <span style={{
+      fontSize: 18, width: 24, textAlign: 'center',
+      filter: active ? 'brightness(10)' : 'none',
+    }}>{item.icon}</span>
+    <span style={{
+      fontWeight: active ? 800 : 600, fontSize: 14,
+      color: active ? '#fff' : NAV[theme].sub,
+      letterSpacing: '-0.2px', transition: 'color 0.2s',
+    }}>{item.label}</span>
+    {active && (
+      <span style={{
+        marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%',
+        background: 'rgba(255,255,255,0.7)',
+      }} />
+    )}
+  </motion.div>
+);
+
+// ─── MAIN LAYOUT ──────────────────────────────────────────────────────────────
 export default function Layout() {
-    const [mobileOpen, setMobileOpen] = useState(false);
-    const navigate = useNavigate();
-    const location = useLocation();
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const { toggleColorMode, mode } = React.useContext(ThemeContext);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { t, i18n } = useTranslation();
+  const { toggleColorMode, mode } = React.useContext(ThemeContext);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    const { t, i18n } = useTranslation();
+  const theme = mode === 'dark' ? 'dark' : 'light';
+  const T = NAV[theme];
 
-    const menuItems = [
-        { text: t('dashboard'), icon: <Dashboard />, path: '/' },
-        { text: t('view_students'), icon: <People />, path: '/students' },
-        { text: 'Daily Report', icon: <Today />, path: '/daily-report' },
-        { text: 'Point of Sale', icon: <PointOfSale />, path: '/pos' },
-        { text: t('class_reports'), icon: <Assessment />, path: '/reports' },
-        { text: t('add_student'), icon: <AddBox />, path: '/add-student' },
-        { text: t('add_subject'), icon: <Class />, path: '/add-subject' },
-    ];
+  const isActive = (path) =>
+    path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
-    const handleDrawerToggle = () => {
-        setMobileOpen(!mobileOpen);
-    };
+  const handleNav = (path) => {
+    navigate(path);
+    setSidebarOpen(false);
+  };
 
-    const toggleLanguage = () => {
-        const newLang = i18n.language === 'en' ? 'si' : 'en';
-        i18n.changeLanguage(newLang);
-    };
+  const handleLogout = () => {
+    sessionStorage.removeItem('userInfo');
+    localStorage.removeItem('userInfo');
+    navigate('/login');
+  };
 
-    const drawerContent = (
-        <Box
-            component={motion.div}
-            initial="hidden"
-            animate="visible"
-            variants={containerStagger(0.08)}
-            sx={{
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                color: theme.palette.text.primary,
-                background: 'transparent',
-                position: 'relative',
-                overflowY: 'auto',
-                '&::-webkit-scrollbar': { width: '4px' },
-                '&::-webkit-scrollbar-thumb': { background: alpha(theme.palette.text.primary, 0.1), borderRadius: '4px' }
-            }}
+  // ── Sidebar content ────────────────────────────────────────────────────────
+  const sidebarContent = (
+    <div style={{
+      width: 270, height: '100%', background: T.sidebar,
+      display: 'flex', flexDirection: 'column',
+      borderRight: `1px solid ${T.border}`,
+      boxShadow: '4px 0 32px rgba(0,0,0,0.15)',
+    }}>
+      {/* Logo */}
+      <div style={{
+        padding: '32px 24px 20px',
+        borderBottom: `1px solid ${T.border}`,
+        display: 'flex', alignItems: 'center', gap: 14,
+      }}>
+        <img src={logo} alt="logo" style={{
+          width: 46, height: 46, borderRadius: '50%',
+          objectFit: 'cover',
+          boxShadow: `0 0 20px ${ACCENT.coral}55`,
+          border: `2px solid ${ACCENT.coral}`,
+        }} />
+        <div>
+          <div style={{
+            fontWeight: 900, fontSize: 18, letterSpacing: '-0.5px',
+            color: T.text, fontFamily: "'Outfit', sans-serif",
+          }}>EDUFLEX</div>
+          <div style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: '2.5px',
+            color: ACCENT.coral, textTransform: 'uppercase',
+          }}>Institute</div>
+        </div>
+      </div>
+
+      {/* Nav items */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 12px' }}>
+        <div style={{
+          fontSize: 9, fontWeight: 800, letterSpacing: '2px',
+          color: T.sub, textTransform: 'uppercase',
+          padding: '0 6px', marginBottom: 12,
+        }}>Main Menu</div>
+
+        {[...NAV_ITEMS, ...SIDEBAR_EXTRA].map(item => (
+          <SideNavItem
+            key={item.path}
+            item={item}
+            active={isActive(item.path)}
+            onClick={() => handleNav(item.path)}
+            theme={theme}
+          />
+        ))}
+
+        <div style={{
+          fontSize: 9, fontWeight: 800, letterSpacing: '2px',
+          color: T.sub, textTransform: 'uppercase',
+          padding: '0 6px', margin: '20px 0 12px',
+        }}>Settings</div>
+
+        {/* Language toggle */}
+        <motion.div
+          whileHover={{ x: 6 }} whileTap={{ scale: 0.97 }}
+          onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'si' : 'en')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 14,
+            padding: '13px 18px', borderRadius: 16, cursor: 'pointer',
+            marginBottom: 4,
+          }}
         >
+          <span style={{ fontSize: 18 }}>🌐</span>
+          <span style={{ fontWeight: 600, fontSize: 14, color: T.sub }}>
+            {i18n.language === 'si' ? 'සිංහල' : 'English'}
+          </span>
+        </motion.div>
 
-            <Box sx={{ p: { xs: 3, md: 4 }, display: 'flex', alignItems: 'center', gap: 2, position: 'relative', zIndex: 1, mb: 2 }}>
-                <motion.div
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    whileTap={{ scale: 0.9 }}
-                    transition={springFast}
-                    layout
-                >
-                    <Avatar
-                        src={logo}
-                        sx={{
-                            width: { xs: 40, md: 52 },
-                            height: { xs: 40, md: 52 },
-                            border: `2px solid rgba(255,255,255,0.1)`,
-                            boxShadow: '0 0 30px rgba(59, 130, 246, 0.4)' 
-                        }}
-                    >E</Avatar>
-                </motion.div>
-                <Box component={motion.div} layout>
-                    <Typography variant="h5" sx={{
-                        fontWeight: 900,
-                        letterSpacing: 1,
-                        background: theme.palette.mode === 'dark' ? 'linear-gradient(45deg, #fff, #60a5fa)' : 'linear-gradient(45deg, #0f172a, #3b82f6)',
-                        backgroundClip: 'text',
-                        textFillColor: 'transparent',
-                        fontSize: { xs: '1.2rem', md: '1.5rem' }
-                    }}>
-                        EDUFLEX
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: theme.palette.secondary.main, letterSpacing: 4, fontSize: '0.6rem', fontWeight: 800 }}>
-                        INSTITUTE
-                    </Typography>
-                </Box>
-            </Box>
+        {/* Theme toggle */}
+        <motion.div
+          whileHover={{ x: 6 }} whileTap={{ scale: 0.97 }}
+          onClick={toggleColorMode}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 14,
+            padding: '13px 18px', borderRadius: 16, cursor: 'pointer',
+            marginBottom: 4,
+          }}
+        >
+          <span style={{ fontSize: 18 }}>{mode === 'dark' ? '☀️' : '🌙'}</span>
+          <span style={{ fontWeight: 600, fontSize: 14, color: T.sub }}>
+            {mode === 'dark' ? 'Light Mode' : 'Dark Mode'}
+          </span>
+        </motion.div>
+      </div>
 
-            <List sx={{ px: 2, flex: 1, position: 'relative', zIndex: 1 }}>
-                {menuItems.map((item) => {
-                    const active = location.pathname === item.path;
-                    return (
-                        <ListItem
-                            component={motion.div}
-                            variants={itemFadeUp}
-                            key={item.text}
-                            disablePadding
-                            sx={{ mb: 1, display: 'block' }}
-                        >
-                            <Box
-                                component={motion.div}
-                                whileHover={{ scale: 1.02, x: 8 }}
-                                whileTap={tapScale}
-                                transition={springFast}
-                                onClick={() => {
-                                    navigate(item.path);
-                                    if (isMobile) setMobileOpen(false);
-                                }}
-                                sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    p: '16px 20px',
-                                    borderRadius: '20px',
-                                    cursor: 'pointer',
-                                    position: 'relative',
-                                    overflow: 'hidden',
-                                    color: active ? '#ffffff' : theme.palette.text.secondary,
-                                    transition: 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)',
-                                    '&:hover': {
-                                        color: active ? '#ffffff' : theme.palette.primary.main,
-                                        bgcolor: active ? 'transparent' : alpha(theme.palette.text.primary, 0.04)
-                                    }
-                                }}
-                            >
-                                {active && (
-                                    <Box
-                                        component={motion.div}
-                                        layoutId="activeTab"
-                                        sx={{
-                                            position: 'absolute',
-                                            inset: 0,
-                                            borderRadius: '20px',
-                                            background: 'linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%)',
-                                            boxShadow: '0 8px 20px rgba(59, 130, 246, 0.4)',
-                                            zIndex: 0
-                                        }}
-                                        transition={springFast}
-                                    />
-                                )}
+      {/* Logout */}
+      <div style={{ padding: '16px 12px 24px', borderTop: `1px solid ${T.border}` }}>
+        <motion.div
+          whileHover={{ x: 6 }} whileTap={{ scale: 0.97 }}
+          onClick={handleLogout}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 14,
+            padding: '13px 18px', borderRadius: 16, cursor: 'pointer',
+            background: 'rgba(255,101,132,0.08)',
+            border: '1px solid rgba(255,101,132,0.15)',
+          }}
+        >
+          <span style={{ fontSize: 18 }}>🚪</span>
+          <span style={{ fontWeight: 700, fontSize: 14, color: ACCENT.coral }}>
+            {t('logout')}
+          </span>
+        </motion.div>
+        <div style={{
+          textAlign: 'center', marginTop: 16,
+          fontSize: 10, color: T.sub, letterSpacing: '1.5px',
+        }}>EDUFLEX v2.5 • 2026</div>
+      </div>
+    </div>
+  );
 
-                                <ListItemIcon sx={{
-                                    color: active ? '#ffd700' : 'inherit',
-                                    minWidth: 42,
-                                    zIndex: 1,
-                                    transition: 'all 0.3s ease',
-                                    transform: active ? 'scale(1.1)' : 'scale(1)'
-                                }}>
-                                    {item.icon}
-                                </ListItemIcon>
-                                <ListItemText
-                                    primary={item.text}
-                                    sx={{ zIndex: 1 }}
-                                    primaryTypographyProps={{
-                                        fontWeight: active ? 800 : 600,
-                                        fontSize: '0.9rem',
-                                        letterSpacing: '0.02em',
-                                        color: active ? '#ffffff' : 'inherit'
-                                    }}
-                                />
-                            </Box>
-                        </ListItem>
-                    );
-                })}
-            </List>
+  return (
+    <div style={{
+      display: 'flex', minHeight: '100vh',
+      background: T.bg, fontFamily: "'Outfit', 'Inter', sans-serif",
+      color: T.text, transition: 'background 0.4s, color 0.4s',
+      position: 'relative',
+    }}>
 
-            <Box sx={{ p: 2, position: 'relative', zIndex: 1 }}>
-                <Box
-                    component={motion.div}
-                    variants={itemFadeUp}
-                    whileHover={{ scale: 1.02, backgroundColor: 'rgba(244, 63, 94, 0.15)' }}
-                    whileTap={tapScale}
-                    transition={springFast}
-                    onClick={() => {
-                        sessionStorage.removeItem('userInfo');
-                        localStorage.removeItem('userInfo');
-                        navigate('/login');
-                    }}
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        p: '14px 20px',
-                        borderRadius: '20px',
-                        cursor: 'pointer',
-                        color: theme.palette.error.main,
-                        backgroundColor: alpha(theme.palette.error.main, 0.08),
-                        border: '1px solid',
-                        borderColor: alpha(theme.palette.error.main, 0.1),
-                        transition: 'all 0.3s ease',
-                    }}
-                >
-                    <ListItemIcon sx={{ color: 'inherit', minWidth: 42 }}>
-                        <LogoutIcon />
-                    </ListItemIcon>
-                    <ListItemText
-                        primary={t('logout')}
-                        primaryTypographyProps={{ fontWeight: 700, fontSize: '0.9rem' }}
-                    />
-                </Box>
-            </Box>
+      {/* ── DESKTOP SIDEBAR ── */}
+      <div style={{ display: 'none' }} className="desktop-sidebar">
+        {sidebarContent}
+      </div>
 
-            <Box sx={{ p: 3, opacity: 0.6, textAlign: 'center' }}>
-                <Typography variant="caption" sx={{ color: theme.palette.text.secondary, letterSpacing: 2, fontWeight: 700 }}>
-                    EDUFLEX v2.5 • 2026
-                </Typography>
-            </Box>
-        </Box >
-    );
-
-    return (
-        <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: theme.palette.background.default, transition: 'background-color 0.5s ease-in-out' }}>
-            <Background3D />
-            <div className="noise-overlay" />
-            <CssBaseline />
-
-            {/* Sidebar Navigation - Floating Glass Panel */}
-            <Box
-                component="nav"
-                sx={{
-                    width: { md: drawerWidth },
-                    flexShrink: { md: 0 },
-                    display: { xs: 'none', md: 'block' }
-                }}
+      {/* ── MOBILE OVERLAY ── */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <>
+            <motion.div
+              key="overlay"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setSidebarOpen(false)}
+              style={{
+                position: 'fixed', inset: 0, zIndex: 200,
+                background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+              }}
+            />
+            <motion.div
+              key="drawer"
+              initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+              style={{ position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 201 }}
             >
-                <Drawer
-                    variant="permanent"
-                    open
-                    PaperProps={{
-                        sx: {
-                            boxSizing: 'border-box',
-                            width: drawerWidth,
-                            background: alpha(theme.palette.background.paper, 0.4),
-                            border: 'none',
-                            backdropFilter: 'blur(32px)',
-                            height: '100vh',
-                            boxShadow: 'none',
-                            overflow: 'hidden'
-                        }
-                    }}
-                >
-                    {drawerContent}
-                </Drawer>
-            </Box>
+              {sidebarContent}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
-            {/* Mobile Drawer */}
-            <Drawer
-                variant="temporary"
-                open={mobileOpen}
-                onClose={handleDrawerToggle}
-                ModalProps={{ keepMounted: true }}
-                sx={{
-                    display: { xs: 'block', md: 'none' },
-                    '& .MuiDrawer-paper': {
-                        boxSizing: 'border-box',
-                        width: drawerWidth,
-                        background: alpha(theme.palette.background.paper, 0.8),
-                        backdropFilter: 'blur(40px)',
-                        border: 'none',
-                        borderRight: '1px solid rgba(255,255,255,0.08)'
-                    },
-                }}
+      {/* ── MAIN CONTENT ── */}
+      <div style={{
+        flex: 1, display: 'flex', flexDirection: 'column',
+        minHeight: '100vh', overflowX: 'hidden',
+        paddingBottom: 80, // space for bottom nav
+      }}>
+
+        {/* ── TOP HEADER ── */}
+        <div style={{
+          position: 'sticky', top: 0, zIndex: 100,
+          background: T.bottomBar,
+          backdropFilter: 'blur(20px)',
+          borderBottom: `1px solid ${T.border}`,
+          padding: '14px 20px',
+          display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          {/* Hamburger */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setSidebarOpen(true)}
+            style={{
+              width: 40, height: 40, borderRadius: 12,
+              border: `1px solid ${T.border}`,
+              background: T.card,
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
+              gap: 5, cursor: 'pointer',
+            }}
+          >
+            {[0,1,2].map(i => (
+              <div key={i} style={{
+                width: i === 1 ? 14 : 20, height: 2,
+                background: T.text, borderRadius: 2,
+                transition: 'width 0.2s',
+              }} />
+            ))}
+          </motion.button>
+
+          {/* Title */}
+          <div style={{ textAlign: 'center' }}>
+            <div style={{
+              fontWeight: 900, fontSize: 16, letterSpacing: '-0.3px',
+              color: T.text,
+            }}>
+              {NAV_ITEMS.find(i => isActive(i.path))?.label ||
+               SIDEBAR_EXTRA.find(i => isActive(i.path))?.label ||
+               'EduFlex'}
+            </div>
+            <div style={{ fontSize: 10, color: T.sub, fontWeight: 600 }}>
+              Institute Management
+            </div>
+          </div>
+
+          {/* Avatar */}
+          <motion.div
+            whileTap={{ scale: 0.92 }}
+            style={{
+              width: 40, height: 40, borderRadius: '50%',
+              background: `linear-gradient(135deg, ${ACCENT.coral}, ${ACCENT.indigo})`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontWeight: 900, fontSize: 16, color: '#fff', cursor: 'pointer',
+              boxShadow: `0 4px 14px ${ACCENT.coral}55`,
+            }}
+          >A</motion.div>
+        </div>
+
+        {/* ── PAGE CONTENT ── */}
+        <div style={{ flex: 1, padding: '20px 16px', overflowX: 'hidden' }}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
             >
-                {drawerContent}
-            </Drawer>
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
 
-            {/* Main Content Area */}
-            <Box
-                component="main"
-                sx={{
-                    flexGrow: 1,
-                    p: { xs: 1.5, sm: 3 },
-                    width: { xs: '100%', md: `calc(100% - ${drawerWidth}px)` },
-                    minHeight: '100vh',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflowX: 'hidden',
-                    position: 'relative',
-                    zIndex: 1
-                }}
-            >
-                {/* Header / AppBar */}
-                <AppBar
-                    position="sticky"
-                    elevation={0}
-                    sx={{
-                        borderRadius: { xs: '16px', md: '24px' },
-                        bgcolor: alpha(theme.palette.background.paper, 0.6),
-                        backdropFilter: 'blur(32px)',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        color: 'text.primary',
-                        top: { xs: 12, md: 20 }, 
-                        mb: { xs: 2, md: 4 },
-                        width: 'calc(100% - 24px)',
-                        mx: 'auto',
-                        zIndex: 1100,
-                        transition: 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)',
-                        '&:hover': {
-                            bgcolor: alpha(theme.palette.background.paper, 0.7),
-                            borderColor: theme.palette.divider,
-                        }
-                    }}
-                >
-                    <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 1.5, sm: 3 } }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <IconButton
-                                color="inherit"
-                                aria-label="open drawer"
-                                edge="start"
-                                onClick={handleDrawerToggle}
-                                sx={{ mr: 1, display: { md: 'none' }, color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.1), borderRadius: '12px' }}
-                            >
-                                <MenuIcon />
-                            </IconButton>
-                            <Box sx={{ display: { xs: 'none', lg: 'flex' }, alignItems: 'center', bgcolor: alpha(theme.palette.background.default, 0.4), border: `1px solid ${theme.palette.divider}`, borderRadius: '14px', px: 2, py: 0.8 }}>
-                                <SearchIcon sx={{ color: 'text.secondary', mr: 1.5, fontSize: 18 }} />
-                                <InputBase placeholder={t('search')} sx={{ fontSize: '0.85rem', color: 'text.primary', fontWeight: 500 }} />
-                            </Box>
-                        </Box>
+      {/* ── BOTTOM NAV BAR ── */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        zIndex: 150,
+        background: T.bottomBar,
+        backdropFilter: 'blur(24px)',
+        borderTop: `1px solid ${T.border}`,
+        display: 'flex', alignItems: 'center',
+        padding: '6px 8px 10px',
+        boxShadow: '0 -4px 32px rgba(0,0,0,0.12)',
+      }}>
+        {NAV_ITEMS.map(item => (
+          <BottomNavItem
+            key={item.path}
+            item={item}
+            active={isActive(item.path)}
+            onClick={() => handleNav(item.path)}
+            theme={theme}
+          />
+        ))}
+      </div>
 
-                        {/* Voice Commander */}
-                        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
-                            <VoiceCommander />
-                        </Box>
-
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
-                            <Button
-                                startIcon={<Language />}
-                                onClick={toggleLanguage}
-                                sx={{
-                                    color: theme.palette.text.primary,
-                                    fontWeight: 700,
-                                    fontSize: '0.8rem',
-                                    bgcolor: alpha(theme.palette.primary.main, 0.15),
-                                    borderRadius: '14px',
-                                    px: { xs: 1, sm: 2.5 },
-                                    py: 1,
-                                    minWidth: { xs: 40, sm: 'auto' },
-                                    border: '1px solid rgba(59, 130, 246, 0.2)',
-                                    '& .MuiButton-startIcon': { margin: { xs: 0, sm: 1 } },
-                                    '&:hover': {
-                                        bgcolor: alpha(theme.palette.primary.main, 0.25),
-                                        transform: 'translateY(-2px)'
-                                    }
-                                }}
-                            >
-                                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                                    {i18n.language === 'si' ? 'සිංහල' : 'English'}
-                                </Box>
-                            </Button>
-                            
-                             <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 1 }}>
-                                 <IconButton 
-                                     onClick={toggleColorMode} 
-                                     size="small" 
-                                     sx={{ 
-                                         color: mode === 'dark' ? '#fbbf24' : '#64748b', 
-                                         bgcolor: alpha(theme.palette.text.primary, 0.03), 
-                                         borderRadius: '12px', 
-                                         p: 1, 
-                                         mr: 1 
-                                     }}>
-                                     {mode === 'dark' ? <WbSunny fontSize="small" /> : <NightlightRound fontSize="small" />}
-                                 </IconButton>
-                                 <IconButton size="small" sx={{ color: 'text.secondary', bgcolor: alpha(theme.palette.text.primary, 0.03), borderRadius: '12px', p: 1 }}>
-                                     <NotificationsOutlined fontSize="small" />
-                                 </IconButton>
-                             </Box>
-                            
-                            <Box sx={{ 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                gap: 1.5, 
-                                ml: { xs: 0.5, sm: 1 }, 
-                                p: 0.6, 
-                                pr: { xs: 0.6, sm: 2 }, 
-                                borderRadius: '18px', 
-                                bgcolor: alpha(theme.palette.background.default, 0.3),
-                                border: `1px solid ${theme.palette.divider}`,
-                                transition: 'all 0.3s ease',
-                                cursor: 'pointer',
-                                '&:hover': { bgcolor: alpha(theme.palette.background.default, 0.5), borderColor: theme.palette.divider }
-                            }}>
-                                <Avatar sx={{ 
-                                    width: 36, 
-                                    height: 36, 
-                                    bgcolor: 'primary.main', 
-                                    fontSize: '0.9rem', 
-                                    fontWeight: 800,
-                                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)'
-                                }}>A</Avatar>
-                                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                                    <Typography variant="subtitle2" sx={{ lineHeight: 1.1, color: 'text.primary', fontWeight: 800, fontSize: '0.85rem' }}>{t('admin_user')}</Typography>
-                                    <Typography variant="caption" sx={{ color: 'primary.light', lineHeight: 1, fontWeight: 700, fontSize: '0.65rem', textTransform: 'uppercase' }}>{t('administrator')}</Typography>
-                                </Box>
-                            </Box>
-                        </Box>
-                    </Toolbar>
-                </AppBar>
-
-                {/* Page Transitions */}
-                <AnimatePresence mode="wait">
-                    <PageTransition key={location.pathname}>
-                        <Outlet />
-                    </PageTransition>
-                </AnimatePresence>
-            </Box>
-        </Box>
-    );
+      {/* Desktop sidebar CSS override */}
+      <style>{`
+        @media (min-width: 900px) {
+          .desktop-sidebar { display: block !important; }
+        }
+        * { box-sizing: border-box; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.2); border-radius: 4px; }
+      `}</style>
+    </div>
+  );
 }
