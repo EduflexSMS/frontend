@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import API_BASE_URL from '../config';
 
 // Reuse design tokens from Layout for consistency
 const T = {
@@ -40,7 +41,7 @@ export default function Exams() {
     const fetchSubjects = async () => {
         try {
             const token = localStorage.getItem('userInfo') ? JSON.parse(localStorage.getItem('userInfo')).token : '';
-            const { data } = await axios.get('/api/subjects', { headers: { Authorization: `Bearer ${token}` } });
+            const { data } = await axios.get(`${API_BASE_URL}/api/subjects`, { headers: { Authorization: `Bearer ${token}` } });
             setSubjects(data);
         } catch (error) {
             toast.error('Failed to load subjects');
@@ -50,7 +51,7 @@ export default function Exams() {
     const fetchExams = async () => {
         try {
             const token = localStorage.getItem('userInfo') ? JSON.parse(localStorage.getItem('userInfo')).token : '';
-            const { data } = await axios.get(`/api/exams?grade=${selectedGrade}&subject=${selectedSubject}`, { headers: { Authorization: `Bearer ${token}` } });
+            const { data } = await axios.get(`${API_BASE_URL}/api/exams?grade=${selectedGrade}&subject=${selectedSubject}`, { headers: { Authorization: `Bearer ${token}` } });
             setExams(data);
         } catch (error) {
             toast.error('Failed to load exams');
@@ -61,7 +62,7 @@ export default function Exams() {
         e.preventDefault();
         try {
             const token = localStorage.getItem('userInfo') ? JSON.parse(localStorage.getItem('userInfo')).token : '';
-            await axios.post('/api/exams', {
+            await axios.post(`${API_BASE_URL}/api/exams`, {
                 title: newExamTitle,
                 grade: selectedGrade,
                 subject: selectedSubject
@@ -80,10 +81,11 @@ export default function Exams() {
         try {
             const token = localStorage.getItem('userInfo') ? JSON.parse(localStorage.getItem('userInfo')).token : '';
             // Fetch all students for this grade
-            const { data: studentsData } = await axios.get(`/api/students?grade=${exam.grade}`, { headers: { Authorization: `Bearer ${token}` } });
+            const { data: studentsData } = await axios.get(`${API_BASE_URL}/api/students?grade=${exam.grade}&limit=1000`, { headers: { Authorization: `Bearer ${token}` } });
             
             // Filter students who are enrolled in this subject
-            const enrolledStudents = studentsData.filter(s => s.subjects && s.subjects.some(sub => sub._id === exam.subject._id || sub === exam.subject._id));
+            const studentsArray = studentsData.students || [];
+            const enrolledStudents = studentsArray.filter(s => s.enrollments && s.enrollments.some(sub => sub.subject === exam.subject.name || sub.subject === exam.subject._id));
 
             // Merge with existing marks
             const mappedStudents = enrolledStudents.map(student => {
@@ -108,7 +110,7 @@ export default function Exams() {
         if(marks === '' || marks < 0 || marks > 100) return toast.error('Invalid marks');
         try {
             const token = localStorage.getItem('userInfo') ? JSON.parse(localStorage.getItem('userInfo')).token : '';
-            const { data } = await axios.put(`/api/exams/${selectedExam._id}/marks`, {
+            const { data } = await axios.put(`${API_BASE_URL}/api/exams/${selectedExam._id}/marks`, {
                 studentId,
                 marks: Number(marks)
             }, { headers: { Authorization: `Bearer ${token}` } });
