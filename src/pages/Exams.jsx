@@ -64,22 +64,30 @@ export default function Exams() {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
       setSubjects(data);
-    } catch { toast.error('Failed to load subjects'); }
+    } catch (err) {
+      console.error('fetchSubjects error:', err?.response?.status, err?.response?.data, err?.message);
+      toast.error('Failed to load subjects');
+    }
   };
 
   const fetchExams = async () => {
     try {
+      console.log('fetchExams → token:', getToken()?.slice(0,20), 'grade:', selectedGrade, 'subject:', selectedSubject);
       const { data } = await axios.get(
         `${API_BASE_URL}/api/exams?grade=${selectedGrade}&subject=${selectedSubject}`,
         { headers: { Authorization: `Bearer ${getToken()}` } }
       );
       setExams(data);
-    } catch { toast.error('Failed to load exams'); }
+    } catch (err) {
+      console.error('fetchExams error:', err?.response?.status, err?.response?.data, err?.message);
+      toast.error('Failed to load exams');
+    }
   };
 
   const handleCreateExam = async (e) => {
     e.preventDefault();
     try {
+      console.log('createExam → payload:', { title: newExamTitle, grade: selectedGrade, subject: selectedSubject });
       await axios.post(`${API_BASE_URL}/api/exams`,
         { title: newExamTitle, grade: selectedGrade, subject: selectedSubject },
         { headers: { Authorization: `Bearer ${getToken()}` } }
@@ -88,7 +96,10 @@ export default function Exams() {
       setShowCreateModal(false);
       setNewExamTitle('');
       fetchExams();
-    } catch { toast.error('Failed to create exam'); }
+    } catch (err) {
+      console.error('createExam error:', err?.response?.status, err?.response?.data, err?.message);
+      toast.error(`Failed to create exam: ${err?.response?.data?.error || err?.response?.data?.message || err?.message}`);
+    }
   };
 
   const handleSelectExam = async (exam) => {
