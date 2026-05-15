@@ -753,26 +753,52 @@ export default function Layout() {
           boxShadow: scrolled ? `0 2px 20px rgba(0,0,0,0.07)` : 'none',
         }}>
 
-          {/* Hamburger (mobile only) */}
-          <motion.button
-            className="mobile-menu-btn"
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setSidebarOpen(true)}
-            style={{
-              width: 38, height: 38,
-              borderRadius: 11,
-              border: `1px solid ${colors.border}`,
-              background: colors.surface,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              outline: 'none',
-              flexShrink: 0,
-            }}
-          >
-            <MenuIcon size={18} color={colors.text} />
-          </motion.button>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            {/* Back Button */}
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => navigate(-1)}
+              style={{
+                width: 38, height: 38,
+                borderRadius: 11,
+                border: `1px solid ${colors.border}`,
+                background: colors.surface,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                outline: 'none',
+                flexShrink: 0,
+              }}
+              title="Go Back"
+            >
+              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"/>
+                <polyline points="12 19 5 12 12 5"/>
+              </svg>
+            </motion.button>
+
+            {/* Hamburger (mobile only) */}
+            <motion.button
+              className="mobile-menu-btn"
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setSidebarOpen(true)}
+              style={{
+                width: 38, height: 38,
+                borderRadius: 11,
+                border: `1px solid ${colors.border}`,
+                background: colors.surface,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                outline: 'none',
+                flexShrink: 0,
+              }}
+            >
+              <MenuIcon size={18} color={colors.text} />
+            </motion.button>
+          </div>
 
           {/* Page title */}
           <div style={{ textAlign: 'center', flex: 1 }}>
