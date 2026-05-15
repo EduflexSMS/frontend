@@ -17,6 +17,7 @@ import Dashboard from './pages/Dashboard';
 import PageTransition from './components/PageTransition';
 import QRScanner from './pages/QRScanner';
 import POS from './pages/POS';
+import Exams from './pages/Exams';
 import logo from './assets/logo.jpg';
 
 function SplashScreen() {
@@ -137,6 +138,7 @@ function AnimatedRoutes() {
           <Route path="add-student" element={<AddStudent />} />
           <Route path="add-subject" element={<AddSubject />} />
           <Route path="reports" element={<ClassReport />} />
+          <Route path="exams" element={<Exams />} />
           <Route path="daily-report" element={<DailyReport />} />
           <Route path="pos" element={<POS />} />
         </Route>

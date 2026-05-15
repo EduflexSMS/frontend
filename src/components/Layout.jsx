@@ -56,6 +56,7 @@ const NAV_ITEMS = [
 ];
 
 const SIDEBAR_EXTRA = [
+  { path: '/exams',        icon: BookIcon,    label: 'Exams'       },
   { path: '/add-student',  icon: PlusIcon,    label: 'Add Student' },
   { path: '/add-subject',  icon: BookIcon,    label: 'Add Subject' },
   { path: '/qr-scanner',   icon: QrIcon,      label: 'QR Scanner'  },
