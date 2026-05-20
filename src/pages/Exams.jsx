@@ -166,7 +166,25 @@ export default function Exams() {
     setIsGenerating(true);
     try {
       const element = document.getElementById('pdf-report-content');
+      
+      // Calculate exact A4 aspect ratio to avoid white space at bottom
+      const a4Ratio = 297 / 210;
+      const elementWidth = element.offsetWidth;
+      const a4HeightInPx = elementWidth * a4Ratio;
+      
+      const originalHeight = element.style.minHeight;
+      const currentHeight = element.scrollHeight;
+      const neededPages = Math.ceil(currentHeight / a4HeightInPx);
+      const perfectHeight = neededPages * a4HeightInPx;
+      
+      // Force element to be a perfect multiple of A4 page height
+      element.style.minHeight = `${perfectHeight}px`;
+
       const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#0d0f1e' });
+      
+      // Restore original height
+      element.style.minHeight = originalHeight;
+
       const imgData = canvas.toDataURL('image/jpeg', 0.95);
 
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -177,12 +195,17 @@ export default function Exams() {
       let heightLeft = pdfHeight;
       let position = 0;
 
+      // Fill background to avoid white flash
+      pdf.setFillColor(13, 15, 30);
+      pdf.rect(0, 0, pdfWidth, pageHeight, 'F');
       pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
       heightLeft -= pageHeight;
 
-      while (heightLeft >= 0) {
+      while (heightLeft > 1) { // >1 to handle floating point rounding
         position = heightLeft - pdfHeight;
         pdf.addPage();
+        pdf.setFillColor(13, 15, 30);
+        pdf.rect(0, 0, pdfWidth, pageHeight, 'F');
         pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
         heightLeft -= pageHeight;
       }
@@ -580,7 +603,7 @@ export default function Exams() {
             {/* Report Preview Wrapper */}
             <div style={{ width: '100%', maxWidth: '210mm', height: '80vh', overflowY: 'auto', borderRadius: 12, boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
                 <div id="pdf-report-content" style={{
-                  background: 'linear-gradient(135deg, #0d0f1e 0%, #1a1d35 100%)',
+                  backgroundColor: '#0d0f1e',
                   color: '#ffffff', padding: '40px 50px', minHeight: '297mm',
                   fontFamily: "'Outfit', 'Inter', sans-serif", margin: '0 auto', boxSizing: 'border-box',
                   position: 'relative', overflow: 'hidden'
