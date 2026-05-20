@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { toast, ToastContainer } from 'react-toastify';
@@ -47,6 +49,8 @@ export default function Exams() {
   const [selectedExam, setSelectedExam] = useState(null);
   const [examStudents, setExamStudents] = useState([]);
   const [savingId, setSavingId] = useState(null);
+  const [showReport, setShowReport] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => { fetchSubjects(); }, []);
   useEffect(() => {
@@ -114,7 +118,7 @@ export default function Exams() {
         s.enrollments?.some(sub => sub.subject === exam.subject.name || sub.subject === exam.subject._id)
       );
       const mapped = enrolled.map(student => {
-        const existing = exam.results.find(r => r.student._id === student._id);
+        const existing = exam.results.find(r => (r.student?._id || r.student) === student._id);
         return { ...student, marks: existing ? existing.marks : '', gradeResult: existing ? existing.grade : '' };
       });
       setExamStudents(mapped);
@@ -144,66 +148,53 @@ export default function Exams() {
     finally { setSavingId(null); }
   };
 
-  const handleGenerateReport = () => {
-    const win = window.open('', '_blank');
-    const totalStudents = examStudents.length;
-    const graded = examStudents.filter(s => s.gradeResult);
-    const avg = graded.length
-      ? Math.round(graded.reduce((a, s) => a + s.marks, 0) / graded.length)
-      : 0;
-    win.document.write(`
-      <html><head><title>${selectedExam.title} — Report</title>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #0d0f1e; color: #e8eaf6; padding: 48px; }
-        .logo { font-size: 11px; letter-spacing: 3px; color: #6b7094; text-transform: uppercase; margin-bottom: 6px; }
-        h1 { font-size: 28px; font-weight: 700; color: #ffffff; margin-bottom: 4px; }
-        .sub { font-size: 14px; color: #6b7094; margin-bottom: 40px; }
-        .stats { display: flex; gap: 16px; margin-bottom: 36px; }
-        .stat { background: #161827; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 16px 24px; flex: 1; }
-        .stat .label { font-size: 11px; color: #6b7094; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-        .stat .val { font-size: 24px; font-weight: 700; color: #fff; }
-        table { width: 100%; border-collapse: collapse; }
-        thead th { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #6b7094; padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
-        tbody tr { border-bottom: 1px solid rgba(255,255,255,0.04); }
-        tbody tr:hover { background: rgba(255,255,255,0.02); }
-        td { padding: 14px 16px; font-size: 14px; }
-        .grade-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-        .A { background: rgba(0,200,150,0.15); color: #00c896; }
-        .B { background: rgba(99,179,237,0.15); color: #63b3ed; }
-        .C { background: rgba(246,173,85,0.15); color: #f6ad55; }
-        .S { background: rgba(252,129,74,0.15); color: #fc814a; }
-        .F { background: rgba(252,75,108,0.15); color: #fc4b6c; }
-        .legend { display: flex; gap: 12px; margin-top: 36px; flex-wrap: wrap; }
-        .legend-item { font-size: 12px; padding: 6px 14px; border-radius: 20px; font-weight: 500; }
-      </style></head><body>
-      <p class="logo">EduFlex Institute</p>
-      <h1>${selectedExam.title}</h1>
-      <p class="sub">Grade ${selectedExam.grade} &nbsp;·&nbsp; ${selectedExam.subject.name} &nbsp;·&nbsp; ${new Date(selectedExam.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-      <div class="stats">
-        <div class="stat"><div class="label">Total students</div><div class="val">${totalStudents}</div></div>
-        <div class="stat"><div class="label">Graded</div><div class="val">${graded.length}</div></div>
-        <div class="stat"><div class="label">Class average</div><div class="val">${avg}%</div></div>
-        <div class="stat"><div class="label">Pass rate</div><div class="val">${graded.length ? Math.round(graded.filter(s => s.marks >= 40).length / graded.length * 100) : 0}%</div></div>
-      </div>
-      <table><thead><tr><th>#</th><th>Student</th><th>ID</th><th>Marks</th><th>Grade</th></tr></thead>
-      <tbody>${examStudents.map((s, i) => `
-        <tr>
-          <td style="color:#6b7094">${i + 1}</td>
-          <td>${s.name}</td>
-          <td style="color:#6b7094;font-size:13px">${s.uiid || s.rfid}</td>
-          <td style="font-weight:600">${s.marks !== '' ? s.marks + '/100' : '—'}</td>
-          <td><span class="grade-pill ${s.gradeResult}">${s.gradeResult || '—'}</span></td>
-        </tr>`).join('')}
-      </tbody></table>
-      <div class="legend">
-        ${GRADE_RANGES.map(g => `<span class="legend-item" style="background:rgba(255,255,255,0.05);color:${g.color}">${g.grade}: ${g.range} (${g.label})</span>`).join('')}
-      </div>
-      <script>setTimeout(()=>window.print(),800);<\/script>
-      </body></html>
-    `);
-    win.document.close();
+  const handleDeleteExam = async () => {
+    if (!window.confirm(`Are you sure you want to delete "${selectedExam.title}"?`)) return;
+    try {
+      await axios.delete(`${API_BASE_URL}/api/exams/${selectedExam._id}`, {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      });
+      toast.success('Exam deleted');
+      setSelectedExam(null);
+      fetchExams();
+    } catch (err) {
+      toast.error('Failed to delete exam');
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    setIsGenerating(true);
+    try {
+      const element = document.getElementById('pdf-report-content');
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#0d0f1e' });
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      
+      let heightLeft = pdfHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`${selectedExam.title} - Report.pdf`);
+      toast.success('Report downloaded successfully!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to generate PDF');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   // ─── Computed stats ────────────────────────────────────────────────────────
@@ -357,17 +348,30 @@ export default function Exams() {
                   {selectedExam.grade} · {selectedExam.subject?.name}
                 </p>
               </div>
-              <motion.button
-                whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                onClick={handleGenerateReport}
-                style={{
-                  padding: '9px 18px', borderRadius: 10, border: 'none',
-                  background: C.cyan, color: '#000', fontWeight: 600, fontSize: 13, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: 6,
-                }}
-              >
-                🖨 Generate report
-              </motion.button>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <motion.button
+                  whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                  onClick={handleDeleteExam}
+                  style={{
+                    padding: '9px 18px', borderRadius: 10, border: `1px solid ${C.accent}`,
+                    background: 'transparent', color: C.accent, fontWeight: 600, fontSize: 13, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                  }}
+                >
+                  🗑 Delete
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                  onClick={() => setShowReport(true)}
+                  style={{
+                    padding: '9px 18px', borderRadius: 10, border: 'none',
+                    background: C.cyan, color: '#000', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                  }}
+                >
+                  🖨 View Report
+                </motion.button>
+              </div>
             </div>
 
             {/* Stats row */}
@@ -541,6 +545,131 @@ export default function Exams() {
                 </motion.button>
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Report modal ── */}
+      <AnimatePresence>
+        {showReport && selectedExam && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
+              backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', zIndex: 2000, padding: 20, flexDirection: 'column'
+            }}
+          >
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', maxWidth: '210mm', marginBottom: 15 }}>
+                <button
+                  onClick={() => setShowReport(false)}
+                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '8px 16px', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}
+                >
+                  Close
+                </button>
+                <button
+                  onClick={handleDownloadPDF}
+                  disabled={isGenerating}
+                  style={{ background: C.cyan, border: 'none', color: '#000', padding: '8px 24px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}
+                >
+                  {isGenerating ? 'Generating...' : '📥 Download PDF'}
+                </button>
+            </div>
+
+            {/* Report Preview Wrapper */}
+            <div style={{ width: '100%', maxWidth: '210mm', height: '80vh', overflowY: 'auto', borderRadius: 12, boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
+                <div id="pdf-report-content" style={{
+                  background: 'linear-gradient(135deg, #0d0f1e 0%, #1a1d35 100%)',
+                  color: '#ffffff', padding: '40px 50px', minHeight: '297mm',
+                  fontFamily: "'Outfit', 'Inter', sans-serif", margin: '0 auto', boxSizing: 'border-box',
+                  position: 'relative', overflow: 'hidden'
+                }}>
+                  {/* Decorative elements */}
+                  <div style={{ position: 'absolute', top: -100, right: -100, width: 350, height: 350, background: 'radial-gradient(circle, rgba(0,207,255,0.15) 0%, rgba(0,0,0,0) 70%)', borderRadius: '50%' }} />
+                  <div style={{ position: 'absolute', bottom: -50, left: -50, width: 300, height: 300, background: 'radial-gradient(circle, rgba(255,92,124,0.15) 0%, rgba(0,0,0,0) 70%)', borderRadius: '50%' }} />
+                  
+                  {/* Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid rgba(255,255,255,0.1)', paddingBottom: 20, marginBottom: 30, position: 'relative', zIndex: 2 }}>
+                      <div>
+                          <h1 style={{ margin: 0, fontSize: 32, fontWeight: 800, color: '#fff' }}>
+                              {selectedExam.title}
+                          </h1>
+                          <p style={{ margin: '8px 0 0', fontSize: 16, color: '#a0a5c0', letterSpacing: 1 }}>
+                              Grade {selectedExam.grade} • {selectedExam.subject?.name}
+                          </p>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                          <p style={{ margin: 0, fontSize: 15, color: '#00cfff', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2 }}>Eduflex</p>
+                          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6b7094' }}>
+                              {new Date(selectedExam.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}
+                          </p>
+                      </div>
+                  </div>
+
+                  {/* Stats */}
+                  <div style={{ display: 'flex', gap: 15, marginBottom: 35, position: 'relative', zIndex: 2 }}>
+                      {[
+                          { label: 'Total Students', value: examStudents.length, color: '#63b3ed' },
+                          { label: 'Graded', value: gradedStudents.length, color: '#f6ad55' },
+                          { label: 'Average', value: classAvg !== null ? `${classAvg}%` : '—', color: '#00c896' },
+                          { label: 'Pass Rate', value: gradedStudents.length ? `${Math.round(passCount / gradedStudents.length * 100)}%` : '—', color: '#fc814a' },
+                      ].map(stat => (
+                          <div key={stat.label} style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px', backdropFilter: 'blur(10px)' }}>
+                              <p style={{ margin: 0, fontSize: 11, color: '#8e93b5', textTransform: 'uppercase', letterSpacing: 1 }}>{stat.label}</p>
+                              <p style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 700, color: stat.color }}>{stat.value}</p>
+                          </div>
+                      ))}
+                  </div>
+
+                  {/* Table */}
+                  <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.05)', padding: '0 20px', position: 'relative', zIndex: 2 }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                          <thead>
+                              <tr>
+                                  {['#', 'Student Name', 'ID', 'Marks', 'Grade'].map((h, i) => (
+                                      <th key={h} style={{ padding: '16px 12px', fontSize: 12, color: '#8e93b5', textTransform: 'uppercase', letterSpacing: 1, borderBottom: '1px solid rgba(255,255,255,0.1)', textAlign: i === 3 || i === 4 ? 'center' : 'left' }}>{h}</th>
+                                  ))}
+                              </tr>
+                          </thead>
+                          <tbody>
+                              {examStudents.map((s, i) => {
+                                  const g = GRADE_COLORS[s.gradeResult];
+                                  return (
+                                      <tr key={s._id}>
+                                          <td style={{ padding: '14px 12px', fontSize: 13, color: '#6b7094', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>{String(i + 1).padStart(2, '0')}</td>
+                                          <td style={{ padding: '14px 12px', fontSize: 14, fontWeight: 600, color: '#e8eaf6', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>{s.name}</td>
+                                          <td style={{ padding: '14px 12px', fontSize: 13, color: '#a0a5c0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>{s.uiid || s.rfid}</td>
+                                          <td style={{ padding: '14px 12px', fontSize: 15, fontWeight: 700, color: '#ffffff', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                                              {s.marks !== '' ? s.marks : '—'}
+                                          </td>
+                                          <td style={{ padding: '14px 12px', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                                              {s.gradeResult ? (
+                                                  <span style={{ display: 'inline-block', padding: '4px 12px', borderRadius: 20, fontSize: 13, fontWeight: 700, background: g?.bg, color: g?.color }}>
+                                                      {s.gradeResult}
+                                                  </span>
+                                              ) : (
+                                                  <span style={{ color: '#6b7094' }}>—</span>
+                                              )}
+                                          </td>
+                                      </tr>
+                                  );
+                              })}
+                          </tbody>
+                      </table>
+                  </div>
+
+                  {/* Legend */}
+                  <div style={{ marginTop: 35, display: 'flex', flexWrap: 'wrap', gap: 15, justifyContent: 'center', position: 'relative', zIndex: 2 }}>
+                      {GRADE_RANGES.map(g => (
+                          <div key={g.grade} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <div style={{ width: 12, height: 12, borderRadius: '50%', background: g.color }} />
+                              <span style={{ fontSize: 12, color: '#a0a5c0', fontWeight: 500 }}>{g.grade}: {g.range} ({g.label})</span>
+                          </div>
+                      ))}
+                  </div>
+                </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
