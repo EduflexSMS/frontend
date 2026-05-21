@@ -228,9 +228,19 @@ export default function Exams() {
   // ─── Computed stats ────────────────────────────────────────────────────────
   const gradedStudents = examStudents.filter(s => s.gradeResult && s.gradeResult !== 'AB');
   const classAvg = gradedStudents.length
-    ? Math.round(gradedStudents.reduce((a, s) => a + Number(s.marks), 0) / gradedStudents.length)
+    ? Math.round(gradedStudents.reduce((a, s) => {
+        const m = Number(s.marks);
+        return a + (isNaN(m) ? 0 : m);
+      }, 0) / gradedStudents.length)
     : null;
   const passCount = gradedStudents.filter(s => Number(s.marks) >= 40).length;
+  const gradeCounts = examStudents.reduce((acc, s) => {
+    const g = s.gradeResult;
+    if (g && ['A', 'B', 'C', 'S', 'F', 'AB'].includes(g)) {
+      acc[g] = (acc[g] || 0) + 1;
+    }
+    return acc;
+  }, { A: 0, B: 0, C: 0, S: 0, F: 0, AB: 0 });
 
   // ─── Sorting logic ─────────────────────────────────────────────────────────
   const handleHeaderClick = (column) => {
@@ -453,20 +463,45 @@ export default function Exams() {
             </div>
 
             {/* Stats row */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12, marginBottom: 20 }}>
-              {[
-                { label: 'Students', val: examStudents.length },
-                { label: 'Graded', val: gradedStudents.length },
-                { label: 'Average', val: classAvg !== null ? `${classAvg}%` : '—' },
-                { label: 'Pass rate', val: gradedStudents.length ? `${Math.round(passCount / gradedStudents.length * 100)}%` : '—' },
-              ].map(s => (
-                <div key={s.label} style={{
-                  background: C.surfaceAlt, borderRadius: 12, padding: '14px 16px',
-                }}>
-                  <p style={{ margin: '0 0 6px', fontSize: 11, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</p>
-                  <p style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>{s.val}</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 20 }}>
+              <div style={{ background: C.surfaceAlt, borderRadius: 12, padding: '14px 16px' }}>
+                <p style={{ margin: '0 0 6px', fontSize: 11, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Students</p>
+                <p style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>{examStudents.length}</p>
+              </div>
+              <div style={{ background: C.surfaceAlt, borderRadius: 12, padding: '14px 16px' }}>
+                <p style={{ margin: '0 0 6px', fontSize: 11, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Graded</p>
+                <p style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>{gradedStudents.length}</p>
+              </div>
+              <div style={{ background: C.surfaceAlt, borderRadius: 12, padding: '14px 16px', minWidth: 260, gridColumn: 'span 2' }}>
+                <p style={{ margin: '0 0 6px', fontSize: 11, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Grade Distribution</p>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
+                  {Object.entries(GRADE_COLORS).map(([grade, info]) => {
+                    const count = gradeCounts[grade] || 0;
+                    return (
+                      <div key={grade} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '4px 10px',
+                        borderRadius: '8px',
+                        background: info.bg,
+                        color: info.color,
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        border: `1px solid ${info.color}20`
+                      }}>
+                        <span style={{ fontSize: '13px' }}>{grade}</span>
+                        <span style={{ height: '12px', width: '1px', background: `${info.color}40` }}></span>
+                        <span style={{ fontSize: '13px', color: C.text }}>{count}</span>
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
+              </div>
+              <div style={{ background: C.surfaceAlt, borderRadius: 12, padding: '14px 16px' }}>
+                <p style={{ margin: '0 0 6px', fontSize: 11, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pass Rate</p>
+                <p style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>{gradedStudents.length ? `${Math.round(passCount / gradedStudents.length * 100)}%` : '—'}</p>
+              </div>
             </div>
 
             {/* Controls Row (Legend & Sorting) */}
@@ -783,17 +818,44 @@ export default function Exams() {
 
                   {/* Stats */}
                   <div style={{ display: 'flex', gap: 15, marginBottom: 35, position: 'relative', zIndex: 2 }}>
-                      {[
-                          { label: 'Total Students', value: examStudents.length, color: '#63b3ed' },
-                          { label: 'Graded', value: gradedStudents.length, color: '#f6ad55' },
-                          { label: 'Average', value: classAvg !== null ? `${classAvg}%` : '—', color: '#00c896' },
-                          { label: 'Pass Rate', value: gradedStudents.length ? `${Math.round(passCount / gradedStudents.length * 100)}%` : '—', color: '#fc814a' },
-                      ].map(stat => (
-                          <div key={stat.label} style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px', backdropFilter: 'blur(10px)' }}>
-                              <p style={{ margin: 0, fontSize: 11, color: '#8e93b5', textTransform: 'uppercase', letterSpacing: 1 }}>{stat.label}</p>
-                              <p style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 700, color: stat.color }}>{stat.value}</p>
+                      <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px', backdropFilter: 'blur(10px)' }}>
+                          <p style={{ margin: 0, fontSize: 11, color: '#8e93b5', textTransform: 'uppercase', letterSpacing: 1 }}>Total Students</p>
+                          <p style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 700, color: '#63b3ed' }}>{examStudents.length}</p>
+                      </div>
+                      <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px', backdropFilter: 'blur(10px)' }}>
+                          <p style={{ margin: 0, fontSize: 11, color: '#8e93b5', textTransform: 'uppercase', letterSpacing: 1 }}>Graded</p>
+                          <p style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 700, color: '#f6ad55' }}>{gradedStudents.length}</p>
+                      </div>
+                      <div style={{ flex: 2, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px', backdropFilter: 'blur(10px)' }}>
+                          <p style={{ margin: 0, fontSize: 11, color: '#8e93b5', textTransform: 'uppercase', letterSpacing: 1 }}>Grade Breakdown</p>
+                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
+                              {Object.entries(GRADE_COLORS).map(([grade, info]) => {
+                                  const count = gradeCounts[grade] || 0;
+                                  return (
+                                      <div key={grade} style={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: '6px',
+                                          padding: '3px 8px',
+                                          borderRadius: '6px',
+                                          background: info.bg,
+                                          color: info.color,
+                                          fontSize: '11px',
+                                          fontWeight: 'bold',
+                                          border: `1px solid ${info.color}20`
+                                      }}>
+                                          <span>{grade}</span>
+                                          <span style={{ height: '10px', width: '1px', background: `${info.color}30` }}></span>
+                                          <span style={{ color: '#fff' }}>{count}</span>
+                                      </div>
+                                  );
+                              })}
                           </div>
-                      ))}
+                      </div>
+                      <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px', backdropFilter: 'blur(10px)' }}>
+                          <p style={{ margin: 0, fontSize: 11, color: '#8e93b5', textTransform: 'uppercase', letterSpacing: 1 }}>Pass Rate</p>
+                          <p style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 700, color: '#fc814a' }}>{gradedStudents.length ? `${Math.round(passCount / gradedStudents.length * 100)}%` : '—'}</p>
+                      </div>
                   </div>
 
                   {/* Table */}
