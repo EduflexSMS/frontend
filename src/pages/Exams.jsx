@@ -14,6 +14,7 @@ const GRADE_COLORS = {
   C: { bg: 'rgba(246,173,85,0.12)', color: '#f6ad55', label: 'Credit' },
   S: { bg: 'rgba(252,129,74,0.12)', color: '#fc814a', label: 'Ordinary' },
   F: { bg: 'rgba(252,75,108,0.12)', color: '#fc4b6c', label: 'Failure' },
+  AB: { bg: 'rgba(255,255,255,0.08)', color: '#a0a5c0', label: 'Absent' },
 };
 
 const GRADE_RANGES = [
@@ -132,7 +133,9 @@ export default function Exams() {
   };
 
   const handleSaveMarks = async (studentId, marks) => {
-    if (marks === '' || marks < 0 || marks > 100) return toast.error('Enter a valid mark (0–100)');
+    if (marks !== 'AB' && (marks === '' || isNaN(Number(marks)) || Number(marks) < 0 || Number(marks) > 100)) {
+      return toast.error('Enter a valid mark (0–100) or AB');
+    }
     setSavingId(studentId);
     try {
       const { data } = await axios.put(
@@ -223,11 +226,11 @@ export default function Exams() {
   };
 
   // ─── Computed stats ────────────────────────────────────────────────────────
-  const gradedStudents = examStudents.filter(s => s.gradeResult);
+  const gradedStudents = examStudents.filter(s => s.gradeResult && s.gradeResult !== 'AB');
   const classAvg = gradedStudents.length
-    ? Math.round(gradedStudents.reduce((a, s) => a + s.marks, 0) / gradedStudents.length)
+    ? Math.round(gradedStudents.reduce((a, s) => a + Number(s.marks), 0) / gradedStudents.length)
     : null;
-  const passCount = gradedStudents.filter(s => s.marks >= 40).length;
+  const passCount = gradedStudents.filter(s => Number(s.marks) >= 40).length;
 
   // ─── Sorting logic ─────────────────────────────────────────────────────────
   const handleHeaderClick = (column) => {
@@ -258,6 +261,11 @@ export default function Exams() {
         if (!hasA) return 1;
         if (!hasB) return -1;
 
+        // Check for 'AB' (Absent)
+        if (a.marks === 'AB' && b.marks === 'AB') return 0;
+        if (a.marks === 'AB') return 1; // AB goes below numbers
+        if (b.marks === 'AB') return -1; // AB goes below numbers
+
         const marksA = Number(a.marks);
         const marksB = Number(b.marks);
         if (marksA === marksB) {
@@ -266,8 +274,8 @@ export default function Exams() {
         return sortDirection === 'asc' ? marksA - marksB : marksB - marksA;
       }
       if (sortBy === 'id') {
-        const idA = (a.uiid || a.rfid || '').toLowerCase();
-        const idB = (b.uiid || b.rfid || '').toLowerCase();
+        const idA = (a.indexNumber || '').toLowerCase();
+        const idB = (b.indexNumber || '').toLowerCase();
         return sortDirection === 'asc' ? idA.localeCompare(idB) : idB.localeCompare(idA);
       }
       return 0;
@@ -565,18 +573,43 @@ export default function Exams() {
                       return (
                         <tr key={student._id} style={{ borderBottom: `1px solid ${C.border}` }}>
                           <td style={{ padding: '13px 16px', fontWeight: 500 }}>{student.name}</td>
-                          <td style={{ padding: '13px 16px', color: C.muted, fontSize: 13 }}>{student.uiid || student.rfid}</td>
+                          <td style={{ padding: '13px 16px', color: C.muted, fontSize: 13 }}>{student.indexNumber || '—'}</td>
                           <td style={{ padding: '13px 16px' }}>
-                            <input
-                              type="number" min="0" max="100"
-                              value={student.marks}
-                              onChange={e => handleMarkChange(student._id, e.target.value)}
-                              style={{
-                                width: 80, padding: '7px 10px', borderRadius: 8,
-                                border: `1px solid ${C.border}`, background: C.surfaceAlt,
-                                color: C.text, fontSize: 14, outline: 'none',
-                              }}
-                            />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <input
+                                type="text"
+                                placeholder="—"
+                                value={student.marks}
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  if (val === '' || /^\d*$/.test(val) || /^ab$/i.test(val) || /^a$/i.test(val)) {
+                                    handleMarkChange(student._id, val.toUpperCase());
+                                  }
+                                }}
+                                style={{
+                                  width: 60, padding: '7px 10px', borderRadius: 8,
+                                  border: `1px solid ${C.border}`, background: C.surfaceAlt,
+                                  color: C.text, fontSize: 14, outline: 'none', textAlign: 'center'
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newVal = student.marks === 'AB' ? '' : 'AB';
+                                  handleMarkChange(student._id, newVal);
+                                }}
+                                style={{
+                                  padding: '7px 10px', borderRadius: 8,
+                                  border: `1px solid ${student.marks === 'AB' ? 'rgba(252,75,108,0.4)' : C.border}`,
+                                  background: student.marks === 'AB' ? 'rgba(252,75,108,0.15)' : 'transparent',
+                                  color: student.marks === 'AB' ? '#fc4b6c' : C.muted,
+                                  fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                                  transition: 'all 0.2s',
+                                }}
+                              >
+                                AB
+                              </button>
+                            </div>
                           </td>
                           <td style={{ padding: '13px 16px' }}>
                             {student.gradeResult ? (
@@ -780,7 +813,7 @@ export default function Exams() {
                                       <tr key={s._id}>
                                           <td style={{ padding: '14px 12px', fontSize: 13, color: '#6b7094', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>{String(i + 1).padStart(2, '0')}</td>
                                           <td style={{ padding: '14px 12px', fontSize: 14, fontWeight: 600, color: '#e8eaf6', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>{s.name}</td>
-                                          <td style={{ padding: '14px 12px', fontSize: 13, color: '#a0a5c0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>{s.uiid || s.rfid}</td>
+                                          <td style={{ padding: '14px 12px', fontSize: 13, color: '#a0a5c0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>{s.indexNumber || '—'}</td>
                                           <td style={{ padding: '14px 12px', fontSize: 15, fontWeight: 700, color: '#ffffff', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
                                               {s.marks !== '' ? s.marks : '—'}
                                           </td>
