@@ -51,6 +51,8 @@ export default function Exams() {
   const [savingId, setSavingId] = useState(null);
   const [showReport, setShowReport] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [sortBy, setSortBy] = useState('name'); // 'name', 'marks', 'id'
+  const [sortDirection, setSortDirection] = useState('asc'); // 'asc', 'desc'
 
   useEffect(() => { fetchSubjects(); }, []);
   useEffect(() => {
@@ -226,6 +228,51 @@ export default function Exams() {
     ? Math.round(gradedStudents.reduce((a, s) => a + s.marks, 0) / gradedStudents.length)
     : null;
   const passCount = gradedStudents.filter(s => s.marks >= 40).length;
+
+  // ─── Sorting logic ─────────────────────────────────────────────────────────
+  const handleHeaderClick = (column) => {
+    if (sortBy === column) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortDirection(column === 'marks' ? 'desc' : 'asc');
+    }
+  };
+
+  const renderSortIcon = (column) => {
+    if (sortBy !== column) return <span style={{ marginLeft: 6, opacity: 0.35, fontSize: 11 }}>↕</span>;
+    return <span style={{ marginLeft: 6, color: C.cyan, fontSize: 11 }}>{sortDirection === 'asc' ? '▲' : '▼'}</span>;
+  };
+
+  const getSortedStudents = () => {
+    return [...examStudents].sort((a, b) => {
+      if (sortBy === 'name') {
+        const nameA = (a.name || '').toLowerCase();
+        const nameB = (b.name || '').toLowerCase();
+        return sortDirection === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+      }
+      if (sortBy === 'marks') {
+        const hasA = a.marks !== '' && a.marks !== undefined && a.marks !== null;
+        const hasB = b.marks !== '' && b.marks !== undefined && b.marks !== null;
+        if (!hasA && !hasB) return 0;
+        if (!hasA) return 1;
+        if (!hasB) return -1;
+
+        const marksA = Number(a.marks);
+        const marksB = Number(b.marks);
+        if (marksA === marksB) {
+          return (a.name || '').toLowerCase().localeCompare((b.name || '').toLowerCase());
+        }
+        return sortDirection === 'asc' ? marksA - marksB : marksB - marksA;
+      }
+      if (sortBy === 'id') {
+        const idA = (a.uiid || a.rfid || '').toLowerCase();
+        const idB = (b.uiid || b.rfid || '').toLowerCase();
+        return sortDirection === 'asc' ? idA.localeCompare(idB) : idB.localeCompare(idA);
+      }
+      return 0;
+    });
+  };
 
   // ─── Shared input style ────────────────────────────────────────────────────
   const selectStyle = {
@@ -414,16 +461,46 @@ export default function Exams() {
               ))}
             </div>
 
-            {/* Grade legend */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-              {GRADE_RANGES.map(g => (
-                <span key={g.grade} style={{
-                  fontSize: 11, padding: '4px 10px', borderRadius: 20, fontWeight: 600,
-                  background: `${g.color}18`, color: g.color, border: `1px solid ${g.color}30`,
-                }}>
-                  {g.grade}: {g.range}
-                </span>
-              ))}
+            {/* Controls Row (Legend & Sorting) */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
+              {/* Grade legend */}
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {GRADE_RANGES.map(g => (
+                  <span key={g.grade} style={{
+                    fontSize: 11, padding: '4px 10px', borderRadius: 20, fontWeight: 600,
+                    background: `${g.color}18`, color: g.color, border: `1px solid ${g.color}30`,
+                  }}>
+                    {g.grade}: {g.range}
+                  </span>
+                ))}
+              </div>
+
+              {/* Sorting Chips */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: C.surfaceAlt, padding: '4px', borderRadius: 10, border: `1px solid ${C.border}` }}>
+                <span style={{ fontSize: 12, color: C.muted, padding: '0 8px', fontWeight: 600 }}>Sort:</span>
+                {[
+                  { id: 'name', label: 'Name A-Z', dir: 'asc' },
+                  { id: 'marks', label: 'Highest Marks', dir: 'desc' },
+                  { id: 'id', label: 'Student ID', dir: 'asc' }
+                ].map(opt => {
+                  const isActive = sortBy === opt.id && sortDirection === opt.dir;
+                  return (
+                    <button
+                      key={opt.id + opt.dir}
+                      onClick={() => { setSortBy(opt.id); setSortDirection(opt.dir); }}
+                      style={{
+                        padding: '6px 12px', borderRadius: 8, border: 'none',
+                        background: isActive ? C.cyan : 'transparent',
+                        color: isActive ? '#000' : C.text,
+                        fontSize: 12, fontWeight: isActive ? 700 : 500,
+                        cursor: 'pointer', transition: 'all 0.2s',
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Table */}
@@ -432,17 +509,58 @@ export default function Exams() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                   <thead>
                     <tr style={{ background: C.surfaceAlt }}>
-                      {['Student', 'ID', 'Marks /100', 'Grade', 'Action'].map(h => (
-                        <th key={h} style={{
+                      <th
+                        onClick={() => handleHeaderClick('name')}
+                        style={{
+                          padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 600,
+                          color: sortBy === 'name' ? C.text : C.muted, textTransform: 'uppercase', letterSpacing: '0.06em',
+                          borderBottom: `1px solid ${C.border}`, cursor: 'pointer', userSelect: 'none'
+                        }}
+                      >
+                        Student {renderSortIcon('name')}
+                      </th>
+                      <th
+                        onClick={() => handleHeaderClick('id')}
+                        style={{
+                          padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 600,
+                          color: sortBy === 'id' ? C.text : C.muted, textTransform: 'uppercase', letterSpacing: '0.06em',
+                          borderBottom: `1px solid ${C.border}`, cursor: 'pointer', userSelect: 'none'
+                        }}
+                      >
+                        ID {renderSortIcon('id')}
+                      </th>
+                      <th
+                        onClick={() => handleHeaderClick('marks')}
+                        style={{
+                          padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 600,
+                          color: sortBy === 'marks' ? C.text : C.muted, textTransform: 'uppercase', letterSpacing: '0.06em',
+                          borderBottom: `1px solid ${C.border}`, cursor: 'pointer', userSelect: 'none'
+                        }}
+                      >
+                        Marks /100 {renderSortIcon('marks')}
+                      </th>
+                      <th
+                        style={{
                           padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 600,
                           color: C.muted, textTransform: 'uppercase', letterSpacing: '0.06em',
                           borderBottom: `1px solid ${C.border}`,
-                        }}>{h}</th>
-                      ))}
+                        }}
+                      >
+                        Grade
+                      </th>
+                      <th
+                        style={{
+                          padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 600,
+                          color: C.muted, textTransform: 'uppercase', letterSpacing: '0.06em',
+                          borderBottom: `1px solid ${C.border}`,
+                        }}
+                      >
+                        Action
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {examStudents.map(student => {
+                    {getSortedStudents().map(student => {
                       const g = GRADE_COLORS[student.gradeResult];
                       return (
                         <tr key={student._id} style={{ borderBottom: `1px solid ${C.border}` }}>
@@ -656,7 +774,7 @@ export default function Exams() {
                               </tr>
                           </thead>
                           <tbody>
-                              {examStudents.map((s, i) => {
+                              {getSortedStudents().map((s, i) => {
                                   const g = GRADE_COLORS[s.gradeResult];
                                   return (
                                       <tr key={s._id}>
