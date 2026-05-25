@@ -55,6 +55,8 @@ const speakText = (text) => {
 
 export default function QRScanner() {
     const [subjects, setSubjects] = useState([]);
+    const [grades, setGrades] = useState([]);
+    const [selectedGrade, setSelectedGrade] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('');
     const [message, setMessage] = useState({ type: '', text: '' });
     const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -68,7 +70,7 @@ export default function QRScanner() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchSubjects = async () => {
+        const fetchData = async () => {
             try {
                 const user = JSON.parse(sessionStorage.getItem('userInfo'));
                 if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
@@ -76,23 +78,30 @@ export default function QRScanner() {
                     return;
                 }
 
-                const { data } = await axios.get(`${API_BASE_URL}/api/subjects`);
+                const [subjectsRes, gradesRes] = await Promise.all([
+                    axios.get(`${API_BASE_URL}/api/subjects`),
+                    axios.get(`${API_BASE_URL}/api/students/grades`)
+                ]);
+
                 const assigned = user.assignedSubject;
-                if (assigned) {
-                    setSubjects(data.filter(s => s.name === assigned));
-                    setSelectedSubject(assigned);
-                } else {
-                    setSubjects(data);
+                const filteredSubjects = assigned ? subjectsRes.data.filter(s => s.name === assigned) : subjectsRes.data;
+
+                setSubjects(filteredSubjects);
+                setGrades(gradesRes.data);
+                
+                // If there's only one subject option, pre-select it
+                if (filteredSubjects.length === 1) {
+                    setSelectedSubject(filteredSubjects[0].name);
                 }
             } catch (error) {
-                console.error("Failed to fetch subjects", error);
+                console.error("Failed to fetch data", error);
             }
         };
-        fetchSubjects();
+        fetchData();
     }, [navigate]);
 
     useEffect(() => {
-        if (!selectedSubject) return;
+        if (!selectedGrade || !selectedSubject) return;
 
         const startScanner = async () => {
             try {
@@ -116,7 +125,8 @@ export default function QRScanner() {
                     try {
                         const response = await axios.post(`${API_BASE_URL}/api/attendance/qr`, {
                             indexNumber: decodedText,
-                            subject: selectedSubject
+                            subject: selectedSubject,
+                            grade: selectedGrade
                         });
 
                         const { student, week, status } = response.data;
@@ -196,7 +206,7 @@ export default function QRScanner() {
                 });
             }
         };
-    }, [selectedSubject, facingMode]);
+    }, [selectedGrade, selectedSubject, facingMode]);
 
     const handleCloseSnackbar = () => {
         setOpenSnackbar(false);
@@ -214,22 +224,42 @@ export default function QRScanner() {
                     Attendance Scanner
                 </Typography>
 
-                <FormControl fullWidth sx={{ mb: 4, mt: 2 }}>
-                    <InputLabel>Select Subject to Mark Attendance</InputLabel>
-                    <Select
-                        value={selectedSubject}
-                        label="Select Subject to Mark Attendance"
-                        onChange={(e) => setSelectedSubject(e.target.value)}
-                    >
-                        {subjects.map((sub) => (
-                            <MenuItem key={sub._id} value={sub.name}>
-                                {sub.name}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
+                <Grid container spacing={2} sx={{ mb: 4, mt: 2 }}>
+                    <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth>
+                            <InputLabel>Select Grade</InputLabel>
+                            <Select
+                                value={selectedGrade}
+                                label="Select Grade"
+                                onChange={(e) => setSelectedGrade(e.target.value)}
+                            >
+                                {grades.map((grade) => (
+                                    <MenuItem key={grade} value={grade}>
+                                        {grade}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth>
+                            <InputLabel>Select Subject</InputLabel>
+                            <Select
+                                value={selectedSubject}
+                                label="Select Subject"
+                                onChange={(e) => setSelectedSubject(e.target.value)}
+                            >
+                                {subjects.map((sub) => (
+                                    <MenuItem key={sub._id} value={sub.name}>
+                                        {sub.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                </Grid>
 
-                {selectedSubject && (
+                {(selectedGrade && selectedSubject) && (
                     <Box sx={{ maxWidth: '500px', margin: '0 auto', textAlign: 'right' }}>
                         <Button 
                             variant="outlined" 
@@ -265,9 +295,9 @@ export default function QRScanner() {
                     </Box>
                 )}
 
-                {!selectedSubject && (
+                {(!selectedGrade || !selectedSubject) && (
                     <Alert severity="info" sx={{ mt: 2 }}>
-                        Please select a subject to enable the camera.
+                        Please select both Grade and Subject to enable the camera.
                     </Alert>
                 )}
             </Paper>
