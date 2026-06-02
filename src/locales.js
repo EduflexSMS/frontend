@@ -100,6 +100,11 @@ export const resources = {
             "single_subject": "Single Subject",
             "entire_grade": "Entire Grade",
             "report_language": "Report Language",
+            "signing_sheets": "Signing Sheets",
+            "download_fee_sheet": "Download Fee Sign Sheet",
+            "download_tute_sheet": "Download Tute Sign Sheet (Maths Only)",
+            "select_grade_to_download": "Select a grade to generate signing sheets",
+            "signing_sheets_desc": "Printable B&W grids for tracking class fees and tutorial distributions manually.",
 
             // Months
             "january": "January",
@@ -217,6 +222,11 @@ export const resources = {
             "single_subject": "තනි විෂය",
             "entire_grade": "මුළු ශ්‍රේණියම",
             "report_language": "වාර්තා භාෂාව",
+            "signing_sheets": "අත්සන් පත්‍ර",
+            "download_fee_sheet": "පන්ති ගාස්තු අත්සන් පත්‍රය (PDF)",
+            "download_tute_sheet": "ටියුට් අත්සන් පත්‍රය (Maths PDF)",
+            "select_grade_to_download": "අත්සන් පත්‍ර ලබාගැනීමට ශ්‍රේණියක් තෝරන්න",
+            "signing_sheets_desc": "පන්ති ගාස්තු සහ නිබන්ධන බෙදාහැරීම් අත්සන් මගින් ලකුණු කර ගැනීමට මුද්‍රණය කළ හැකි පත්‍ර ලබාගන්න.",
 
             // Months
             "january": "ජනවාරි",

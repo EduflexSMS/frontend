@@ -47,6 +47,7 @@ import API_BASE_URL from '../config';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { setupPdfFont, formatDate } from '../utils/pdfUtils';
+import { generateFeeSignSheetPDF, generateTuteSignSheetPDF } from '../utils/generateSignSheets';
 
 const MotionContainer = motion(Container);
 const MotionPaper = motion(Paper);
@@ -104,6 +105,43 @@ export default function ClassReport() {
         };
         fetchSubjects();
     }, []);
+
+    const handleDownloadSigningSheet = async (type) => {
+        if (!grade) {
+            setError("Please select a grade first");
+            return;
+        }
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await axios.get(`${API_BASE_URL}/api/students`, {
+                params: { grade, limit: 1000 }
+            });
+            const studentsList = response.data.students || [];
+
+            if (studentsList.length === 0) {
+                setError(language === 'si' ? "මෙම ශ්‍රේණිය සඳහා සිසුන් ලියාපදිංචි වී නොමැත." : "No students are enrolled in this grade.");
+                return;
+            }
+
+            if (type === 'fee') {
+                const res = generateFeeSignSheetPDF(studentsList, grade, language);
+                if (res && !res.success) {
+                    setError(res.error);
+                }
+            } else if (type === 'tute') {
+                const res = generateTuteSignSheetPDF(studentsList, grade, language);
+                if (res && !res.success) {
+                    setError(res.error);
+                }
+            }
+        } catch (err) {
+            console.error("Error fetching students for signing sheet:", err);
+            setError(language === 'si' ? "ශිෂ්‍ය ලැයිස්තුව ලබා ගැනීමට අපොහොසත් විය." : "Failed to fetch student list for signing sheets.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleGenerate = async () => {
         if (!grade || month === '') {
@@ -264,7 +302,6 @@ export default function ClassReport() {
             setupPdfFont(doc, currentLang);
 
             const monthName = t(months[month].toLowerCase());
-            const dateStr = formatDate(new Date(), currentLang);
 
             const subjects = Object.keys(gradeReportData);
 
@@ -410,7 +447,6 @@ export default function ClassReport() {
                 layout
                 sx={{
                     mb: 2,
-                    borderRadius: 3,
                     borderRadius: 3,
                     boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
                     background: alpha(theme.palette.background.paper, 0.5),
@@ -643,11 +679,18 @@ export default function ClassReport() {
                                      variant={reportType === 'full' ? 'filled' : 'outlined'} 
                                      sx={{ fontWeight: 600 }}
                                  />
+                                <Chip 
+                                     label={t('signing_sheets')} 
+                                     onClick={() => setReportType('signing_sheets')} 
+                                     color={reportType === 'signing_sheets' ? 'primary' : 'default'} 
+                                     variant={reportType === 'signing_sheets' ? 'filled' : 'outlined'} 
+                                     sx={{ fontWeight: 600 }}
+                                 />
                             </Box>
                         </Box>
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid item xs={12} sm={6} md={reportType === 'signing_sheets' ? 6 : 3}>
                         <FormControl fullWidth size="small" variant="outlined">
                             <InputLabel>{t('grade')}</InputLabel>
                             <Select
@@ -707,7 +750,7 @@ export default function ClassReport() {
                             </FormControl>
                         </Grid>
                     ) : (
-                        <Grid item xs={12} sm={6} md={3}>
+                        <Grid item xs={12} sm={6} md={reportType === 'signing_sheets' ? 6 : 3}>
                             <FormControl fullWidth size="small">
                                 <InputLabel>{t('report_language')}</InputLabel>
                                 <Select
@@ -730,58 +773,62 @@ export default function ClassReport() {
                         </Grid>
                     )}
 
-                    <Grid item xs={12} sm={6} md={3}>
-                        <FormControl fullWidth size="small">
-                            <InputLabel>{t('month')}</InputLabel>
-                            <Select
-                                value={month}
-                                label={t('month')}
-                                onChange={(e) => setMonth(e.target.value)}
-                                sx={{
-                                    borderRadius: 2.5,
-                                    bgcolor: alpha(theme.palette.background.paper, 0.4),
-                                    color: 'text.primary',
-                                    '& .MuiSvgIcon-root': { color: 'text.secondary' },
-                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.divider },
-                                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
-                                }}
-                                startAdornment={
-                                    <InputAdornment position="start">
-                                        <CalendarToday color="action" fontSize="small" />
-                                    </InputAdornment>
-                                }
-                            >
-                                {months.map((m, index) => (
-                                    <MenuItem key={index} value={index}>{t(m.toLowerCase())}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </Grid>
+                    {reportType !== 'signing_sheets' && (
+                        <Grid item xs={12} sm={6} md={3}>
+                            <FormControl fullWidth size="small">
+                                <InputLabel>{t('month')}</InputLabel>
+                                <Select
+                                    value={month}
+                                    label={t('month')}
+                                    onChange={(e) => setMonth(e.target.value)}
+                                    sx={{
+                                        borderRadius: 2.5,
+                                        bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                        color: 'text.primary',
+                                        '& .MuiSvgIcon-root': { color: 'text.secondary' },
+                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.divider },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
+                                    }}
+                                    startAdornment={
+                                        <InputAdornment position="start">
+                                            <CalendarToday color="action" fontSize="small" />
+                                        </InputAdornment>
+                                    }
+                                >
+                                    {months.map((m, index) => (
+                                        <MenuItem key={index} value={index}>{t(m.toLowerCase())}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                    )}
 
-                    <Grid item xs={12} sm={6} md={3}>
-                        <Button
-                            component={motion.button}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            variant="contained"
-                            onClick={handleGenerate}
-                            disabled={loading}
-                            fullWidth
-                            startIcon={!loading && <Search />}
-                            sx={{
-                                height: 44,
-                                borderRadius: 3,
-                                fontWeight: 600,
-                                textTransform: 'none',
-                                fontSize: '1rem',
-                                background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
-                                boxShadow: '0 4px 12px rgba(6, 182, 212, 0.4)',
-                                border: `1px solid ${theme.palette.divider}`
-                            }}
-                        >
-                            {loading ? <CircularProgress size={24} color="inherit" /> : t('generate_report')}
-                        </Button>
-                    </Grid>
+                    {reportType !== 'signing_sheets' && (
+                        <Grid item xs={12} sm={6} md={3}>
+                            <Button
+                                component={motion.button}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                variant="contained"
+                                onClick={handleGenerate}
+                                disabled={loading}
+                                fullWidth
+                                startIcon={!loading && <Search />}
+                                sx={{
+                                    height: 44,
+                                    borderRadius: 3,
+                                    fontWeight: 600,
+                                    textTransform: 'none',
+                                    fontSize: '1rem',
+                                    background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
+                                    boxShadow: '0 4px 12px rgba(6, 182, 212, 0.4)',
+                                    border: `1px solid ${theme.palette.divider}`
+                                }}
+                            >
+                                {loading ? <CircularProgress size={24} color="inherit" /> : t('generate_report')}
+                            </Button>
+                        </Grid>
+                    )}
                 </Grid>
             </MotionPaper>
 
@@ -962,6 +1009,98 @@ export default function ClassReport() {
                             {language === 'si' ? "ඉහත බොත්තම ඔබා PDF ලබාගන්න." : "Click the button above to generate the compiled PDF."}
                         </Typography>
                     </Alert>
+                </motion.div>
+            )}
+
+            {!loading && reportType === 'signing_sheets' && (
+                <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    variants={containerVariants}
+                >
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: { xs: 3, md: 5 },
+                            borderRadius: 4,
+                            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
+                            background: alpha(theme.palette.background.paper, 0.6),
+                            backdropFilter: 'blur(20px)',
+                            border: `1px solid ${theme.palette.divider}`,
+                            textAlign: 'center'
+                        }}
+                    >
+                        <Box sx={{ maxWidth: 600, mx: 'auto', mb: 4 }}>
+                            <Typography variant="h5" sx={{ fontWeight: 700, mb: 1.5, color: 'text.primary' }}>
+                                {t('signing_sheets')}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                {t('signing_sheets_desc')}
+                            </Typography>
+                        </Box>
+
+                        {!grade ? (
+                            <Alert severity="info" sx={{ borderRadius: 3, display: 'inline-flex', mx: 'auto' }}>
+                                {t('select_grade_to_download')}
+                            </Alert>
+                        ) : (
+                            <Grid container spacing={3} justifyContent="center">
+                                <Grid item xs={12} sm={6} md={5}>
+                                    <Card
+                                        component={motion.div}
+                                        whileHover={{ y: -5, boxShadow: '0 12px 24px rgba(0,0,0,0.3)' }}
+                                        sx={{
+                                            height: '100%',
+                                            borderRadius: 3,
+                                            border: `1px solid ${theme.palette.divider}`,
+                                            background: alpha(theme.palette.background.paper, 0.4),
+                                            cursor: 'pointer'
+                                        }}
+                                        onClick={() => handleDownloadSigningSheet('fee')}
+                                    >
+                                        <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                                            <Box sx={{ fontSize: '3rem' }}>💵</Box>
+                                            <Typography variant="h6" fontWeight={700}>
+                                                {t('download_fee_sheet')}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                {language === 'si' 
+                                                    ? 'භෞතිකව ගාස්තු ලකුණු කිරීමට Grade එකේ සියලුම සිසුන් සහ විෂයන් ඇතුළත් කළු-සුදු වගුව බාගත කරන්න.'
+                                                    : 'Generates B&W grid showing all students and all enrolled subjects for physical fee tracking.'}
+                                            </Typography>
+                                        </CardContent>
+                                    </Card>
+                                </Grid>
+
+                                <Grid item xs={12} sm={6} md={5}>
+                                    <Card
+                                        component={motion.div}
+                                        whileHover={{ y: -5, boxShadow: '0 12px 24px rgba(0,0,0,0.3)' }}
+                                        sx={{
+                                            height: '100%',
+                                            borderRadius: 3,
+                                            border: `1px solid ${theme.palette.divider}`,
+                                            background: alpha(theme.palette.background.paper, 0.4),
+                                            cursor: 'pointer'
+                                        }}
+                                        onClick={() => handleDownloadSigningSheet('tute')}
+                                    >
+                                        <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                                            <Box sx={{ fontSize: '3rem' }}>📚</Box>
+                                            <Typography variant="h6" fontWeight={700}>
+                                                {t('download_tute_sheet')}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                {language === 'si'
+                                                    ? 'Mathematics (ගණිතය) විෂය කරන සිසුන්ගේ නිබන්ධන (Term Tutes 01/02) බෙදාහැරීම් අත්සන් පත්‍රය ලබාගන්න.'
+                                                    : 'Generates B&W list of Mathematics students with 1st/2nd/3rd term tute issue signature columns.'}
+                                            </Typography>
+                                        </CardContent>
+                                    </Card>
+                                </Grid>
+                            </Grid>
+                        )}
+                    </Paper>
                 </motion.div>
             )}
 
