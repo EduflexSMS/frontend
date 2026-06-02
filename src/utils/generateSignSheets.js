@@ -58,8 +58,8 @@ export const generateFeeSignSheetPDF = (students, grade, lang = 'en') => {
 
     // Placeholder text for manual Date & Sign
     const cellPlaceholder = lang === 'si' 
-        ? 'දිනය: ............\nඅත්සන: .........' 
-        : 'Date: ............\nSign: .........';
+        ? 'දිනය: ................\n\nඅත්සන: .............' 
+        : 'Date: ................\n\nSign: .............';
 
     // --- Table Rows ---
     const rows = [];
@@ -84,7 +84,8 @@ export const generateFeeSignSheetPDF = (students, grade, lang = 'en') => {
             textColor: [0, 0, 0],
             lineColor: [100, 100, 100],
             lineWidth: 0.15,
-            cellPadding: 4, // Generous padding for manual writing
+            cellPadding: 6, // Generous padding for manual writing
+            minCellHeight: 20, // Ensure cells are tall enough
         },
         headStyles: {
             fillColor: [230, 230, 230], // Light gray header
@@ -106,7 +107,7 @@ export const generateFeeSignSheetPDF = (students, grade, lang = 'en') => {
                     data.cell.styles.fillColor = [240, 240, 240]; // Darker gray for N/A
                     data.cell.styles.textColor = [130, 130, 130];
                 } else {
-                    data.cell.styles.fontSize = 7; // Compact text for writing lines
+                    data.cell.styles.fontSize = 8.5; // Larger text for better readability
                     data.cell.styles.halign = 'left';
                     data.cell.styles.valign = 'middle';
                     data.cell.styles.fillColor = [255, 255, 255]; // Enrolled = white blank
@@ -204,10 +205,10 @@ export const generateTuteSignSheetPDF = (students, grade, lang = 'en') => {
 
     const headers = [colNo, colName, ...tuteCols];
 
-    // Placeholder text for manual Date & Sign
+    // Placeholder text for manual Sign only
     const cellPlaceholder = lang === 'si' 
-        ? 'දිනය: ............\nඅත්සන: .........' 
-        : 'Date: ............\nSign: .........';
+        ? '\nඅත්සන: ................\n' 
+        : '\nSign: ................\n';
 
     // --- Table Rows ---
     const rows = [];
@@ -228,7 +229,8 @@ export const generateTuteSignSheetPDF = (students, grade, lang = 'en') => {
             textColor: [0, 0, 0],
             lineColor: [100, 100, 100],
             lineWidth: 0.15,
-            cellPadding: 4, // Generous padding for signature or ticks
+            cellPadding: 6, // Generous padding for signature or ticks
+            minCellHeight: 20, // Taller cells for easy signing
         },
         headStyles: {
             fillColor: [230, 230, 230], // Light gray header
@@ -250,7 +252,7 @@ export const generateTuteSignSheetPDF = (students, grade, lang = 'en') => {
         },
         didParseCell: (data) => {
             if (data.section === 'body' && data.column.index >= 2) {
-                data.cell.styles.fontSize = 6.5; // Slightly smaller to fit cleanly in 20mm
+                data.cell.styles.fontSize = 8; // Larger text
                 data.cell.styles.halign = 'left';
                 data.cell.styles.valign = 'middle';
             }
