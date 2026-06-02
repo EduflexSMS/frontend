@@ -28,9 +28,9 @@ export const generateFeeSignSheetPDF = (students, grade, lang = 'en') => {
         return { success: false, error: lang === 'si' ? 'මෙම ශ්‍රේණියේ කිසිදු විෂයකට ලියාපදිංචි වී ඇති සිසුන් හමු නොවීය.' : 'No active subject enrollments found in this grade.' };
     }
 
-    // Determine layout: landscape if more than 5 subjects to fit everything nicely
-    const isLandscape = gradeSubjects.length > 5;
-    const doc = new jsPDF(isLandscape ? 'landscape' : 'portrait', 'mm', 'a4');
+    // Always use landscape for better writing space
+    const isLandscape = true;
+    const doc = new jsPDF('landscape', 'mm', 'a4');
     setupPdfFont(doc, lang);
 
     const pageWidth = doc.internal.pageSize.width;
@@ -96,7 +96,7 @@ export const generateFeeSignSheetPDF = (students, grade, lang = 'en') => {
         },
         columnStyles: {
             0: { halign: 'center', cellWidth: 12 }, // No.
-            1: { cellWidth: isLandscape ? 75 : 'auto' } // Name gets more space now
+            1: { cellWidth: 70 } // Student Name fixed width to give subjects equal remaining space
         },
         didParseCell: (data) => {
             // Style active cells
@@ -155,7 +155,8 @@ export const generateTuteSignSheetPDF = (students, grade, lang = 'en') => {
         return { success: false, error: lang === 'si' ? 'මෙම ශ්‍රේණියේ ගණිතය (Mathematics) විෂයට ලියාපදිංචි වී ඇති සිසුන් හමු නොවීය.' : 'No students enrolled in Mathematics found in this grade.' };
     }
 
-    const doc = new jsPDF('portrait', 'mm', 'a4');
+    // Always use landscape for Tute sheet to fit all 6 columns comfortably
+    const doc = new jsPDF('landscape', 'mm', 'a4');
     setupPdfFont(doc, lang);
 
     const pageWidth = doc.internal.pageSize.width;
@@ -241,18 +242,18 @@ export const generateTuteSignSheetPDF = (students, grade, lang = 'en') => {
             fontSize: 8.5 // Slightly smaller to fit vertical text
         },
         columnStyles: {
-            0: { halign: 'center', cellWidth: 10 }, // No.
+            0: { halign: 'center', cellWidth: 12 }, // No.
             1: { cellWidth: 'auto' }, // Student Name gets remaining space
-            2: { cellWidth: 20 }, // 1st Term Tute 01
-            3: { cellWidth: 20 }, // 1st Term Tute 02
-            4: { cellWidth: 20 }, // 2nd Term Tute 01
-            5: { cellWidth: 20 }, // 2nd Term Tute 02
-            6: { cellWidth: 20 }, // 3rd Term Tute 01
-            7: { cellWidth: 20 }  // 3rd Term Tute 02
+            2: { cellWidth: 30 }, // 1st Term Tute 01
+            3: { cellWidth: 30 }, // 1st Term Tute 02
+            4: { cellWidth: 30 }, // 2nd Term Tute 01
+            5: { cellWidth: 30 }, // 2nd Term Tute 02
+            6: { cellWidth: 30 }, // 3rd Term Tute 01
+            7: { cellWidth: 30 }  // 3rd Term Tute 02
         },
         didParseCell: (data) => {
             if (data.section === 'body' && data.column.index >= 2) {
-                data.cell.styles.fontSize = 8; // Larger text
+                data.cell.styles.fontSize = 8.5; // Larger text since we have space
                 data.cell.styles.halign = 'left';
                 data.cell.styles.valign = 'middle';
             }
