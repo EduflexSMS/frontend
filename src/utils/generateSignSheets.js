@@ -51,20 +51,17 @@ export const generateFeeSignSheetPDF = (students, grade, lang = 'en') => {
     doc.text(`${lang === 'si' ? 'මාසය' : 'Month'}: ....................................................`, pageWidth / 2 - 30, 33);
     doc.text(`${lang === 'si' ? 'දිනය' : 'Date'}: .........................`, pageWidth - 50, 33);
 
-    // --- Table Headers (Index No Removed) ---
-    const colNo = lang === 'si' ? 'අංකය' : 'No.';
+    // --- Table Headers ---
     const colName = lang === 'si' ? 'ශිෂ්‍ය නාමය' : 'Student Name';
-    const headers = [colNo, colName, ...gradeSubjects];
+    const headers = [colName, ...gradeSubjects];
 
-    // Placeholder text for manual Date & Sign
-    const cellPlaceholder = lang === 'si' 
-        ? 'දිනය: ................\n\nඅත්සන: .............' 
-        : 'Date: ................\n\nSign: .............';
+    // Light watermark placeholder
+    const cellPlaceholder = lang === 'si' ? 'දිනය / අත්සන' : 'Date / Sign';
 
     // --- Table Rows ---
     const rows = [];
-    students.forEach((student, idx) => {
-        const row = [idx + 1, student.name];
+    students.forEach((student) => {
+        const row = [student.name];
         gradeSubjects.forEach(subject => {
             const enrolled = (student.enrollments || []).some(e => e.subject === subject);
             row.push(enrolled ? cellPlaceholder : "N/A"); // Placeholders for enrolled, "N/A" for non-enrolled
@@ -84,8 +81,8 @@ export const generateFeeSignSheetPDF = (students, grade, lang = 'en') => {
             textColor: [0, 0, 0],
             lineColor: [100, 100, 100],
             lineWidth: 0.15,
-            cellPadding: 6, // Generous padding for manual writing
-            minCellHeight: 20, // Ensure cells are tall enough
+            cellPadding: 3, // Reduced padding to fit more rows
+            minCellHeight: 14, // Reduced height to save pages but spacious enough
         },
         headStyles: {
             fillColor: [230, 230, 230], // Light gray header
@@ -95,21 +92,21 @@ export const generateFeeSignSheetPDF = (students, grade, lang = 'en') => {
             valign: 'middle'
         },
         columnStyles: {
-            0: { halign: 'center', cellWidth: 12 }, // No.
-            1: { cellWidth: 70 } // Student Name fixed width to give subjects equal remaining space
+            0: { cellWidth: 70 } // Student Name fixed width
         },
         didParseCell: (data) => {
             // Style active cells
-            if (data.section === 'body' && data.column.index >= 2) {
+            if (data.section === 'body' && data.column.index >= 1) {
                 if (data.cell.raw === "N/A") {
                     data.cell.styles.halign = 'center';
                     data.cell.styles.valign = 'middle';
                     data.cell.styles.fillColor = [240, 240, 240]; // Darker gray for N/A
                     data.cell.styles.textColor = [130, 130, 130];
                 } else {
-                    data.cell.styles.fontSize = 8.5; // Larger text for better readability
+                    data.cell.styles.fontSize = 8;
+                    data.cell.styles.textColor = [180, 180, 180]; // Light gray watermark
                     data.cell.styles.halign = 'left';
-                    data.cell.styles.valign = 'middle';
+                    data.cell.styles.valign = 'top'; // Top-left to leave space in middle
                     data.cell.styles.fillColor = [255, 255, 255]; // Enrolled = white blank
                 }
             }
@@ -183,8 +180,7 @@ export const generateTuteSignSheetPDF = (students, grade, lang = 'en') => {
     doc.text(`${lang === 'si' ? 'මාසය' : 'Month'}: ....................................................`, pageWidth / 2 - 30, 33);
     doc.text(`${lang === 'si' ? 'දිනය' : 'Date'}: .........................`, pageWidth - 50, 33);
 
-    // --- Table Headers (Index No Removed) ---
-    const colNo = lang === 'si' ? 'අංකය' : 'No.';
+    // --- Table Headers ---
     const colName = lang === 'si' ? 'ශිෂ්‍ය නාමය' : 'Student Name';
     
     // Customized term tute columns as requested by the user
@@ -204,17 +200,15 @@ export const generateTuteSignSheetPDF = (students, grade, lang = 'en') => {
         '3rd Term\nTute 02'
     ];
 
-    const headers = [colNo, colName, ...tuteCols];
+    const headers = [colName, ...tuteCols];
 
-    // Placeholder text for manual Sign only
-    const cellPlaceholder = lang === 'si' 
-        ? '\nඅත්සන: ................\n' 
-        : '\nSign: ................\n';
+    // Light watermark placeholder
+    const cellPlaceholder = lang === 'si' ? 'අත්සන' : 'Sign';
 
     // --- Table Rows ---
     const rows = [];
-    mathStudents.forEach((student, idx) => {
-        const row = [idx + 1, student.name, cellPlaceholder, cellPlaceholder, cellPlaceholder, cellPlaceholder, cellPlaceholder, cellPlaceholder];
+    mathStudents.forEach((student) => {
+        const row = [student.name, cellPlaceholder, cellPlaceholder, cellPlaceholder, cellPlaceholder, cellPlaceholder, cellPlaceholder];
         rows.push(row);
     });
 
@@ -230,8 +224,8 @@ export const generateTuteSignSheetPDF = (students, grade, lang = 'en') => {
             textColor: [0, 0, 0],
             lineColor: [100, 100, 100],
             lineWidth: 0.15,
-            cellPadding: 6, // Generous padding for signature or ticks
-            minCellHeight: 20, // Taller cells for easy signing
+            cellPadding: 3, // Reduced padding
+            minCellHeight: 14, // Reduced height to save pages
         },
         headStyles: {
             fillColor: [230, 230, 230], // Light gray header
@@ -242,20 +236,20 @@ export const generateTuteSignSheetPDF = (students, grade, lang = 'en') => {
             fontSize: 8.5 // Slightly smaller to fit vertical text
         },
         columnStyles: {
-            0: { halign: 'center', cellWidth: 12 }, // No.
-            1: { cellWidth: 'auto' }, // Student Name gets remaining space
-            2: { cellWidth: 30 }, // 1st Term Tute 01
-            3: { cellWidth: 30 }, // 1st Term Tute 02
-            4: { cellWidth: 30 }, // 2nd Term Tute 01
-            5: { cellWidth: 30 }, // 2nd Term Tute 02
-            6: { cellWidth: 30 }, // 3rd Term Tute 01
-            7: { cellWidth: 30 }  // 3rd Term Tute 02
+            0: { cellWidth: 65 }, // Student Name gets fixed width
+            1: { cellWidth: 34 }, // 1st Term Tute 01
+            2: { cellWidth: 34 }, // 1st Term Tute 02
+            3: { cellWidth: 34 }, // 2nd Term Tute 01
+            4: { cellWidth: 34 }, // 2nd Term Tute 02
+            5: { cellWidth: 34 }, // 3rd Term Tute 01
+            6: { cellWidth: 34 }  // 3rd Term Tute 02
         },
         didParseCell: (data) => {
-            if (data.section === 'body' && data.column.index >= 2) {
-                data.cell.styles.fontSize = 8.5; // Larger text since we have space
+            if (data.section === 'body' && data.column.index >= 1) {
+                data.cell.styles.fontSize = 8;
+                data.cell.styles.textColor = [180, 180, 180]; // Light gray watermark
                 data.cell.styles.halign = 'left';
-                data.cell.styles.valign = 'middle';
+                data.cell.styles.valign = 'top'; // Top-left to leave space in middle
             }
         },
         margin: { top: 38, left: 14, right: 14, bottom: 15 },
