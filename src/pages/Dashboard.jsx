@@ -7,8 +7,6 @@ import { useTranslation } from 'react-i18next';
 // ── Your original dialogs & components (unchanged) ─────────────────
 import ReportDialog from '../components/ReportDialog';
 import SubjectDetailsDialog from '../components/SubjectDetailsDialog';
-import CreateTeacherDialog from '../components/CreateTeacherDialog';
-import TeacherListDialog from '../components/TeacherListDialog';
 import AnalyticsChart from '../components/AnalyticsChart';
 import API_BASE_URL from '../config';
 
@@ -284,8 +282,6 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [reportOpen, setReportOpen] = useState(false);
     const [detailsOpen, setDetailsOpen] = useState(false);
-    const [createTeacherOpen, setCreateTeacherOpen] = useState(false);
-    const [teacherListOpen, setTeacherListOpen] = useState(false);
     const [selectedSubject, setSelectedSubject] = useState(null);
 
     // ── new UI state ──
@@ -575,24 +571,14 @@ export default function Dashboard() {
                         spark={SPARKS.subjects}
                         theme={theme}
                     />
-                    {/* New Teacher card — original handler */}
-                    <StatCard
-                        title="New Teacher"
-                        value="+"
-                        icon="🎓"
-                        accent={C.violet}
-                        theme={theme}
-                        onClick={() => setCreateTeacherOpen(true)}
-                    />
-                    {/* Teachers count — original handler */}
                     <StatCard
                         title="Teachers"
                         value={stats.teacherCount || 0}
-                        icon="👤"
+                        icon="🎓"
                         accent={C.emerald}
                         spark={SPARKS.teachers}
                         theme={theme}
-                        onClick={() => setTeacherListOpen(true)}
+                        onClick={() => navigate('/teachers')}
                     />
                 </div>
 
@@ -703,14 +689,6 @@ export default function Dashboard() {
                 open={detailsOpen}
                 onClose={() => setDetailsOpen(false)}
                 subjectName={selectedSubject}
-            />
-            <CreateTeacherDialog
-                open={createTeacherOpen}
-                onClose={() => setCreateTeacherOpen(false)}
-            />
-            <TeacherListDialog
-                open={teacherListOpen}
-                onClose={() => setTeacherListOpen(false)}
             />
 
             <style>{`

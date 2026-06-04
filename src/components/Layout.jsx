@@ -59,6 +59,7 @@ const SIDEBAR_EXTRA = [
   { path: '/exams',        icon: BookIcon,    label: 'Exams'       },
   { path: '/add-student',  icon: PlusIcon,    label: 'Add Student' },
   { path: '/add-subject',  icon: BookIcon,    label: 'Add Subject' },
+  { path: '/teachers',     icon: CapIcon,     label: 'Teachers'    },
   { path: '/qr-scanner',   icon: QrIcon,      label: 'QR Scanner'  },
 ];
 
@@ -133,6 +134,14 @@ function QrIcon({ size = 18, color = 'currentColor' }) {
       <line x1="14" y1="14" x2="14" y2="14"/><line x1="17" y1="14" x2="17" y2="14"/>
       <line x1="20" y1="14" x2="20" y2="14"/><line x1="20" y1="17" x2="20" y2="17"/>
       <line x1="17" y1="20" x2="20" y2="20"/><line x1="14" y1="17" x2="14" y2="20"/>
+    </svg>
+  );
+}
+function CapIcon({ size = 18, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+      <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
     </svg>
   );
 }

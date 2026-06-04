@@ -11,11 +11,11 @@ import {
     IconButton,
     Tooltip,
     alpha,
-    useTheme,
-    MenuItem
+    useTheme
 } from '@mui/material';
 import { motion } from 'framer-motion';
-import { MenuBook, Description, AddCircleOutline, CheckCircle, CalendarToday, AttachMoney } from '@mui/icons-material';
+import { MenuBook, Description, AddCircleOutline, CheckCircle, AttachMoney, CloudUpload, Person } from '@mui/icons-material';
+import { Avatar } from '@mui/material';
 import API_BASE_URL from '../config';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -36,7 +36,10 @@ export default function AddSubject() {
         name: '',
         description: '',
         fee: 0,
-        color: colors[0]
+        color: colors[0],
+        teacherName: '',
+        teacherDescription: '',
+        teacherImage: ''
     });
 
     const handleChange = (e) => {
@@ -47,6 +50,25 @@ export default function AddSubject() {
         setFormData({ ...formData, color: selectedColor });
     };
 
+    const handleTeacherPhotoChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Image size must be under 2MB');
+                return;
+            }
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+                setFormData(prev => ({ ...prev, teacherImage: reader.result }));
+            };
+            reader.onerror = (err) => {
+                console.error(err);
+                alert('Error reading image file');
+            };
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -55,7 +77,7 @@ export default function AddSubject() {
             navigate('/');
         } catch (error) {
             console.error(error);
-            alert('Error adding subject');
+            alert(error.response?.data?.message || 'Error adding subject');
         }
     };
 
@@ -246,6 +268,83 @@ export default function AddSubject() {
                                                 '& .MuiInputLabel-root': { color: 'text.secondary' }
                                             }}
                                         />
+                                    </motion.div>
+
+                                    <motion.div variants={itemVariants}>
+                                        <Box sx={{
+                                            mt: 1, p: 3, borderRadius: 3,
+                                            border: '1px dashed rgba(255,255,255,0.15)',
+                                            bgcolor: 'rgba(255,255,255,0.02)',
+                                            display: 'flex', flexDirection: 'column', gap: 2.5
+                                        }}>
+                                            <Typography variant="subtitle1" fontWeight={700} sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <Person sx={{ fontSize: 20 }} /> Assign Teacher (Optional)
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary" sx={{ mt: -1.5, mb: 1, display: 'block' }}>
+                                                Provide details to automatically create and link a teacher to this subject.
+                                            </Typography>
+
+                                            <TextField
+                                                fullWidth
+                                                label="Teacher's Name"
+                                                name="teacherName"
+                                                value={formData.teacherName}
+                                                onChange={handleChange}
+                                                sx={{
+                                                    '& .MuiOutlinedInput-root': {
+                                                        borderRadius: 2,
+                                                        bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                                        color: 'text.primary',
+                                                        border: '1px solid rgba(255,255,255,0.1)',
+                                                        '&:hover fieldset': { borderColor: 'primary.main' },
+                                                    },
+                                                    '& .MuiInputLabel-root': { color: 'text.secondary' }
+                                                }}
+                                            />
+
+                                            <TextField
+                                                fullWidth
+                                                label="Teacher Qualifications / Description"
+                                                name="teacherDescription"
+                                                value={formData.teacherDescription}
+                                                onChange={handleChange}
+                                                multiline
+                                                rows={2}
+                                                sx={{
+                                                    '& .MuiOutlinedInput-root': {
+                                                        borderRadius: 2,
+                                                        bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                                        color: 'text.primary',
+                                                        border: '1px solid rgba(255,255,255,0.1)',
+                                                        '&:hover fieldset': { borderColor: 'primary.main' },
+                                                    },
+                                                    '& .MuiInputLabel-root': { color: 'text.secondary' }
+                                                }}
+                                            />
+
+                                            {/* Photo Upload with Preview */}
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                                <Avatar
+                                                    src={formData.teacherImage}
+                                                    sx={{ width: 60, height: 60, border: '2px solid rgba(255,255,255,0.1)' }}
+                                                />
+                                                <Box>
+                                                    <Button
+                                                        variant="outlined"
+                                                        component="label"
+                                                        size="small"
+                                                        startIcon={<CloudUpload />}
+                                                        sx={{ borderRadius: 2, textTransform: 'none' }}
+                                                    >
+                                                        Upload Photo
+                                                        <input type="file" hidden accept="image/*" onChange={handleTeacherPhotoChange} />
+                                                    </Button>
+                                                    <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5 }}>
+                                                        Square photo is recommended.
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                        </Box>
                                     </motion.div>
                                 </Box>
                             </Grid>

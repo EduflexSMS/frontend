@@ -14,6 +14,7 @@ import ClassReport from './pages/ClassReport';
 import DailyReport from './pages/DailyReport';
 import AddSubject from './pages/AddSubject';
 import Dashboard from './pages/Dashboard';
+import Teachers from './pages/Teachers';
 import PageTransition from './components/PageTransition';
 import QRScanner from './pages/QRScanner';
 import POS from './pages/POS';
@@ -137,6 +138,7 @@ function AnimatedRoutes() {
           <Route path="students" element={<ViewStudents />} />
           <Route path="add-student" element={<AddStudent />} />
           <Route path="add-subject" element={<AddSubject />} />
+          <Route path="teachers" element={<Teachers />} />
           <Route path="reports" element={<ClassReport />} />
           <Route path="exams" element={<Exams />} />
           <Route path="daily-report" element={<DailyReport />} />
