@@ -125,6 +125,28 @@ export default function DailyReport() {
         }
     };
 
+    const handleToggleTute = async (studentId, currentStatus) => {
+        try {
+            const reportDateObj = new Date(date);
+            const month = reportDateObj.getMonth();
+            
+            await axios.patch(`${API_BASE_URL}/api/records/${studentId}/${encodeURIComponent(subject)}/${month}/tute`);
+            
+            // Refresh data locally safely using functional update
+            setReportData(prevData => {
+                return prevData.map(student => {
+                    if (student.id === studentId) {
+                        return { ...student, tutesGiven: !currentStatus };
+                    }
+                    return student;
+                });
+            });
+        } catch (error) {
+            console.error("Error updating tute status:", error);
+            alert("Failed to update tute status.");
+        }
+    };
+
     const StatCard = ({ title, value, color, icon }) => (
         <Card component={motion.div} variants={itemVariants} sx={{
             height: '100%',
@@ -258,12 +280,13 @@ export default function DailyReport() {
                                     <TableCell align="center" sx={{ fontWeight: 700 }}>Monthly Fee</TableCell>
                                     <TableCell align="center" sx={{ fontWeight: 700 }}>Paid Today?</TableCell>
                                     <TableCell align="center" sx={{ fontWeight: 700 }}>Today's Attendance</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: 700 }}>Tute Given</TableCell>
                                     <TableCell align="center" sx={{ fontWeight: 700 }}>Quick Mark</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {reportData.length === 0 ? (
-                                    <TableRow><TableCell colSpan={6} align="center" sx={{ py: 6 }}><Typography color="text.secondary">No students enrolled</Typography></TableCell></TableRow>
+                                    <TableRow><TableCell colSpan={7} align="center" sx={{ py: 6 }}><Typography color="text.secondary">No students enrolled</Typography></TableCell></TableRow>
                                 ) : (
                                     reportData.map((row) => (
                                         <TableRow key={row.id} hover>
@@ -287,6 +310,18 @@ export default function DailyReport() {
                                                     size="small"
                                                     variant={row.attendanceToday === 'pending' ? "outlined" : "filled"}
                                                 />
+                                            </TableCell>
+                                            <TableCell align="center">
+                                                <Tooltip title={row.tutesGiven ? "Mark Pending" : "Mark Given"}>
+                                                     <IconButton
+                                                         size="small"
+                                                         color={row.tutesGiven ? "success" : "default"}
+                                                         onClick={() => handleToggleTute(row.id, row.tutesGiven)}
+                                                         sx={{ border: row.tutesGiven ? '1px solid rgba(16, 185, 129, 0.5)' : '1px solid rgba(0, 0, 0, 0.1)' }}
+                                                     >
+                                                         <Book fontSize="small" />
+                                                     </IconButton>
+                                                </Tooltip>
                                             </TableCell>
                                             <TableCell align="center">
                                                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
