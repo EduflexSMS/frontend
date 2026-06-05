@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import {
-    CalendarToday, Class, Book, Search, EventBusy, EventAvailable, CheckCircle, Cancel, Edit
+    CalendarToday, Class, Book, Search, EventBusy, EventAvailable, CheckCircle, Cancel, Edit, WhatsApp
 } from '@mui/icons-material';
 import API_BASE_URL from '../config';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -145,6 +145,47 @@ export default function DailyReport() {
             console.error("Error updating tute status:", error);
             alert("Failed to update tute status.");
         }
+    };
+
+    const handleSendWhatsApp = (row) => {
+        if (!row.mobile) {
+            alert("No mobile number available for this student");
+            return;
+        }
+
+        let messageParts = [];
+        if (row.attendanceToday === true || row.attendanceToday === 'present' || row.attendanceToday === 'true') {
+            messageParts.push("- Has attended the class today.");
+        }
+        if (row.tutesGiven) {
+            messageParts.push("- Has received the Tute for this month.");
+        }
+
+        if (messageParts.length === 0) {
+            messageParts.push("- Has attended the class today.");
+        }
+
+        const msgText = `Dear Parent,
+*Eduflex Institute*
+
+Student: *${row.name}*
+Index: *${row.indexNumber}*
+Subject: *${subject}* (${grade})
+
+${messageParts.join('\n')}
+
+Thank you!`;
+
+        let cleanedMobile = row.mobile.replace(/[^\d+]/g, '').trim().replace('+', '');
+        if (cleanedMobile.startsWith('0')) {
+            cleanedMobile = '94' + cleanedMobile.slice(1);
+        }
+        if (cleanedMobile.length === 9 && !cleanedMobile.startsWith('94')) {
+            cleanedMobile = '94' + cleanedMobile;
+        }
+
+        const url = `https://wa.me/${cleanedMobile}?text=${encodeURIComponent(msgText)}`;
+        window.open(url, '_blank');
     };
 
     const StatCard = ({ title, value, color, icon }) => (
@@ -335,6 +376,13 @@ export default function DailyReport() {
                                                             <Cancel fontSize="small" />
                                                         </IconButton>
                                                     </Tooltip>
+                                                    {row.mobile && (
+                                                        <Tooltip title="WhatsApp Parent">
+                                                            <IconButton size="small" color="success" onClick={() => handleSendWhatsApp(row)} sx={{ border: '1px solid rgba(37, 211, 102, 0.3)' }}>
+                                                                <WhatsApp fontSize="small" />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    )}
                                                 </Box>
                                             </TableCell>
                                         </TableRow>

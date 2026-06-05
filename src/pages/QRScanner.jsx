@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Container, Paper, Typography, MenuItem, Select, FormControl, InputLabel, Button, Alert, Snackbar, Grid } from '@mui/material';
-import { QrCodeScanner, ArrowBack, Cameraswitch } from '@mui/icons-material';
+import { QrCodeScanner, ArrowBack, Cameraswitch, WhatsApp } from '@mui/icons-material';
 import { Html5Qrcode } from 'html5-qrcode';
 import axios from 'axios';
 import API_BASE_URL from '../config';
@@ -61,6 +61,7 @@ export default function QRScanner() {
     const [message, setMessage] = useState({ type: '', text: '' });
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [facingMode, setFacingMode] = useState('environment');
+    const [scannedStudent, setScannedStudent] = useState(null);
     
     // We use a ref to ensure we don't start multiple scanners
     const scannerRef = useRef(null);
@@ -129,8 +130,18 @@ export default function QRScanner() {
                             grade: selectedGrade
                         });
 
-                        const { student, week, status } = response.data;
+                        const { student, indexNumber, mobile, week, status } = response.data;
                         const firstName = student ? student.split(' ')[0] : 'Student';
+
+                        setScannedStudent({
+                            name: student,
+                            indexNumber: indexNumber || decodedText,
+                            mobile: mobile || '',
+                            subject: selectedSubject,
+                            grade: selectedGrade,
+                            week: week,
+                            status: status
+                        });
 
                         if (status === 'already_marked') {
                             setMessage({ type: 'info', text: `Already Marked: ${student}` });
@@ -258,6 +269,62 @@ export default function QRScanner() {
                         </FormControl>
                     </Grid>
                 </Grid>
+
+                {scannedStudent && (
+                    <Box sx={{
+                        mb: 4, p: 2.5,
+                        borderRadius: '16px',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        textAlign: 'left',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: 2
+                    }}>
+                        <Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: 1 }}>Last Scanned Student</Typography>
+                            <Typography variant="h6" fontWeight="bold" sx={{ mt: 0.5 }}>{scannedStudent.name}</Typography>
+                            <Typography variant="body2" color="text.secondary">Index: {scannedStudent.indexNumber} | Status: <span style={{ color: scannedStudent.status === 'already_marked' ? '#ff9800' : '#4caf50', fontWeight: 'bold' }}>{scannedStudent.status === 'already_marked' ? 'Already Marked' : 'Present'}</span></Typography>
+                        </Box>
+                        {scannedStudent.mobile && (
+                            <Button
+                                variant="contained"
+                                color="success"
+                                startIcon={<WhatsApp />}
+                                href={`https://wa.me/${(() => {
+                                    let cleaned = scannedStudent.mobile.replace(/[^\d+]/g, '').trim().replace('+', '');
+                                    if (cleaned.startsWith('0')) cleaned = '94' + cleaned.slice(1);
+                                    if (cleaned.length === 9 && !cleaned.startsWith('94')) cleaned = '94' + cleaned;
+                                    return cleaned;
+                                })()}?text=${encodeURIComponent(
+                                    `Dear Parent,
+*Eduflex Institute*
+
+Student: *${scannedStudent.name}*
+Index: *${scannedStudent.indexNumber}*
+Subject: *${scannedStudent.subject}* (${scannedStudent.grade})
+
+Has attended the class today.
+Thank you!`
+                                )}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                sx={{
+                                    borderRadius: '12px',
+                                    textTransform: 'none',
+                                    fontWeight: 'bold',
+                                    background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                                    boxShadow: '0 4px 12px rgba(37, 211, 102, 0.3)'
+                                }}
+                            >
+                                WhatsApp Parent
+                            </Button>
+                        )}
+                    </Box>
+                )}
 
                 {(selectedGrade && selectedSubject) && (
                     <Box sx={{ maxWidth: '500px', margin: '0 auto', textAlign: 'right' }}>
