@@ -8,7 +8,8 @@ export default function EditStudentDialog({ open, onClose, student, onUpdate }) 
         name: '',
         grade: '',
         mobile: '',
-        subjects: [] // New subjects to add
+        subjects: [], // New subjects to add
+        freeCardSubjects: []
     });
     const [availableSubjects, setAvailableSubjects] = useState([]);
 
@@ -18,7 +19,8 @@ export default function EditStudentDialog({ open, onClose, student, onUpdate }) 
                 name: student.name,
                 grade: student.grade,
                 mobile: student.mobile,
-                subjects: student.enrollments.map(e => e.subject) // Load existing subjects
+                subjects: student.enrollments.map(e => e.subject), // Load existing subjects
+                freeCardSubjects: student.enrollments.filter(e => e.isFreeCard).map(e => e.subject) // Load existing free card subjects
             });
             fetchSubjects();
         }
@@ -39,9 +41,12 @@ export default function EditStudentDialog({ open, onClose, student, onUpdate }) 
 
     const handleSubjectChange = (event) => {
         const { target: { value } } = event;
+        const newSubjects = typeof value === 'string' ? value.split(',') : value;
+        const newFree = (formData.freeCardSubjects || []).filter(s => newSubjects.includes(s));
         setFormData({
             ...formData,
-            subjects: typeof value === 'string' ? value.split(',') : value,
+            subjects: newSubjects,
+            freeCardSubjects: newFree
         });
     };
 
@@ -105,6 +110,38 @@ export default function EditStudentDialog({ open, onClose, student, onUpdate }) 
                             ))}
                         </Select>
                     </FormControl>
+
+                    {formData.subjects.length > 0 && (
+                        <Box sx={{ mt: 2, p: 2, bgcolor: 'action.hover', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                            <Typography variant="subtitle2" sx={{ color: 'text.secondary', mb: 1.5, fontWeight: 600 }}>
+                                Configure Free Card Subjects
+                            </Typography>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                {formData.subjects.map(subjectName => {
+                                    const isFree = formData.freeCardSubjects?.includes(subjectName);
+                                    return (
+                                        <Box key={subjectName} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1, borderRadius: 1.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+                                            <Typography variant="body2" sx={{ fontWeight: 500 }}>{subjectName}</Typography>
+                                            <Button
+                                                size="small"
+                                                variant={isFree ? "contained" : "outlined"}
+                                                color={isFree ? "secondary" : "inherit"}
+                                                onClick={() => {
+                                                    const newFree = isFree 
+                                                        ? (formData.freeCardSubjects || []).filter(s => s !== subjectName)
+                                                        : [...(formData.freeCardSubjects || []), subjectName];
+                                                    setFormData({ ...formData, freeCardSubjects: newFree });
+                                                }}
+                                                sx={{ borderRadius: 1, textTransform: 'none', minWidth: 130, fontWeight: 700 }}
+                                            >
+                                                {isFree ? "Free Card Enabled" : "Normal Pay"}
+                                            </Button>
+                                        </Box>
+                                    );
+                                })}
+                            </Box>
+                        </Box>
+                    )}
                 </Box>
             </DialogContent>
             <DialogActions>

@@ -317,10 +317,11 @@ export default function TeacherDashboard() {
                             });
 
                             const studentCount = report.length;
-                            const paidCount = report.filter(s => s.feePaid).length;
+                            const freeCount = report.filter(s => s.isFreeCard).length;
+                            const paidCount = report.filter(s => s.feePaid && !s.isFreeCard).length;
                             const estimatedFee = subject.fee || 1000;
                             const collection = paidCount * estimatedFee;
-                            const expectedCollection = studentCount * estimatedFee;
+                            const expectedCollection = (studentCount - freeCount) * estimatedFee;
 
                             let totalSessions = 0, totalPresents = 0;
                             report.forEach(s => {

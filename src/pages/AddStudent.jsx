@@ -33,7 +33,8 @@ export default function AddStudent() {
         name: '',
         grade: '',
         mobile: '',
-        subjects: []
+        subjects: [],
+        freeCardSubjects: []
     });
 
     const [subjectsList, setSubjectsList] = useState([]);
@@ -58,9 +59,12 @@ export default function AddStudent() {
         const {
             target: { value },
         } = event;
+        const newSubjects = typeof value === 'string' ? value.split(',') : value;
+        const newFree = (formData.freeCardSubjects || []).filter(s => newSubjects.includes(s));
         setFormData({
             ...formData,
-            subjects: typeof value === 'string' ? value.split(',') : value,
+            subjects: newSubjects,
+            freeCardSubjects: newFree
         });
     };
 
@@ -312,6 +316,40 @@ export default function AddStudent() {
                                 </Select>
                             </FormControl>
                         </motion.div>
+
+                        {formData.subjects.length > 0 && (
+                            <motion.div variants={itemVariants}>
+                                <Paper sx={{ p: 2.5, bgcolor: alpha(theme.palette.background.paper, 0.2), borderRadius: 3, border: '1px solid rgba(255,255,255,0.05)' }} elevation={0}>
+                                    <Typography variant="subtitle2" sx={{ color: 'text.secondary', mb: 2, fontWeight: 600 }}>
+                                        Configure Free Card Subjects
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                                        {formData.subjects.map(subjectName => {
+                                            const isFree = formData.freeCardSubjects?.includes(subjectName);
+                                            return (
+                                                <Box key={subjectName} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1.5, borderRadius: 2, bgcolor: alpha(theme.palette.background.paper, 0.35), border: '1px solid rgba(255,255,255,0.05)' }}>
+                                                    <Typography variant="body2" sx={{ color: 'text.primary', fontWeight: 600 }}>{subjectName}</Typography>
+                                                    <Button
+                                                        size="small"
+                                                        variant={isFree ? "contained" : "outlined"}
+                                                        color={isFree ? "secondary" : "inherit"}
+                                                        onClick={() => {
+                                                            const newFree = isFree 
+                                                                ? (formData.freeCardSubjects || []).filter(s => s !== subjectName)
+                                                                : [...(formData.freeCardSubjects || []), subjectName];
+                                                            setFormData({ ...formData, freeCardSubjects: newFree });
+                                                        }}
+                                                        sx={{ borderRadius: 1.5, textTransform: 'none', minWidth: 140, fontWeight: 700 }}
+                                                    >
+                                                        {isFree ? "Free Card Enabled" : "Normal Pay"}
+                                                    </Button>
+                                                </Box>
+                                            );
+                                        })}
+                                    </Box>
+                                </Paper>
+                            </motion.div>
+                        )}
 
                         <motion.div variants={itemVariants}>
                             <Button

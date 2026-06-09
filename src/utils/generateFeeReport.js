@@ -81,12 +81,12 @@ export const generateFeeReport = (student, subjectMap, stats, t, lang) => {
     if (student.enrollments && student.enrollments.length > 0) {
         student.enrollments.forEach(enrollment => {
             const subject = subjectMap[enrollment.subject];
-            const fee = subject ? subject.fee : 0;
+            const fee = enrollment.isFreeCard ? 0 : (subject ? subject.fee : 0);
             totalFee += fee;
 
             tableData.push([
                 enrollment.subject,
-                `Rs. ${fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                enrollment.isFreeCard ? 'Free Card' : `Rs. ${fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             ]);
         });
 

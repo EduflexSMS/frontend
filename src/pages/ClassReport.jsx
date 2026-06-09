@@ -221,11 +221,15 @@ export default function ClassReport() {
 
         reportData.forEach((student, idx) => {
             const attendanceCount = countAttendance(student.attendance);
+            let feeStatusText = student.feePaid ? t('paid') : t('not_paid');
+            if (student.isFreeCard) {
+                feeStatusText = currentLang === 'si' ? "නොමිලේ (Free Card)" : "Free Card";
+            }
             const studentData = [
                 idx + 1,
                 student.name,
                 `${attendanceCount}/5`,
-                student.feePaid ? t('paid') : t('not_paid'),
+                feeStatusText,
                 student.tutesGiven ? (currentLang === 'si' ? "ලබාදී ඇත" : "Given") : (currentLang === 'si' ? "ප්‍රමාදයි" : "Pending")
             ];
             tableRows.push(studentData);
@@ -262,6 +266,10 @@ export default function ClassReport() {
                         data.cell.styles.fontStyle = 'bold';
                     } else if (data.cell.raw === t('not_paid')) {
                         data.cell.styles.fillColor = [239, 68, 68]; // Red 500
+                        data.cell.styles.textColor = [255, 255, 255];
+                        data.cell.styles.fontStyle = 'bold';
+                    } else if (data.cell.raw === 'Free Card' || data.cell.raw === 'නොමිලේ (Free Card)') {
+                        data.cell.styles.fillColor = [168, 85, 247]; // Purple 500
                         data.cell.styles.textColor = [255, 255, 255];
                         data.cell.styles.fontStyle = 'bold';
                     }
@@ -328,8 +336,9 @@ export default function ClassReport() {
 
                 // Summary Stats
                 const totalStudents = students.length;
-                const paidCount = students.filter(s => s.feePaid).length;
-                const pendingCount = totalStudents - paidCount;
+                const freeCount = students.filter(s => s.isFreeCard).length;
+                const paidCount = students.filter(s => s.feePaid && !s.isFreeCard).length;
+                const pendingCount = totalStudents - paidCount - freeCount;
 
                 doc.setDrawColor(59, 130, 246); // Blue 500
                 doc.setFillColor(241, 245, 249); // Slate 100
@@ -376,12 +385,16 @@ export default function ClassReport() {
 
                 students.forEach((student, idx) => {
                     const attendanceCount = countAttendance(student.attendance);
+                    let feeStatusText = student.feePaid ? t('paid') : t('not_paid');
+                    if (student.isFreeCard) {
+                        feeStatusText = currentLang === 'si' ? "නොමිලේ (Free Card)" : "Free Card";
+                    }
                     const studentData = [
                         idx + 1,
                         student.name,
                         student.indexNumber,
                         `${attendanceCount}/5`,
-                        student.feePaid ? t('paid') : t('not_paid')
+                        feeStatusText
                     ];
                     tableRows.push(studentData);
                 });
@@ -417,6 +430,10 @@ export default function ClassReport() {
                                 data.cell.styles.fontStyle = 'bold';
                             } else if (data.cell.raw === t('not_paid')) {
                                 data.cell.styles.fillColor = [239, 68, 68]; // Red 500
+                                data.cell.styles.textColor = [255, 255, 255];
+                                data.cell.styles.fontStyle = 'bold';
+                            } else if (data.cell.raw === 'Free Card' || data.cell.raw === 'නොමිලේ (Free Card)') {
+                                data.cell.styles.fillColor = [168, 85, 247]; // Purple 500
                                 data.cell.styles.textColor = [255, 255, 255];
                                 data.cell.styles.fontStyle = 'bold';
                             }
@@ -476,10 +493,10 @@ export default function ClassReport() {
                                     </Box>
                                 </Box>
                                 <Chip
-                                    label={row.feePaid ? "Paid" : "Unpaid"}
-                                    color={row.feePaid ? "success" : "error"}
+                                    label={row.isFreeCard ? "Free Card" : (row.feePaid ? "Paid" : "Unpaid")}
+                                    color={row.isFreeCard ? "secondary" : (row.feePaid ? "success" : "error")}
                                     size="small"
-                                    sx={{ borderRadius: 1.5, fontWeight: 700, px: 0.5 }}
+                                    sx={{ borderRadius: 1.5, fontWeight: 700, px: 0.5, bgcolor: row.isFreeCard ? '#a855f7' : undefined }}
                                 />
                             </Box>
                         </Grid>
@@ -970,11 +987,11 @@ export default function ClassReport() {
                                                 </TableCell>
                                                 <TableCell align="center">
                                                     <Chip
-                                                        label={row.feePaid ? "Paid" : "Unpaid"}
-                                                        color={row.feePaid ? "success" : "error"}
-                                                        variant={row.feePaid ? "filled" : "outlined"}
+                                                        label={row.isFreeCard ? "Free Card" : (row.feePaid ? "Paid" : "Unpaid")}
+                                                        color={row.isFreeCard ? "secondary" : (row.feePaid ? "success" : "error")}
+                                                        variant={row.isFreeCard || row.feePaid ? "filled" : "outlined"}
                                                         size="small"
-                                                        sx={{ minWidth: 80, fontWeight: 700, borderRadius: 1.5 }}
+                                                        sx={{ minWidth: 80, fontWeight: 700, borderRadius: 1.5, bgcolor: row.isFreeCard ? '#a855f7' : undefined }}
                                                     />
                                                 </TableCell>
                                                 <TableCell align="center">

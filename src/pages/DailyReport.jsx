@@ -62,8 +62,13 @@ export default function DailyReport() {
             else if (s.attendanceToday === 'absent' || s.attendanceToday === false || s.attendanceToday === 'false') absent++;
             else pending++;
 
-            if (s.feePaidStatus) paidMonth++;
-            else unpaidMonth++;
+            if (s.isFreeCard) {
+                // Exclude free cards from paid/unpaid counts
+            } else if (s.feePaidStatus) {
+                paidMonth++;
+            } else {
+                unpaidMonth++;
+            }
 
             if (s.paidToday) paidToday++;
         });
@@ -339,7 +344,11 @@ Thank you!`;
                                             </TableCell>
                                             <TableCell><Chip label={row.indexNumber} size="small" variant="outlined" /></TableCell>
                                             <TableCell align="center">
-                                                <Chip label={row.feePaidStatus ? "Paid" : "Unpaid"} color={row.feePaidStatus ? "success" : "error"} size="small" variant="filled" sx={{ fontWeight: 600 }} />
+                                                {row.isFreeCard ? (
+                                                    <Chip label="Free Card" color="secondary" size="small" variant="filled" sx={{ fontWeight: 600, bgcolor: '#a855f7' }} />
+                                                ) : (
+                                                    <Chip label={row.feePaidStatus ? "Paid" : "Unpaid"} color={row.feePaidStatus ? "success" : "error"} size="small" variant="filled" sx={{ fontWeight: 600 }} />
+                                                )}
                                             </TableCell>
                                             <TableCell align="center">
                                                 {row.paidToday ? <Chip label="Yes, Today!" color="secondary" size="small" /> : <Typography variant="caption" color="text.secondary">-</Typography>}

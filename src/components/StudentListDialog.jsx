@@ -91,10 +91,14 @@ const StudentListDialog = ({ open, onClose, classData }) => {
 
             // Table Data Preparation
             const tableRows = filteredStudents.map(student => {
+                let feeText = student.feePaid ? t('paid') : t('not_paid');
+                if (student.isFreeCard) {
+                    feeText = currentLang === 'si' ? "නොමිලේ (Free Card)" : "Free Card";
+                }
                 return [
                     student.name,
                     student.indexNumber,
-                    student.feePaid ? t('paid') : t('not_paid'),
+                    feeText,
                     '' // Placeholder for graphical attendance
                 ];
             });
@@ -130,6 +134,9 @@ const StudentListDialog = ({ open, onClose, classData }) => {
                         const text = data.cell.raw;
                         if (text === t('paid')) {
                             data.cell.styles.textColor = [16, 185, 129]; // Green
+                            data.cell.styles.fontStyle = 'bold';
+                        } else if (text === 'Free Card' || text === 'නොමිලේ (Free Card)') {
+                            data.cell.styles.textColor = [168, 85, 247]; // Purple
                             data.cell.styles.fontStyle = 'bold';
                         } else {
                             data.cell.styles.textColor = [239, 68, 68]; // Red
@@ -265,11 +272,11 @@ const StudentListDialog = ({ open, onClose, classData }) => {
                                             </TableCell>
                                             <TableCell align="center">
                                                 <Chip
-                                                    label={student.feePaid ? t('paid') : t('not_paid')}
-                                                    color={student.feePaid ? "success" : "error"}
+                                                    label={student.isFreeCard ? "Free Card" : (student.feePaid ? t('paid') : t('not_paid'))}
+                                                    color={student.isFreeCard ? "secondary" : (student.feePaid ? "success" : "error")}
                                                     size="small"
-                                                    variant={student.feePaid ? "filled" : "outlined"}
-                                                    sx={{ minWidth: 80, fontWeight: 600 }}
+                                                    variant={student.isFreeCard || student.feePaid ? "filled" : "outlined"}
+                                                    sx={{ minWidth: 80, fontWeight: 600, bgcolor: student.isFreeCard ? '#a855f7' : undefined }}
                                                 />
                                             </TableCell>
                                             <TableCell align="center">

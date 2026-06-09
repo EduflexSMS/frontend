@@ -374,7 +374,7 @@ export default function POS() {
                                                                             boxShadow: `0 0 6px ${col.text}80`
                                                                         }} />
                                                                         <Typography variant="subtitle2" component="span" sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a' }}>
-                                                                            {enrollment.subject}
+                                                                            {enrollment.subject} {enrollment.isFreeCard && <Box component="span" sx={{ ml: 1, px: 0.8, py: 0.2, borderRadius: '5px', background: 'rgba(168,85,247,0.15)', color: '#a855f7', fontSize: '0.65rem', fontWeight: 700 }}>Free Card</Box>}
                                                                         </Typography>
                                                                     </Box>
                                                                     <Box sx={{
@@ -421,6 +421,16 @@ export default function POS() {
                                                                                         sx={{
                                                                                             background: 'rgba(16,185,129,0.1)', color: '#10b981',
                                                                                             border: '1px solid rgba(16,185,129,0.25)',
+                                                                                            fontWeight: 700, fontSize: '0.72rem', height: 26
+                                                                                        }}
+                                                                                    />
+                                                                                ) : enrollment.isFreeCard ? (
+                                                                                    <Chip
+                                                                                        label="Free Card"
+                                                                                        size="small"
+                                                                                        sx={{
+                                                                                            background: 'rgba(168,85,247,0.1)', color: '#a855f7',
+                                                                                            border: '1px solid rgba(168,85,247,0.25)',
                                                                                             fontWeight: 700, fontSize: '0.72rem', height: 26
                                                                                         }}
                                                                                     />
