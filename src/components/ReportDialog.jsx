@@ -82,6 +82,7 @@ export default function ReportDialog({ open, onClose }) {
                                 const gradeNum = (i + 1).toString().padStart(2, '0');
                                 return <MenuItem key={gradeNum} value={`Grade ${gradeNum}`}>{t('grade')} {gradeNum}</MenuItem>;
                             })}
+                            <MenuItem value="Rapid Revision">Rapid Revision</MenuItem>
                         </Select>
                     </FormControl>
 

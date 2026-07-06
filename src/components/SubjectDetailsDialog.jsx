@@ -19,8 +19,10 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [subjectFee, setSubjectFee] = useState(0);
+    const [subjectFeeType, setSubjectFeeType] = useState('monthly');
     const [editingFee, setEditingFee] = useState(false);
     const [newFee, setNewFee] = useState(0);
+    const [newFeeType, setNewFeeType] = useState('monthly');
     const currentLang = i18n.language;
 
     const monthNames = [
@@ -145,6 +147,8 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
             if (sub) {
                 setSubjectFee(sub.fee || 0);
                 setNewFee(sub.fee || 0);
+                setSubjectFeeType(sub.feeType || 'monthly');
+                setNewFeeType(sub.feeType || 'monthly');
             }
         } catch (err) {
             console.error("Error fetching subject info", err);
@@ -181,9 +185,14 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
 
     const handleSaveFee = async () => {
         try {
-            await axios.put(`${API_BASE_URL}/api/subjects/${encodeURIComponent(subjectName)}`, { fee: newFee });
+            await axios.put(`${API_BASE_URL}/api/subjects/${encodeURIComponent(subjectName)}`, { 
+                fee: newFee,
+                feeType: newFeeType
+            });
             setSubjectFee(newFee);
+            setSubjectFeeType(newFeeType);
             setEditingFee(false);
+            fetchDetails();
         } catch (err) {
             console.error("Error updating fee", err);
             alert(t('failed_to_update'));
@@ -198,15 +207,25 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
             <DialogContent dividers>
                 <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Typography variant="subtitle1">{t('fee')}: <strong>{editingFee ? '' : `LKR ${subjectFee.toLocaleString()}`}</strong></Typography>
+                        <Typography variant="subtitle1">
+                            {t('fee')}: <strong>{editingFee ? '' : `LKR ${subjectFee.toLocaleString()} (${subjectFeeType === 'daily' ? 'Day Fee' : 'Monthly Fee'})`}</strong>
+                        </Typography>
                         {editingFee ? (
-                            <Box sx={{ display: 'flex', gap: 1 }}>
+                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                                 <input
                                     type="number"
                                     value={newFee}
                                     onChange={(e) => setNewFee(e.target.value)}
-                                    style={{ width: '80px', padding: '5px' }}
+                                    style={{ width: '80px', padding: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
                                 />
+                                <select
+                                    value={newFeeType}
+                                    onChange={(e) => setNewFeeType(e.target.value)}
+                                    style={{ padding: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                >
+                                    <option value="monthly">Monthly Fee</option>
+                                    <option value="daily">Day Fee</option>
+                                </select>
                                 <Button size="small" variant="contained" onClick={handleSaveFee}>{t('save')}</Button>
                                 <Button size="small" onClick={() => setEditingFee(false)}>{t('cancel')}</Button>
                             </Box>

@@ -233,6 +233,7 @@ export default function AddStudent() {
                                         const gradeNum = (i + 1).toString().padStart(2, '0');
                                         return <MenuItem key={gradeNum} value={`Grade ${gradeNum}`}>Grade {gradeNum}</MenuItem>;
                                     })}
+                                    <MenuItem value="Rapid Revision">Rapid Revision</MenuItem>
                                 </Select>
                             </FormControl>
                         </motion.div>

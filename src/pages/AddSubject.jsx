@@ -11,7 +11,11 @@ import {
     IconButton,
     Tooltip,
     alpha,
-    useTheme
+    useTheme,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { MenuBook, Description, AddCircleOutline, CheckCircle, AttachMoney, CloudUpload, Person } from '@mui/icons-material';
@@ -36,6 +40,7 @@ export default function AddSubject() {
         name: '',
         description: '',
         fee: 0,
+        feeType: 'monthly',
         color: colors[0],
         teacherName: '',
         teacherDescription: '',
@@ -213,9 +218,34 @@ export default function AddSubject() {
 
 
                                     <motion.div variants={itemVariants}>
+                                        <FormControl fullWidth sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                borderRadius: 2,
+                                                bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                                color: 'text.primary',
+                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                '&:hover fieldset': { borderColor: 'primary.main' },
+                                            },
+                                            '& .MuiInputLabel-root': { color: 'text.secondary' }
+                                        }}>
+                                            <InputLabel id="fee-type-label">Payment Type</InputLabel>
+                                            <Select
+                                                labelId="fee-type-label"
+                                                name="feeType"
+                                                value={formData.feeType}
+                                                onChange={handleChange}
+                                                label="Payment Type"
+                                            >
+                                                <MenuItem value="monthly">Monthly Fee</MenuItem>
+                                                <MenuItem value="daily">Day Fee</MenuItem>
+                                            </Select>
+                                        </FormControl>
+                                    </motion.div>
+
+                                    <motion.div variants={itemVariants}>
                                         <TextField
                                             fullWidth
-                                            label="Monthly Fee (Rs.)"
+                                            label={formData.feeType === 'daily' ? "Day Fee (Rs.) *" : "Monthly Fee (Rs.) *"}
                                             name="fee"
                                             type="number"
                                             value={formData.fee}

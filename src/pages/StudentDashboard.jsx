@@ -25,6 +25,11 @@ export default function StudentDashboard() {
                     throw new Error("Student ID not found. Please login again.");
                 }
 
+                // Fetch subjects to check feeTypes
+                const subResponse = await axios.get(`${API_BASE_URL}/api/subjects`);
+                const subMap = {};
+                subResponse.data.forEach(s => { subMap[s.name] = s; });
+
                 const response = await axios.get(`${API_BASE_URL}/api/students?search=${userInfo.id}`);
                 const students = response.data.students;
 
@@ -34,7 +39,7 @@ export default function StudentDashboard() {
 
                 // Match exact ID to avoid partial matches
                 const currentStudent = students.find(s => s.indexNumber === userInfo.id) || students[0];
-                setStudent(processStudentData(currentStudent));
+                setStudent(processStudentData(currentStudent, subMap));
                 setLoading(false);
             } catch (err) {
                 console.error(err);
@@ -46,7 +51,7 @@ export default function StudentDashboard() {
         fetchStudentData();
     }, []);
 
-    const processStudentData = (data) => {
+    const processStudentData = (data, subMap) => {
         const currentMonth = new Date().getMonth();
 
         // Calculate Statistics
@@ -56,6 +61,27 @@ export default function StudentDashboard() {
         const subjects = data.enrollments.map(enrollment => {
             // Get current month record
             const monthRecord = enrollment.monthlyRecords.find(r => r.monthIndex === currentMonth);
+            const subjectInfo = subMap[enrollment.subject];
+            const isDaily = subjectInfo && subjectInfo.feeType === 'daily';
+
+            let feesPaid = false;
+            if (isDaily) {
+                if (monthRecord) {
+                    const presentIndices = [];
+                    monthRecord.attendance.forEach((status, idx) => {
+                        if (status === 'present' || status === true || status === 'true') {
+                            presentIndices.push(idx);
+                        }
+                    });
+                    if (presentIndices.length === 0) {
+                        feesPaid = true; // No classes attended, nothing to pay
+                    } else {
+                        feesPaid = presentIndices.every(idx => monthRecord.dailyFeesPaid && monthRecord.dailyFeesPaid[idx]);
+                    }
+                }
+            } else {
+                feesPaid = monthRecord ? monthRecord.feePaid : false;
+            }
 
             // Calculate Subject Attendance (Assuming 5 weeks max per month for now or calculating all time)
             // For simplicity, let's show this month's attendance or overall if desired. 
@@ -79,7 +105,7 @@ export default function StudentDashboard() {
             return {
                 name: enrollment.subject,
                 teacher: "Eduflex Institute", // Backend doesn't store teacher yet
-                feesPaid: monthRecord ? monthRecord.feePaid : false,
+                feesPaid: feesPaid,
                 attendance: subTotal === 0 ? 0 : Math.round((subAttended / subTotal) * 100)
             };
         });

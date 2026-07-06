@@ -102,6 +102,21 @@ export default function POS() {
         }]);
     };
 
+    const handleAddDailyToCart = (subjectName, monthIndex, weekIndex) => {
+        const fee = subjectsMap[subjectName]?.fee || 0;
+        const itemId = `${subjectName}-${monthIndex}-${weekIndex}`;
+        if (cart.find(item => item.id === itemId)) return;
+        setCart(prev => [...prev, {
+            id: itemId,
+            subject: subjectName,
+            month: monthIndex,
+            monthName: monthsList[monthIndex],
+            weekIndex: weekIndex,
+            weekName: `Week ${weekIndex + 1}`,
+            amount: fee
+        }]);
+    };
+
     const handleRemoveFromCart = (id) => {
         setCart(cart.filter(item => item.id !== id));
     };
@@ -121,7 +136,14 @@ export default function POS() {
                 const enrollment = updatedStudent.enrollments.find(e => e.subject === item.subject);
                 if (enrollment) {
                     const record = enrollment.monthlyRecords.find(r => r.monthIndex === item.month);
-                    if (record) record.feePaid = true;
+                    if (record) {
+                        if (item.weekIndex !== undefined) {
+                            if (!record.dailyFeesPaid) record.dailyFeesPaid = [false, false, false, false, false];
+                            record.dailyFeesPaid[item.weekIndex] = true;
+                        } else {
+                            record.feePaid = true;
+                        }
+                    }
                 }
             });
             setSelectedStudent(updatedStudent);
@@ -393,6 +415,73 @@ export default function POS() {
                                                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                                                                     {displayMonths.map(mIndex => {
                                                                         const record = enrollment.monthlyRecords.find(r => r.monthIndex === mIndex);
+                                                                        const isDaily = subjectInfo?.feeType === 'daily';
+
+                                                                        if (isDaily) {
+                                                                            return (
+                                                                                <Box key={mIndex} sx={{ display: 'flex', flexDirection: 'column', gap: 1, p: 1.5, borderRadius: '12px', bgcolor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                                                                                    <Typography variant="body2" sx={{ fontWeight: 700, color: col.text, fontSize: '0.85rem', mb: 0.5 }}>
+                                                                                        {monthsList[mIndex]}
+                                                                                        {mIndex === currentMonth && (
+                                                                                            <Box component="span" sx={{ ml: 1, px: 0.8, py: 0.2, borderRadius: '5px', background: 'rgba(99,102,241,0.15)', color: '#6366f1', fontSize: '0.65rem', fontWeight: 700 }}>current</Box>
+                                                                                        )}
+                                                                                    </Typography>
+                                                                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                                                                        {[0, 1, 2, 3, 4].map(wIndex => {
+                                                                                            const isWeekPaid = record?.dailyFeesPaid ? record.dailyFeesPaid[wIndex] : false;
+                                                                                            const isWeekAdded = cart.some(c => c.id === `${enrollment.subject}-${mIndex}-${wIndex}`);
+                                                                                            
+                                                                                            if (enrollment.isFreeCard) {
+                                                                                                return (
+                                                                                                    <Chip
+                                                                                                        key={wIndex}
+                                                                                                        label={`W${wIndex + 1} Free`}
+                                                                                                        size="small"
+                                                                                                        sx={{ background: 'rgba(168,85,247,0.1)', color: '#a855f7', border: '1px solid rgba(168,85,247,0.25)', fontWeight: 700, fontSize: '0.72rem' }}
+                                                                                                    />
+                                                                                                );
+                                                                                            }
+
+                                                                                            if (isWeekPaid) {
+                                                                                                return (
+                                                                                                    <Chip
+                                                                                                        key={wIndex}
+                                                                                                        icon={<CheckCircle sx={{ fontSize: '12px !important', color: '#10b981 !important' }} />}
+                                                                                                        label={`W${wIndex + 1} Paid`}
+                                                                                                        size="small"
+                                                                                                        sx={{ background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.25)', fontWeight: 700, fontSize: '0.72rem' }}
+                                                                                                    />
+                                                                                                );
+                                                                                            }
+
+                                                                                            return (
+                                                                                                <Button
+                                                                                                    key={wIndex}
+                                                                                                    variant="outlined"
+                                                                                                    size="small"
+                                                                                                    disabled={isWeekAdded}
+                                                                                                    onClick={() => handleAddDailyToCart(enrollment.subject, mIndex, wIndex)}
+                                                                                                    sx={{
+                                                                                                        borderRadius: '8px',
+                                                                                                        textTransform: 'none',
+                                                                                                        px: 1, py: 0.2,
+                                                                                                        fontWeight: 700, fontSize: '0.72rem',
+                                                                                                        minWidth: 70, height: 26,
+                                                                                                        borderColor: isWeekAdded ? 'rgba(16,185,129,0.3)' : col.border,
+                                                                                                        color: isWeekAdded ? '#10b981' : col.text,
+                                                                                                        background: isWeekAdded ? 'rgba(16,185,129,0.1)' : 'transparent',
+                                                                                                        '&:hover': { background: col.light, borderColor: col.text }
+                                                                                                    }}
+                                                                                                >
+                                                                                                    {isWeekAdded ? `W${wIndex + 1} Added` : `Pay W${wIndex + 1}`}
+                                                                                                </Button>
+                                                                                            );
+                                                                                        })}
+                                                                                    </Box>
+                                                                                </Box>
+                                                                            );
+                                                                        }
+
                                                                         const isPaid = record?.feePaid;
                                                                         const isAdded = cart.some(c => c.id === `${enrollment.subject}-${mIndex}`);
 
@@ -588,7 +677,7 @@ export default function POS() {
                                                                 {item.subject}
                                                             </Typography>
                                                             <Typography variant="caption" sx={{ color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', fontWeight: 500 }}>
-                                                                {item.monthName}
+                                                                {item.monthName}{item.weekName ? ` - ${item.weekName}` : ''}
                                                             </Typography>
                                                         </Box>
                                                     </Box>

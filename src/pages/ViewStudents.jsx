@@ -329,6 +329,7 @@ const WHATSAPP_GROUP_LINKS = {
     'Grade 09': 'https://chat.whatsapp.com/KEoJ2cotqWUA92EZA5R4W7',
     'Grade 10': 'https://chat.whatsapp.com/KOJD2PNrd936IHgWxLGotB',
     'Grade 11': 'https://chat.whatsapp.com/IuCquSU1EPHB9TcORCUdrz',
+    'Rapid Revision': 'https://chat.whatsapp.com/DsOyVcdCWhO5SaKaWdRSLo',
 };
 
 const sendWhatsAppGroupLink = (student) => {
@@ -364,7 +365,10 @@ const getSubjMeta = name => {
 
 const attColor = pct => pct >= 75 ? '#4ade80' : pct >= 50 ? '#22d3ee' : '#fb923c';
 
-const fmtGrade = g => g?.replace(/\D/g, '').padStart(2, '0') || g;
+const fmtGrade = g => {
+  if (g === 'Rapid Revision') return 'RR';
+  return g?.replace(/\D/g, '').padStart(2, '0') || g;
+};
 
 function shouldShowSubject(name, grade) {
   const n = parseInt(grade?.replace(/\D/g, '') || '0');
@@ -482,6 +486,49 @@ function StudentRow({ student, onUpdate, onEdit, subjectColors }) {
       setConfirmOpts({
         title: 'Unmark Fee',
         desc: 'Are you sure you want to unmark this fee as paid? This will revert the record to pending.',
+        iconType: 'warning',
+        confirmText: 'Unmark Fee',
+        onConfirm: applyUpdate
+      });
+      return;
+    }
+    applyUpdate();
+  };
+
+  const handleToggleDailyFee = async (subjectName, monthIndex, weekIndex, isPaid) => {
+    const applyUpdate = async () => {
+      try {
+        await axios.patch(`${API_BASE_URL}/api/records/${student._id}/${encodeURIComponent(subjectName)}/${monthIndex}/daily-fee/${weekIndex}`, {});
+        
+        if (!isPaid && student.mobile) {
+          let mobile = student.mobile.trim();
+          if (mobile.startsWith('0')) mobile = '94' + mobile.substring(1);
+          else if (mobile.startsWith('+')) mobile = mobile.substring(1);
+          else if (!mobile.startsWith('94')) mobile = '94' + mobile;
+
+          const monthsList = ["ජනවාරි", "පෙබරවාරි", "මාර්තු", "අප්‍රේල්", "මැයි", "ජූනි", "ජූලි", "අගෝස්තු", "සැප්තැම්බර්", "ඔක්තෝබර්", "නොවැම්බර්", "දෙසැම්බර්"];
+          const monthName = monthsList[monthIndex];
+          const weeksList = ["1 වන සතිය", "2 වන සතිය", "3 වන සතිය", "4 වන සතිය", "5 වන සතිය"];
+          const weekName = weeksList[weekIndex];
+          const feeAmount = subjectColors?.[subjectName]?.fee || 0;
+          
+          const message = `ආයුබෝවන් ${student.name},\n\nඔබගේ *${subjectName}* පන්තියේ ${monthName} මාසයේ ${weekName} සඳහා වන ගාස්තුව වන රු. ${feeAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} සාර්ථකව ලැබී ඇත.\n\nස්තූතියි!\nEduflex Institute\nවිමසීම්: +94789232752`;
+          
+          window.open(`https://wa.me/${mobile}?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        if (onUpdate) onUpdate();
+      } catch (e) {
+        console.error(e);
+        alert('Error updating daily fee: ' + (e.response?.data?.message || e.message));
+      }
+      setConfirmOpts(null);
+    };
+
+    if (isPaid) {
+      setConfirmOpts({
+        title: 'Unmark Daily Fee',
+        desc: `Are you sure you want to unmark Week ${weekIndex + 1} fee as paid?`,
         iconType: 'warning',
         confirmText: 'Unmark Fee',
         onConfirm: applyUpdate
@@ -667,18 +714,49 @@ function StudentRow({ student, onUpdate, onEdit, subjectColors }) {
                       const isCurrent  = mi === nowMonth;
                       const isFuture   = !rec && mi > nowMonth;
                       const att        = rec?.attendance || [];
+                      const isDaily = subjectColors?.[subj.name]?.feeType === 'daily';
                       return (
                         <div key={m} className={`mo-card${isCurrent ? ' now' : ''}`} style={{ opacity: isFuture ? 0.3 : 1 }}>
                           <div className="mo-name">{m}</div>
-                          <div className="mo-meta">
-                            <span className="mo-fee" title={rec?.feePaid ? 'Fee paid' : 'Fee pending'} onClick={(e) => { e.stopPropagation(); handleToggleFee(subj.name, mi, !!rec?.feePaid); }} style={{ cursor: 'pointer', display: 'flex' }}>
-                              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{color: rec?.feePaid ? '#4ade80' : 'var(--text3)'}}>
-                                <line x1="12" y1="1" x2="12" y2="23"></line>
-                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                              </svg>
-                            </span>
+                          <div className="mo-meta" style={{ flexDirection: isDaily ? 'column' : 'row', gap: isDaily ? '6px' : '0px', alignItems: 'flex-start' }}>
+                            {isDaily ? (
+                              <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap', marginTop: '2px' }}>
+                                {[0,1,2,3,4].map(wIdx => {
+                                  const isWeekPaid = rec?.dailyFeesPaid ? rec.dailyFeesPaid[wIdx] : false;
+                                  return (
+                                    <span 
+                                      key={wIdx} 
+                                      title={`Week ${wIdx + 1} payment: ${isWeekPaid ? 'Paid' : 'Pending'}`} 
+                                      onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        handleToggleDailyFee(subj.name, mi, wIdx, isWeekPaid); 
+                                      }}
+                                      style={{ 
+                                        cursor: 'pointer', 
+                                        fontSize: '0.65rem', 
+                                        color: isWeekPaid ? '#4ade80' : 'var(--text3)',
+                                        fontWeight: 'bold',
+                                        background: isWeekPaid ? 'rgba(74,222,128,0.1)' : 'rgba(255,255,255,0.05)',
+                                        padding: '1px 3px',
+                                        borderRadius: '3px',
+                                        border: `1px solid ${isWeekPaid ? 'rgba(74,222,128,0.25)' : 'rgba(255,255,255,0.1)'}`
+                                      }}
+                                    >
+                                      W{wIdx + 1}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <span className="mo-fee" title={rec?.feePaid ? 'Fee paid' : 'Fee pending'} onClick={(e) => { e.stopPropagation(); handleToggleFee(subj.name, mi, !!rec?.feePaid); }} style={{ cursor: 'pointer', display: 'flex' }}>
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{color: rec?.feePaid ? '#4ade80' : 'var(--text3)'}}>
+                                  <line x1="12" y1="1" x2="12" y2="23"></line>
+                                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                </svg>
+                              </span>
+                            )}
                             {att.length > 0 && (
-                              <span>
+                              <span style={{ alignSelf: isDaily ? 'flex-end' : 'center', marginTop: isDaily ? '2px' : '0px' }}>
                                 {att.filter(a => a === 'present' || a === true || a === 'true').length}
                                 /{att.filter(a => a !== 'pending').length}
                               </span>

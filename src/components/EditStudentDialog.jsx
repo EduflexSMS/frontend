@@ -84,6 +84,7 @@ export default function EditStudentDialog({ open, onClose, student, onUpdate }) 
                                 const gradeNum = (i + 1).toString().padStart(2, '0');
                                 return <MenuItem key={gradeNum} value={`Grade ${gradeNum}`}>Grade {gradeNum}</MenuItem>;
                             })}
+                            <MenuItem value="Rapid Revision">Rapid Revision</MenuItem>
                         </Select>
                     </FormControl>
                     <TextField fullWidth label="Mobile" name="mobile" value={formData.mobile} onChange={handleChange} margin="dense" />

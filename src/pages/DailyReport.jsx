@@ -216,6 +216,9 @@ Thank you!`;
         </Card>
     );
 
+    const selectedSubjectObj = subjectsList.find(s => s.name === subject);
+    const isDaily = selectedSubjectObj && selectedSubjectObj.feeType === 'daily';
+
     return (
         <MotionContainer maxWidth="xl" initial="hidden" animate="visible" variants={containerVariants} sx={{ py: { xs: 2, md: 4 } }}>
             <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -258,6 +261,7 @@ Thank you!`;
                                     const gradeNum = (i + 1).toString().padStart(2, '0');
                                     return <MenuItem key={gradeNum} value={`Grade ${gradeNum}`}>Grade {gradeNum}</MenuItem>;
                                 })}
+                                <MenuItem value="Rapid Revision">Rapid Revision</MenuItem>
                             </Select>
                         </FormControl>
                     </Grid>
@@ -314,7 +318,7 @@ Thank you!`;
                         <Grid item xs={12} sm={6} md={4}><StatCard title="Pending Marking Today" value={summary.pending} color={theme.palette.warning.main} icon={<Edit />} /></Grid>
                         <Grid item xs={12} sm={6} md={4}><StatCard title="Absent Today" value={summary.absent} color={theme.palette.error.main} icon={<EventBusy />} /></Grid>
                         <Grid item xs={12} sm={6} md={4}><StatCard title="Paid Specially Today" value={summary.paidToday} color="#8b5cf6" icon={<CheckCircle />} /></Grid>
-                        <Grid item xs={12} sm={6} md={4}><StatCard title="Left to Pay (This Month)" value={summary.unpaidMonth} color={theme.palette.error.light} icon={<Cancel />} /></Grid>
+                        <Grid item xs={12} sm={6} md={4}><StatCard title={isDaily ? "Left to Pay (Today)" : "Left to Pay (This Month)"} value={summary.unpaidMonth} color={theme.palette.error.light} icon={<Cancel />} /></Grid>
                     </Grid>
 
                     <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 4, bgcolor: alpha(theme.palette.background.paper, 0.6), backdropFilter: 'blur(20px)', border: `1px solid ${theme.palette.divider}` }}>
@@ -323,7 +327,7 @@ Thank you!`;
                                 <TableRow sx={{ background: alpha(theme.palette.primary.main, 0.05) }}>
                                     <TableCell sx={{ fontWeight: 700 }}>Student Name</TableCell>
                                     <TableCell sx={{ fontWeight: 700 }}>Index</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 700 }}>Monthly Fee</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: 700 }}>{isDaily ? "Day Fee" : "Monthly Fee"}</TableCell>
                                     <TableCell align="center" sx={{ fontWeight: 700 }}>Paid Today?</TableCell>
                                     <TableCell align="center" sx={{ fontWeight: 700 }}>Today's Attendance</TableCell>
                                     <TableCell align="center" sx={{ fontWeight: 700 }}>Tute Given</TableCell>

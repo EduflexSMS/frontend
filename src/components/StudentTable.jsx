@@ -22,6 +22,7 @@ const WHATSAPP_GROUP_LINKS = {
     'Grade 09': 'https://chat.whatsapp.com/KEoJ2cotqWUA92EZA5R4W7',
     'Grade 10': 'https://chat.whatsapp.com/KOJD2PNrd936IHgWxLGotB',
     'Grade 11': 'https://chat.whatsapp.com/IuCquSU1EPHB9TcORCUdrz',
+    'Rapid Revision': 'https://chat.whatsapp.com/DsOyVcdCWhO5SaKaWdRSLo',
 };
 
 export const sendWhatsAppGroupLink = (student) => {
