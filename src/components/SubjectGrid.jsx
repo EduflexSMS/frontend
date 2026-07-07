@@ -76,7 +76,7 @@ const SubjectGrid = ({ student, studentId, studentGrade, enrollments, onUpdate, 
                             }
                         }}>
                             {enrollment.monthlyRecords.map((record, rIndex) => {
-                                const slots = Array.from({ length: 5 });
+                                const slots = Array.from({ length: record.attendance?.length || subjectData?.classDaysCount || 5 });
 
                                 return (
                                     <Box

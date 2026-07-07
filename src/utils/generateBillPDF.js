@@ -56,8 +56,9 @@ export const generateBillPDF = (transaction, lang = 'en') => {
     const tableData = [];
 
     transaction.items.forEach(item => {
+        const detailText = item.weekName ? ` - ${item.weekName}` : '';
         tableData.push([
-            `${item.subject} (${item.monthName})`,
+            `${item.subject} (${item.monthName}${detailText})`,
             `Rs. ${item.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
         ]);
     });

@@ -41,6 +41,7 @@ export default function AddSubject() {
         description: '',
         fee: 0,
         feeType: 'monthly',
+        classDaysCount: 5,
         color: colors[0],
         teacherName: '',
         teacherDescription: '',
@@ -240,6 +241,28 @@ export default function AddSubject() {
                                                 <MenuItem value="daily">Day Fee</MenuItem>
                                             </Select>
                                         </FormControl>
+                                    </motion.div>
+
+                                    <motion.div variants={itemVariants}>
+                                        <TextField
+                                            fullWidth
+                                            label="Class Days per Month (Sessions) *"
+                                            name="classDaysCount"
+                                            type="number"
+                                            value={formData.classDaysCount}
+                                            required
+                                            onChange={handleChange}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    borderRadius: 2,
+                                                    bgcolor: alpha(theme.palette.background.paper, 0.4),
+                                                    color: 'text.primary',
+                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                    '&:hover fieldset': { borderColor: 'primary.main' },
+                                                },
+                                                '& .MuiInputLabel-root': { color: 'text.secondary' }
+                                            }}
+                                        />
                                     </motion.div>
 
                                     <motion.div variants={itemVariants}>

@@ -20,9 +20,19 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
     const [error, setError] = useState(null);
     const [subjectFee, setSubjectFee] = useState(0);
     const [subjectFeeType, setSubjectFeeType] = useState('monthly');
+    const [subjectClassDaysCount, setSubjectClassDaysCount] = useState(5);
     const [editingFee, setEditingFee] = useState(false);
     const [newFee, setNewFee] = useState(0);
     const [newFeeType, setNewFeeType] = useState('monthly');
+    const [newClassDaysCount, setNewClassDaysCount] = useState(5);
+    const [showScheduleEditor, setShowScheduleEditor] = useState(false);
+    const [schedules, setSchedules] = useState([]);
+    const [allGrades, setAllGrades] = useState([]);
+    const [newSchGrade, setNewSchGrade] = useState('');
+    const [newSchDay, setNewSchDay] = useState('');
+    const [newSchStartTime, setNewSchStartTime] = useState('');
+    const [newSchEndTime, setNewSchEndTime] = useState('');
+    const [newSchStartDate, setNewSchStartDate] = useState('');
     const currentLang = i18n.language;
 
     const monthNames = [
@@ -149,7 +159,13 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                 setNewFee(sub.fee || 0);
                 setSubjectFeeType(sub.feeType || 'monthly');
                 setNewFeeType(sub.feeType || 'monthly');
+                setSubjectClassDaysCount(sub.classDaysCount || 5);
+                setNewClassDaysCount(sub.classDaysCount || 5);
+                setSchedules(sub.gradeSchedules || []);
             }
+
+            const gradesRes = await axios.get(`${API_BASE_URL}/api/students/grades`);
+            setAllGrades(gradesRes.data || []);
         } catch (err) {
             console.error("Error fetching subject info", err);
         }
@@ -187,16 +203,59 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
         try {
             await axios.put(`${API_BASE_URL}/api/subjects/${encodeURIComponent(subjectName)}`, { 
                 fee: newFee,
-                feeType: newFeeType
+                feeType: newFeeType,
+                classDaysCount: newClassDaysCount
             });
             setSubjectFee(newFee);
             setSubjectFeeType(newFeeType);
+            setSubjectClassDaysCount(newClassDaysCount);
             setEditingFee(false);
             fetchDetails();
         } catch (err) {
             console.error("Error updating fee", err);
             alert(t('failed_to_update'));
         }
+    };
+
+    const handleSaveSchedules = async (updatedSchedules) => {
+        try {
+            await axios.put(`${API_BASE_URL}/api/subjects/${encodeURIComponent(subjectName)}`, { 
+                gradeSchedules: updatedSchedules 
+            });
+            setSchedules(updatedSchedules);
+            fetchDetails();
+        } catch (err) {
+            console.error("Error saving schedules", err);
+            alert("Failed to save schedules.");
+        }
+    };
+
+    const handleDeleteSchedule = (indexToDelete) => {
+        const updated = schedules.filter((_, idx) => idx !== indexToDelete);
+        handleSaveSchedules(updated);
+    };
+
+    const handleAddSchedule = () => {
+        if (!newSchGrade || !newSchDay) {
+            alert("Please select Grade and Day");
+            return;
+        }
+        const newEntry = {
+            grade: newSchGrade,
+            day: newSchDay,
+            startTime: newSchStartTime || '',
+            endTime: newSchEndTime || '',
+            startDate: newSchStartDate ? new Date(newSchStartDate).toISOString().split('T')[0] : null
+        };
+        const updated = [...schedules, newEntry];
+        handleSaveSchedules(updated);
+
+        // Reset form
+        setNewSchGrade('');
+        setNewSchDay('');
+        setNewSchStartTime('');
+        setNewSchEndTime('');
+        setNewSchStartDate('');
     };
 
     return (
@@ -208,14 +267,15 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                 <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Typography variant="subtitle1">
-                            {t('fee')}: <strong>{editingFee ? '' : `LKR ${subjectFee.toLocaleString()} (${subjectFeeType === 'daily' ? 'Day Fee' : 'Monthly Fee'})`}</strong>
+                            {t('fee')}: <strong>{editingFee ? '' : `LKR ${subjectFee.toLocaleString()} (${subjectFeeType === 'daily' ? `Day Fee (${subjectClassDaysCount} days)` : 'Monthly Fee'})`}</strong>
                         </Typography>
                         {editingFee ? (
-                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
                                 <input
                                     type="number"
                                     value={newFee}
-                                    onChange={(e) => setNewFee(e.target.value)}
+                                    onChange={(e) => setNewFee(parseFloat(e.target.value) || 0)}
+                                    title="Fee Amount"
                                     style={{ width: '80px', padding: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
                                 />
                                 <select
@@ -226,6 +286,14 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                                     <option value="monthly">Monthly Fee</option>
                                     <option value="daily">Day Fee</option>
                                 </select>
+                                <input
+                                    type="number"
+                                    value={newClassDaysCount}
+                                    onChange={(e) => setNewClassDaysCount(parseInt(e.target.value) || 5)}
+                                    placeholder="Days"
+                                    title="Class Days Count"
+                                    style={{ width: '60px', padding: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                />
                                 <Button size="small" variant="contained" onClick={handleSaveFee}>{t('save')}</Button>
                                 <Button size="small" onClick={() => setEditingFee(false)}>{t('cancel')}</Button>
                             </Box>
@@ -247,69 +315,192 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                         </Select>
                     </FormControl>
                 </Box>
-                {loading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                        <CircularProgress />
-                    </Box>
-                ) : error ? (
-                    <Typography color="error" align="center">{error}</Typography>
-                ) : details.length === 0 ? (
-                    <Typography align="center" color="text.secondary">{t('no_students')}</Typography>
-                ) : (
-                    <TableContainer component={Paper} elevation={0} variant="outlined">
-                        <Table size="small">
-                            <TableHead>
-                                <TableRow sx={{ bgcolor: 'action.hover' }}>
-                                    <TableCell sx={{ fontWeight: 'bold' }}>{t('grade')}</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('total_students')}</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('paid_count')} ({t(monthNames[selectedMonth])})</TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('collected_amount')}</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {details.map((row) => (
-                                    <TableRow
-                                        key={row.grade}
-                                        hover
-                                        onClick={() => handleGradeClick(row.grade)}
-                                        sx={{ cursor: 'pointer' }}
+                {showScheduleEditor ? (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
+                        <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+                            Configure Grade Schedules & Associations
+                        </Typography>
+
+                        {/* List of current schedules */}
+                        {schedules.length === 0 ? (
+                            <Typography variant="body2" color="text.secondary">
+                                No grade schedules assigned. This subject will show up for ALL grades.
+                            </Typography>
+                        ) : (
+                            <TableContainer component={Paper} elevation={0} variant="outlined">
+                                <Table size="small">
+                                    <TableHead>
+                                        <TableRow sx={{ bgcolor: 'action.hover' }}>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>Grade</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>Day</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>Time</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>Start Date</TableCell>
+                                            <TableCell align="center" sx={{ fontWeight: 'bold' }}>Action</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {schedules.map((sch, index) => (
+                                            <TableRow key={index} hover>
+                                                <TableCell>{sch.grade}</TableCell>
+                                                <TableCell>{sch.day}</TableCell>
+                                                <TableCell>{sch.startTime && sch.endTime ? `${sch.startTime} - ${sch.endTime}` : (sch.startTime || sch.endTime || 'Not specified')}</TableCell>
+                                                <TableCell>{sch.startDate ? new Date(sch.startDate).toLocaleDateString() : 'Not specified'}</TableCell>
+                                                <TableCell align="center">
+                                                    <Button 
+                                                        size="small" 
+                                                        color="error" 
+                                                        onClick={() => handleDeleteSchedule(index)}
+                                                        sx={{ minWidth: 'auto', p: 0.5 }}
+                                                    >
+                                                        Delete
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        )}
+
+                        {/* Form to add a new schedule */}
+                        <Box sx={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2, p: 2, bgcolor: 'rgba(255,255,255,0.01)', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                                Add New Grade Schedule / Association
+                            </Typography>
+                            
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                                <FormControl size="small" sx={{ minWidth: 150, flex: '1 1 150px' }}>
+                                    <InputLabel id="sch-grade-label">Grade</InputLabel>
+                                    <Select
+                                        labelId="sch-grade-label"
+                                        value={newSchGrade}
+                                        label="Grade"
+                                        onChange={(e) => setNewSchGrade(e.target.value)}
                                     >
-                                        <TableCell component="th" scope="row">
-                                            {row.grade}
+                                        {allGrades.map((g) => (
+                                            <MenuItem key={g} value={g}>{g}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+
+                                <FormControl size="small" sx={{ minWidth: 120, flex: '1 1 120px' }}>
+                                    <InputLabel id="sch-day-label">Day</InputLabel>
+                                    <Select
+                                        labelId="sch-day-label"
+                                        value={newSchDay}
+                                        label="Day"
+                                        onChange={(e) => setNewSchDay(e.target.value)}
+                                    >
+                                        {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((d) => (
+                                            <MenuItem key={d} value={d}>{d}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                                <input
+                                    type="text"
+                                    placeholder="Start Time (e.g. 8:00 AM)"
+                                    value={newSchStartTime}
+                                    onChange={(e) => setNewSchStartTime(e.target.value)}
+                                    style={{ flex: 1, padding: '8.5px 14px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: 'inherit' }}
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="End Time (e.g. 10:00 AM)"
+                                    value={newSchEndTime}
+                                    onChange={(e) => setNewSchEndTime(e.target.value)}
+                                    style={{ flex: 1, padding: '8.5px 14px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: 'inherit' }}
+                                />
+                                <input
+                                    type="date"
+                                    placeholder="Start Date"
+                                    value={newSchStartDate}
+                                    onChange={(e) => setNewSchStartDate(e.target.value)}
+                                    title="Start Date"
+                                    style={{ flex: 1, padding: '8.5px 14px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: 'inherit' }}
+                                />
+                            </Box>
+
+                            <Button 
+                                variant="contained" 
+                                color="secondary" 
+                                onClick={handleAddSchedule}
+                                sx={{ alignSelf: 'flex-start' }}
+                            >
+                                Add Schedule
+                            </Button>
+                        </Box>
+                    </Box>
+                ) : (
+                    loading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : error ? (
+                        <Typography color="error" align="center">{error}</Typography>
+                    ) : details.length === 0 ? (
+                        <Typography align="center" color="text.secondary">{t('no_students')}</Typography>
+                    ) : (
+                        <TableContainer component={Paper} elevation={0} variant="outlined">
+                            <Table size="small">
+                                <TableHead>
+                                    <TableRow sx={{ bgcolor: 'action.hover' }}>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>{t('grade')}</TableCell>
+                                        <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('total_students')}</TableCell>
+                                        <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('paid_count')} ({t(monthNames[selectedMonth])})</TableCell>
+                                        <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('collected_amount')}</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {details.map((row) => (
+                                        <TableRow
+                                            key={row.grade}
+                                            hover
+                                            onClick={() => handleGradeClick(row.grade)}
+                                            sx={{ cursor: 'pointer' }}
+                                        >
+                                            <TableCell component="th" scope="row">
+                                                {row.grade}
+                                            </TableCell>
+                                            <TableCell align="center">{row.totalStudents}</TableCell>
+                                            <TableCell align="center">
+                                                <Chip
+                                                    label={row.paidStudents}
+                                                    size="small"
+                                                    color={row.paidStudents > 0 ? "success" : "default"}
+                                                    variant={row.paidStudents > 0 ? "filled" : "outlined"}
+                                                />
+                                            </TableCell>
+                                            <TableCell align="right" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                                                LKR {(row.paidStudents * subjectFee).toLocaleString()}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                    <TableRow sx={{ bgcolor: 'action.hover' }}>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>{t('total')}</TableCell>
+                                        <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                                            {details.reduce((sum, row) => sum + (row.totalStudents || 0), 0)}
                                         </TableCell>
-                                        <TableCell align="center">{row.totalStudents}</TableCell>
-                                        <TableCell align="center">
-                                            <Chip
-                                                label={row.paidStudents}
-                                                size="small"
-                                                color={row.paidStudents > 0 ? "success" : "default"}
-                                                variant={row.paidStudents > 0 ? "filled" : "outlined"}
-                                            />
+                                        <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                                            {details.reduce((sum, row) => sum + (row.paidStudents || 0), 0)}
                                         </TableCell>
-                                        <TableCell align="right" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                                            LKR {(row.paidStudents * subjectFee).toLocaleString()}
+                                        <TableCell align="right" sx={{ fontWeight: 'bold', color: 'success.main' }}>
+                                            LKR {(details.reduce((sum, row) => sum + (row.paidStudents || 0), 0) * subjectFee).toLocaleString()}
                                         </TableCell>
                                     </TableRow>
-                                ))}
-                                <TableRow sx={{ bgcolor: 'action.hover' }}>
-                                    <TableCell sx={{ fontWeight: 'bold' }}>{t('total')}</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>
-                                        {details.reduce((sum, row) => sum + (row.totalStudents || 0), 0)}
-                                    </TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>
-                                        {details.reduce((sum, row) => sum + (row.paidStudents || 0), 0)}
-                                    </TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 'bold', color: 'success.main' }}>
-                                        LKR {(details.reduce((sum, row) => sum + (row.paidStudents || 0), 0) * subjectFee).toLocaleString()}
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    )
                 )}
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleDownloadPDF} variant="contained" color="primary" disabled={details.length === 0}>
+                <Button onClick={() => setShowScheduleEditor(!showScheduleEditor)} variant="outlined" color="secondary">
+                    {showScheduleEditor ? "Show Student Stats" : "Manage Grade Associations"}
+                </Button>
+                <Button onClick={handleDownloadPDF} variant="contained" color="primary" disabled={details.length === 0 || showScheduleEditor}>
                     {t('download_pdf')}
                 </Button>
                 <Button onClick={onClose}>{t('close')}</Button>

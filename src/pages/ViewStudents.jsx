@@ -370,11 +370,32 @@ const fmtGrade = g => {
   return g?.replace(/\D/g, '').padStart(2, '0') || g;
 };
 
-function shouldShowSubject(name, grade) {
+function shouldShowSubject(sub, grade) {
+  if (!grade) return true;
+
+  // If the subject has gradeSchedules configured, strictly match based on that
+  if (sub.gradeSchedules && sub.gradeSchedules.length > 0) {
+    return sub.gradeSchedules.some(s => s.grade === grade);
+  }
+
+  // Fallback: If no gradeSchedules exist (e.g. legacy subjects or newly created),
+  // use name-based heuristics to match the grade.
+  const name = sub.name;
   const n = parseInt(grade?.replace(/\D/g, '') || '0');
-  if (n >= 6 && n <= 9)     return ['Mathematics','Science','English','ICT'].some(k => name.includes(k));
-  if (n === 10 || n === 11) return ['Mathematics','Science','English','ICT','Business'].some(k => name.includes(k));
-  if (n >= 3 && n <= 5)     return name.toLowerCase().includes('scholarship');
+
+  if (grade === 'Rapid Revision') {
+    return name.toLowerCase().includes('rapid revision') || name.toLowerCase().includes('rr');
+  }
+
+  if (n >= 6 && n <= 9) {
+    return ['Mathematics','Science','English','ICT','Sinhala'].some(k => name.includes(k));
+  }
+  if (n === 10 || n === 11) {
+    return ['Mathematics','Science','English','ICT','Business','Sinhala'].some(k => name.includes(k));
+  }
+  if (n >= 3 && n <= 5) {
+    return name.toLowerCase().includes('scholarship') && name.includes(grade?.replace(/\D/g, ''));
+  }
   return true;
 }
 
@@ -994,7 +1015,7 @@ export default function ViewStudents() {
         {viewMode === 'subjects' && (
           <div className="sel-grid stagger fade-up">
             {subjects
-              .filter(sub => shouldShowSubject(sub.name, selectedGrade))
+              .filter(sub => shouldShowSubject(sub, selectedGrade))
               .map(sub => {
                 const sm = getSubjMeta(sub.name);
                 return (

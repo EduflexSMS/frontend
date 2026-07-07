@@ -112,7 +112,7 @@ export default function POS() {
             month: monthIndex,
             monthName: monthsList[monthIndex],
             weekIndex: weekIndex,
-            weekName: `Week ${weekIndex + 1}`,
+            weekName: `Day ${weekIndex + 1}`,
             amount: fee
         }]);
     };
@@ -427,7 +427,7 @@ export default function POS() {
                                                                                         )}
                                                                                     </Typography>
                                                                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                                                                        {[0, 1, 2, 3, 4].map(wIndex => {
+                                                                                        {Array.from({ length: record?.dailyFeesPaid?.length || subjectInfo?.classDaysCount || 5 }).map((_, wIndex) => {
                                                                                             const isWeekPaid = record?.dailyFeesPaid ? record.dailyFeesPaid[wIndex] : false;
                                                                                             const isWeekAdded = cart.some(c => c.id === `${enrollment.subject}-${mIndex}-${wIndex}`);
                                                                                             
@@ -435,7 +435,7 @@ export default function POS() {
                                                                                                 return (
                                                                                                     <Chip
                                                                                                         key={wIndex}
-                                                                                                        label={`W${wIndex + 1} Free`}
+                                                                                                        label={`D${wIndex + 1} Free`}
                                                                                                         size="small"
                                                                                                         sx={{ background: 'rgba(168,85,247,0.1)', color: '#a855f7', border: '1px solid rgba(168,85,247,0.25)', fontWeight: 700, fontSize: '0.72rem' }}
                                                                                                     />
@@ -447,7 +447,7 @@ export default function POS() {
                                                                                                     <Chip
                                                                                                         key={wIndex}
                                                                                                         icon={<CheckCircle sx={{ fontSize: '12px !important', color: '#10b981 !important' }} />}
-                                                                                                        label={`W${wIndex + 1} Paid`}
+                                                                                                        label={`D${wIndex + 1} Paid`}
                                                                                                         size="small"
                                                                                                         sx={{ background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.25)', fontWeight: 700, fontSize: '0.72rem' }}
                                                                                                     />
@@ -473,7 +473,7 @@ export default function POS() {
                                                                                                         '&:hover': { background: col.light, borderColor: col.text }
                                                                                                     }}
                                                                                                 >
-                                                                                                    {isWeekAdded ? `W${wIndex + 1} Added` : `Pay W${wIndex + 1}`}
+                                                                                                    {isWeekAdded ? `D${wIndex + 1} Added` : `Pay D${wIndex + 1}`}
                                                                                                 </Button>
                                                                                             );
                                                                                         })}
