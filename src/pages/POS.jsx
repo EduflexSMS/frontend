@@ -138,8 +138,24 @@ export default function POS() {
                     const record = enrollment.monthlyRecords.find(r => r.monthIndex === item.month);
                     if (record) {
                         if (item.weekIndex !== undefined) {
-                            if (!record.dailyFeesPaid) record.dailyFeesPaid = [false, false, false, false, false];
+                            const classDaysCount = subjectsMap[item.subject]?.classDaysCount || 5;
+                            if (!record.dailyFeesPaid || record.dailyFeesPaid.length === 0) {
+                                record.dailyFeesPaid = Array(classDaysCount).fill(false);
+                            } else if (record.dailyFeesPaid.length < classDaysCount) {
+                                while (record.dailyFeesPaid.length < classDaysCount) {
+                                    record.dailyFeesPaid.push(false);
+                                }
+                            }
                             record.dailyFeesPaid[item.weekIndex] = true;
+
+                            if (!record.attendance || record.attendance.length === 0) {
+                                record.attendance = Array(classDaysCount).fill('pending');
+                            } else if (record.attendance.length < classDaysCount) {
+                                while (record.attendance.length < classDaysCount) {
+                                    record.attendance.push('pending');
+                                }
+                            }
+                            record.attendance[item.weekIndex] = 'present';
                         } else {
                             record.feePaid = true;
                         }
@@ -427,7 +443,7 @@ export default function POS() {
                                                                                         )}
                                                                                     </Typography>
                                                                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                                                                        {Array.from({ length: record?.dailyFeesPaid?.length || subjectInfo?.classDaysCount || 5 }).map((_, wIndex) => {
+                                                                                        {Array.from({ length: Math.max(record?.dailyFeesPaid?.length || 0, subjectInfo?.classDaysCount || 5) }).map((_, wIndex) => {
                                                                                             const isWeekPaid = record?.dailyFeesPaid ? record.dailyFeesPaid[wIndex] : false;
                                                                                             const isWeekAdded = cart.some(c => c.id === `${enrollment.subject}-${mIndex}-${wIndex}`);
                                                                                             
