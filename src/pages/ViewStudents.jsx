@@ -742,7 +742,7 @@ function StudentRow({ student, onUpdate, onEdit, subjectColors }) {
                           <div className="mo-meta" style={{ flexDirection: isDaily ? 'column' : 'row', gap: isDaily ? '6px' : '0px', alignItems: 'flex-start' }}>
                             {isDaily ? (
                               <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap', marginTop: '2px' }}>
-                                {[0,1,2,3,4].map(wIdx => {
+                                {Array.from({ length: Math.max(rec?.dailyFeesPaid?.length || 0, subjectColors?.[subj.name]?.classDaysCount || 5) }).map((_, wIdx) => {
                                   const isWeekPaid = rec?.dailyFeesPaid ? rec.dailyFeesPaid[wIdx] : false;
                                   return (
                                     <span 
