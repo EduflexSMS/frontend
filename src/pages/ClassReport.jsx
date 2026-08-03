@@ -26,7 +26,9 @@ import {
     Chip,
     Avatar,
     InputAdornment,
-    alpha
+    alpha,
+    FormControlLabel,
+    Checkbox
 } from '@mui/material';
 import axios from 'axios';
 import {
@@ -85,6 +87,7 @@ export default function ClassReport() {
     
     const [reportType, setReportType] = useState('single');
     const [language, setLanguage] = useState('en');
+    const [excludeFreeCard, setExcludeFreeCard] = useState(false);
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -160,13 +163,13 @@ export default function ClassReport() {
             try {
                 if (reportType === 'single') {
                     const response = await axios.get(`${API_BASE_URL}/api/reports/class-report`, {
-                        params: { grade, subject, month }
+                        params: { grade, subject, month, excludeFreeCard }
                     });
                     setReportData(response.data);
                     setGradeReportData(null);
                 } else {
                     const response = await axios.get(`${API_BASE_URL}/api/reports/grade-report`, {
-                        params: { grade, month }
+                        params: { grade, month, excludeFreeCard }
                     });
                     setGradeReportData(response.data);
                     setReportData(null);
@@ -681,7 +684,23 @@ export default function ClassReport() {
                             <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '1.1rem', fontWeight: 600, color: 'text.primary' }}>
                                 <FilterList fontSize="small" sx={{ color: 'primary.main' }} /> {t('report_filters')}
                             </Typography>
-                            <Box sx={{ display: 'flex', gap: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={excludeFreeCard}
+                                            onChange={(e) => setExcludeFreeCard(e.target.checked)}
+                                            size="small"
+                                            sx={{ color: '#a855f7', '&.Mui-checked': { color: '#a855f7' } }}
+                                        />
+                                    }
+                                    label={
+                                        <Typography variant="body2" fontWeight={600} color="text.primary" sx={{ fontSize: '0.85rem' }}>
+                                            {t('exclude_free_card')}
+                                        </Typography>
+                                    }
+                                    sx={{ mr: 1, ml: 0 }}
+                                />
                                 <Chip 
                                      label={t('single_subject')} 
                                      onClick={() => setReportType('single')} 

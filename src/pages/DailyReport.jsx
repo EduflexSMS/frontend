@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
     Box, Typography, Container, FormControl, InputLabel, Select, MenuItem, Button, Table, TableBody,
     TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Alert, Grid,
-    Card, CardContent, useTheme, Chip, Avatar, InputAdornment, alpha, IconButton, Tooltip
+    Card, CardContent, useTheme, Chip, Avatar, InputAdornment, alpha, IconButton, Tooltip,
+    FormControlLabel, Checkbox
 } from '@mui/material';
 import axios from 'axios';
 import {
@@ -33,6 +34,7 @@ export default function DailyReport() {
     const [grade, setGrade] = useState('');
     const [subject, setSubject] = useState('');
     const [subjectsList, setSubjectsList] = useState([]);
+    const [excludeFreeCard, setExcludeFreeCard] = useState(false);
     
     const [reportData, setReportData] = useState(null);
     const [summary, setSummary] = useState({ total: 0, attended: 0, absent: 0, pending: 0, paidMonth: 0, unpaidMonth: 0, paidToday: 0 });
@@ -89,7 +91,7 @@ export default function DailyReport() {
         setTimeout(async () => {
             try {
                 const response = await axios.get(`${API_BASE_URL}/api/reports/daily`, {
-                    params: { date, grade, subject }
+                    params: { date, grade, subject, excludeFreeCard }
                 });
                 setReportData(response.data.students);
                 setWeekIndex(response.data.weekIndex);
@@ -282,12 +284,28 @@ Thank you!`;
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={3}>
-                        <Box mt={2.5}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={excludeFreeCard}
+                                        onChange={(e) => setExcludeFreeCard(e.target.checked)}
+                                        size="small"
+                                        sx={{ color: '#a855f7', '&.Mui-checked': { color: '#a855f7' } }}
+                                    />
+                                }
+                                label={
+                                    <Typography variant="caption" fontWeight={600} color="text.primary">
+                                        Hide Free Card Students
+                                    </Typography>
+                                }
+                                sx={{ ml: 0, mb: -0.5 }}
+                            />
                             <Button
                                 component={motion.button} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                                 variant="contained" onClick={handleGenerate} disabled={loading} fullWidth
                                 startIcon={!loading && <Search />}
-                                sx={{ height: 44, borderRadius: 3, fontWeight: 600, textTransform: 'none', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
+                                sx={{ height: 40, borderRadius: 3, fontWeight: 600, textTransform: 'none', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
                             >
                                 {loading ? <CircularProgress size={24} color="inherit" /> : "Fetch Daily Data"}
                             </Button>
