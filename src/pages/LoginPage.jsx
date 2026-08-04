@@ -338,8 +338,8 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const { t } = useTranslation();
   const roleConfig = ROLES.find(r => r.id === selectedRole);
+
 
   useEffect(() => {
     const checkAuth = () => {
