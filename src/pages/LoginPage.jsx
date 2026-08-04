@@ -1,19 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  Box, Button, TextField, Typography, Paper, Container,
-  CircularProgress, Alert, InputAdornment, IconButton,
-  useTheme, alpha, Avatar, Grid
-} from '@mui/material';
+import { CircularProgress } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import {
-  Visibility, VisibilityOff, LockOutlined, PersonOutline,
-  School, AdminPanelSettings, SupervisedUserCircle,
-  ArrowBack, BadgeOutlined
-} from '@mui/icons-material';
 import API_BASE_URL from '../config';
-import { useTranslation } from 'react-i18next';
 import logo from '../assets/logo.jpg';
+import instituteLoginBg from '../assets/institute-login-bg.png';
+
+
 
 /* ─────────────────────────────────────────────────────────────────────
    ANIMATED CANVAS BACKGROUND — soft aurora orbs
@@ -439,9 +432,28 @@ export default function LoginPage() {
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
       `}</style>
 
-      <div style={{ minHeight: '100vh', position: 'relative', overflow: 'hidden', background: '#06070d', color: '#fff' }}>
+      <div style={{
+        minHeight: '100vh',
+        position: 'relative',
+        overflow: 'hidden',
+        backgroundImage: `url(${instituteLoginBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        color: '#fff'
+      }}>
+        {/* Institute Wallpaper Dark Mask Overlay */}
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'radial-gradient(circle at 50% 30%, rgba(6, 8, 20, 0.65) 0%, rgba(6, 8, 20, 0.92) 80%, #060814 100%)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          zIndex: 1
+        }} />
 
         <AuroraBackground />
+
 
         {/* Floating ambient badges */}
         {badges.map((b, i) => (

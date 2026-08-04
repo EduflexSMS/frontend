@@ -1,9 +1,11 @@
 import React from 'react';
 import { Box } from '@mui/material';
+import instituteMainBg from '../assets/institute-main-bg.png';
 
 const Background3D = () => {
     return (
         <Box
+            className="institute-bg-container"
             sx={{
                 position: 'fixed',
                 top: 0,
@@ -12,26 +14,34 @@ const Background3D = () => {
                 height: '100vh',
                 zIndex: -1,
                 overflow: 'hidden',
-                background: 'radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%)', // Slate 800 to Slate 900
+                pointerEvents: 'none',
+                backgroundImage: `url(${instituteMainBg})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
                 '&::before': {
                     content: '""',
                     position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 40%)', // Royal Blue Glow
-                    zIndex: -1,
+                    inset: 0,
+                    background: (theme) =>
+                        theme.palette.mode === 'dark'
+                            ? 'radial-gradient(circle at 50% 10%, rgba(6, 8, 20, 0.55) 0%, rgba(6, 8, 20, 0.88) 70%, #060814 100%)'
+                            : 'radial-gradient(circle at 50% 10%, rgba(244, 246, 255, 0.6) 0%, rgba(244, 246, 255, 0.88) 70%, #f4f6ff 100%)',
+                    zIndex: 1,
+                    transition: 'background 0.5s ease',
                 },
                 '&::after': {
                     content: '""',
                     position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    background: 'radial-gradient(circle at 20% 80%, rgba(245, 158, 11, 0.1) 0%, transparent 40%)', // Gold Glow
-                    zIndex: -1,
+                    top: '-20%',
+                    right: '-10%',
+                    width: '60vw',
+                    height: '60vw',
+                    borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(0, 207, 255, 0.12) 0%, rgba(108, 95, 255, 0.05) 50%, transparent 80%)',
+                    filter: 'blur(80px)',
+                    zIndex: 2,
+                    animation: 'pulseGlow 12s ease-in-out infinite alternate',
                 }
             }}
         />
@@ -39,5 +49,6 @@ const Background3D = () => {
 };
 
 export default Background3D;
+
 
 

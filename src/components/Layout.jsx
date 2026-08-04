@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../contexts/ThemeContext';
 import logo from '../assets/logo.jpg';
+import Background3D from './Background3D';
+
 
 // ─── DESIGN TOKENS ────────────────────────────────────────────────────────────
 const T = {
@@ -642,11 +644,14 @@ export default function Layout() {
     <div style={{
       display: 'flex',
       minHeight: '100vh',
-      background: colors.bg,
+      background: 'transparent',
       fontFamily: "'Outfit', 'Inter', sans-serif",
       color: colors.text,
       transition: 'background 0.35s, color 0.35s',
+      position: 'relative',
     }}>
+      <Background3D />
+
 
       {/* ── DESKTOP SIDEBAR ── */}
       <div className="desktop-sidebar" style={{
