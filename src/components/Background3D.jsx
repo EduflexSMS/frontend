@@ -19,29 +19,31 @@ const Background3D = () => {
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
+                transform: 'scale(1.02)',
+                transition: 'all 0.5s ease',
                 '&::before': {
                     content: '""',
                     position: 'absolute',
                     inset: 0,
                     background: (theme) =>
                         theme.palette.mode === 'dark'
-                            ? 'radial-gradient(circle at 50% 10%, rgba(6, 8, 20, 0.55) 0%, rgba(6, 8, 20, 0.88) 70%, #060814 100%)'
-                            : 'radial-gradient(circle at 50% 10%, rgba(244, 246, 255, 0.6) 0%, rgba(244, 246, 255, 0.88) 70%, #f4f6ff 100%)',
+                            ? 'radial-gradient(circle at 50% 20%, rgba(10, 14, 30, 0.35) 0%, rgba(6, 8, 20, 0.65) 60%, rgba(4, 6, 14, 0.8) 100%)'
+                            : 'radial-gradient(circle at 50% 20%, rgba(244, 246, 255, 0.35) 0%, rgba(244, 246, 255, 0.65) 60%, rgba(244, 246, 255, 0.8) 100%)',
                     zIndex: 1,
                     transition: 'background 0.5s ease',
                 },
                 '&::after': {
                     content: '""',
                     position: 'absolute',
-                    top: '-20%',
-                    right: '-10%',
-                    width: '60vw',
-                    height: '60vw',
+                    top: '-10%',
+                    right: '-5%',
+                    width: '50vw',
+                    height: '50vw',
                     borderRadius: '50%',
-                    background: 'radial-gradient(circle, rgba(0, 207, 255, 0.12) 0%, rgba(108, 95, 255, 0.05) 50%, transparent 80%)',
-                    filter: 'blur(80px)',
+                    background: 'radial-gradient(circle, rgba(0, 207, 255, 0.18) 0%, rgba(108, 95, 255, 0.1) 40%, transparent 70%)',
+                    filter: 'blur(70px)',
                     zIndex: 2,
-                    animation: 'pulseGlow 12s ease-in-out infinite alternate',
+                    animation: 'pulseGlow 10s ease-in-out infinite alternate',
                 }
             }}
         />
@@ -49,6 +51,7 @@ const Background3D = () => {
 };
 
 export default Background3D;
+
 
 
 

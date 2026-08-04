@@ -70,21 +70,22 @@ const RadialRing = ({ pct, color, size = 52, stroke = 3 }) => {
 // THEME
 // ─────────────────────────────────────────────────────────────────────
 const DARK = {
-    bg: '#0a0a0c',
-    surface: 'rgba(18,18,22,0.85)',
-    border: 'rgba(255,255,255,0.07)',
-    card: 'rgba(16,16,22,0.88)',
-    text: '#f2f1ee',
-    sub: '#888880',
+    bg: 'transparent',
+    surface: 'rgba(10, 14, 30, 0.45)',
+    border: 'rgba(255, 255, 255, 0.12)',
+    card: 'rgba(15, 23, 42, 0.45)',
+    text: '#f8fafc',
+    sub: '#94a3b8',
 };
 const LIGHT = {
-    bg: '#f4f3f0',
-    surface: 'rgba(255,255,255,0.75)',
-    border: 'rgba(0,0,0,0.07)',
-    card: 'rgba(255,255,255,0.88)',
-    text: '#0f0e0c',
-    sub: '#6b6a66',
+    bg: 'transparent',
+    surface: 'rgba(255, 255, 255, 0.75)',
+    border: 'rgba(15, 23, 42, 0.12)',
+    card: 'rgba(255, 255, 255, 0.75)',
+    text: '#0f172a',
+    sub: '#64748b',
 };
+
 
 const C = {
     cyan:    '#00e5ff',
@@ -122,7 +123,7 @@ const StatCard = ({ title, value, icon, accent, spark, onClick, theme }) => {
             onClick={onClick}
             onHoverStart={() => setHov(true)}
             onHoverEnd={() => setHov(false)}
-            whileHover={{ y: -6, scale: 1.02 }}
+            whileHover={{ y: -8, scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             initial={{ opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
@@ -130,16 +131,18 @@ const StatCard = ({ title, value, icon, accent, spark, onClick, theme }) => {
             style={{
                 position: 'relative', overflow: 'hidden',
                 background: theme.card,
-                border: `1px solid ${hov ? accent + '55' : theme.border}`,
-                borderRadius: 22, padding: '24px 24px 18px',
+                border: `1px solid ${hov ? accent : theme.border}`,
+                borderRadius: 24, padding: '26px 26px 20px',
                 cursor: onClick ? 'pointer' : 'default',
-                backdropFilter: 'blur(24px)',
+                backdropFilter: 'blur(28px)',
+                WebkitBackdropFilter: 'blur(28px)',
                 boxShadow: hov
-                    ? `0 20px 56px ${accent}20, 0 0 0 1px ${accent}30`
-                    : '0 2px 20px rgba(0,0,0,0.1)',
-                transition: 'box-shadow 0.3s, border-color 0.3s',
+                    ? `0 24px 60px ${accent}35, 0 0 0 1px ${accent}`
+                    : `0 10px 30px rgba(0,0,0,0.15), 0 0 0 1px ${theme.border}`,
+                transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
         >
+
             {/* Corner bloom */}
             <motion.div animate={{ opacity: hov ? 1 : 0 }} transition={{ duration: 0.3 }}
                 style={{
@@ -208,14 +211,17 @@ const SubjectCard = ({ sub, idx, theme, onClick }) => {
             style={{
                 position: 'relative', overflow: 'hidden',
                 background: theme.card,
-                border: `1px solid ${hov ? accent + '50' : theme.border}`,
-                borderRadius: 20, padding: '22px',
-                cursor: 'pointer', backdropFilter: 'blur(20px)',
+                border: `1px solid ${hov ? accent : theme.border}`,
+                borderRadius: 22, padding: '24px',
+                cursor: 'pointer',
+                backdropFilter: 'blur(28px)',
+                WebkitBackdropFilter: 'blur(28px)',
                 boxShadow: hov
-                    ? `0 16px 44px ${accent}18, 0 0 0 1px ${accent}30`
-                    : '0 2px 12px rgba(0,0,0,0.07)',
-                transition: 'box-shadow 0.3s, border-color 0.3s',
+                    ? `0 20px 50px ${accent}28, 0 0 0 1px ${accent}`
+                    : `0 8px 24px rgba(0,0,0,0.12), 0 0 0 1px ${theme.border}`,
+                transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
+
         >
             {/* Ambient glow */}
             <div style={{
@@ -590,12 +596,14 @@ export default function Dashboard() {
                     style={{
                         background: theme.card,
                         border: `1px solid ${theme.border}`,
-                        borderRadius: 22, padding: 28,
-                        backdropFilter: 'blur(20px)',
+                        borderRadius: 24, padding: 30,
+                        backdropFilter: 'blur(28px)',
+                        WebkitBackdropFilter: 'blur(28px)',
                         marginBottom: 36,
-                        boxShadow: '0 2px 20px rgba(0,0,0,0.08)'
+                        boxShadow: '0 16px 40px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.08)'
                     }}
                 >
+
                     <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: '-0.3px', marginBottom: 4 }}>
                         Analytics
                     </div>
