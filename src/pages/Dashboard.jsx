@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { motion, useSpring, useTransform } from 'framer-motion';
+import { motion, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
 // ── Your original dialogs & components (unchanged) ─────────────────
@@ -11,268 +12,248 @@ import AnalyticsChart from '../components/AnalyticsChart';
 import API_BASE_URL from '../config';
 
 // ─────────────────────────────────────────────────────────────────────
-// UI HELPERS
+// ANIMATION COMPONENTS
 // ─────────────────────────────────────────────────────────────────────
 
-const AnimatedNumber = ({ value }) => {
-    const spring = useSpring(0, { bounce: 0, duration: 1800 });
-    const display = useTransform(spring, (v) => Math.round(v));
-    useEffect(() => { spring.set(value); }, [spring, value]);
+const AnimatedCounter = ({ value, duration = 1.8 }) => {
+    const spring = useSpring(0, { stiffness: 50, damping: 20 });
+    const display = useTransform(spring, (v) => Math.round(v).toLocaleString());
+    
+    useEffect(() => {
+        spring.set(value);
+    }, [spring, value]);
+    
     return <motion.span>{display}</motion.span>;
 };
 
+const RadialRing = ({ pct, color, size = 48, stroke = 3.5, delay = 0 }) => {
+    const r = (size - stroke) / 2;
+    const circ = 2 * Math.PI * r;
+    const spring = useSpring(0, { stiffness: 40, damping: 15 });
+    const strokeDash = useTransform(spring, (v) => `${(v / 100) * circ} ${circ}`);
+    
+    useEffect(() => {
+        const timer = setTimeout(() => spring.set(pct), delay * 1000 + 300);
+        return () => clearTimeout(timer);
+    }, [spring, pct, delay]);
+    
+    return (
+        <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+            <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx={size / 2} cy={size / 2} r={r} fill="none"
+                    stroke="var(--kimi-color-border, rgba(128,128,128,0.2))" strokeWidth={stroke} />
+                <motion.circle
+                    cx={size / 2} cy={size / 2} r={r}
+                    fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round"
+                    style={{ strokeDasharray: strokeDash }}
+                />
+            </svg>
+            <div style={{
+                position: 'absolute', inset: 0, display: 'flex',
+                alignItems: 'center', justifyContent: 'center',
+                fontSize: 11, fontWeight: 600, color
+            }}>{pct}%</div>
+        </div>
+    );
+};
+
+const ProgressBar = ({ pct, color, delay = 0 }) => (
+    <div style={{
+        height: 5, borderRadius: 99, overflow: 'hidden',
+        background: 'var(--kimi-color-surface-muted, rgba(128,128,128,0.12))'
+    }}>
+        <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${pct}%` }}
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: delay + 0.3 }}
+            style={{ height: '100%', borderRadius: 99, background: color }}
+        />
+    </div>
+);
+
 const Sparkline = ({ data, color }) => {
-    const w = 80, h = 32;
+    const w = 72, h = 28;
     const max = Math.max(...data), min = Math.min(...data);
+    const range = max - min || 1;
     const pts = data.map((v, i) => {
         const x = (i / (data.length - 1)) * w;
-        const y = h - ((v - min) / (max - min || 1)) * h;
+        const y = h - ((v - min) / range) * h;
         return `${x},${y}`;
     }).join(' ');
-    const id = `sg${color.replace('#', '')}`;
+    
     return (
-        <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ overflow: 'visible', flexShrink: 0 }}>
-            <defs>
-                <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={color} stopOpacity="0.35" />
-                    <stop offset="100%" stopColor={color} stopOpacity="0" />
-                </linearGradient>
-            </defs>
-            <polygon
-                points={`0,${h} ${pts.split(' ').join(' ')} ${w},${h}`}
-                fill={`url(#${id})`}
-            />
+        <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ opacity: 0.35, flexShrink: 0 }}>
             <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5"
                 strokeLinecap="round" strokeLinejoin="round" />
         </svg>
     );
 };
 
-const RadialRing = ({ pct, color, size = 52, stroke = 3 }) => {
-    const r = (size - stroke) / 2;
-    const circ = 2 * Math.PI * r;
-    return (
-        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}>
-            <circle cx={size / 2} cy={size / 2} r={r} fill="none"
-                stroke="rgba(255,255,255,0.08)" strokeWidth={stroke} />
-            <motion.circle
-                cx={size / 2} cy={size / 2} r={r}
-                fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round"
-                initial={{ strokeDasharray: `0 ${circ}` }}
-                animate={{ strokeDasharray: `${(pct / 100) * circ} ${circ}` }}
-                transition={{ duration: 1.4, ease: 'easeOut' }}
-            />
-        </svg>
-    );
-};
-
 // ─────────────────────────────────────────────────────────────────────
-// THEME
+// THEME TOKENS
 // ─────────────────────────────────────────────────────────────────────
 const DARK = {
     bg: 'transparent',
-    surface: 'rgba(10, 14, 30, 0.45)',
-    border: 'rgba(255, 255, 255, 0.12)',
-    card: 'rgba(15, 23, 42, 0.45)',
-    text: '#f8fafc',
-    sub: '#94a3b8',
+    surface: 'var(--kimi-color-surface, rgba(10,14,30,0.45))',
+    surfaceRaised: 'var(--kimi-color-surface-raised, rgba(15,23,42,0.55))',
+    border: 'var(--kimi-color-border, rgba(255,255,255,0.1))',
+    text: 'var(--kimi-color-text-primary, #f8fafc)',
+    textSecondary: 'var(--kimi-color-text-secondary, #94a3b8)',
+    textTertiary: 'var(--kimi-color-text-tertiary, #64748b)',
 };
+
 const LIGHT = {
     bg: 'transparent',
-    surface: 'rgba(255, 255, 255, 0.75)',
-    border: 'rgba(15, 23, 42, 0.12)',
-    card: 'rgba(255, 255, 255, 0.75)',
-    text: '#0f172a',
-    sub: '#64748b',
+    surface: 'var(--kimi-color-surface, rgba(255,255,255,0.8))',
+    surfaceRaised: 'var(--kimi-color-surface-raised, rgba(255,255,255,0.9))',
+    border: 'var(--kimi-color-border, rgba(15,23,42,0.1))',
+    text: 'var(--kimi-color-text-primary, #0f172a)',
+    textSecondary: 'var(--kimi-color-text-secondary, #475569)',
+    textTertiary: 'var(--kimi-color-text-tertiary, #94a3b8)',
 };
-
 
 const C = {
-    cyan:    '#00e5ff',
-    indigo:  '#6c63ff',
-    emerald: '#00c896',
-    amber:   '#ffb547',
-    rose:    '#ff5f7e',
-    violet:  '#b57aff',
+    blue: 'var(--kimi-chart-1, #3b82f6)',
+    green: 'var(--kimi-chart-3, #22c55e)',
+    red: 'var(--kimi-chart-2, #ef4444)',
+    purple: 'var(--kimi-chart-4, #a855f7)',
+    positive: 'var(--kimi-color-positive, #22c55e)',
+    warning: 'var(--kimi-color-warning, #f59e0b)',
 };
 
-// Sparkline placeholders (visual only — no real historical data needed)
+// Sparkline data (visual only)
 const SPARKS = {
-    students: [780, 850, 910, 970, 1020, 1080, 1150, 1200],
-    subjects:  [10, 11, 12, 13, 14, 15, 16, 17],
-    teachers:  [30, 33, 36, 38, 40, 42, 44, 46],
+    students: [780, 850, 910, 970, 1020, 1080, 1150, 1248],
+    subjects: [10, 11, 12, 13, 14, 15, 16, 17],
+    teachers: [30, 33, 36, 38, 40, 42, 44, 46],
+};
+
+// ─────────────────────────────────────────────────────────────────────
+// STAGGERED MOTION VARIANTS
+// ─────────────────────────────────────────────────────────────────────
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { staggerChildren: 0.08, delayChildren: 0.1 }
+    }
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 24, scale: 0.96 },
+    visible: {
+        opacity: 1, y: 0, scale: 1,
+        transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] }
+    }
+};
+
+const cardHover = {
+    rest: { y: 0, scale: 1, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' },
+    hover: { 
+        y: -5, scale: 1.02, 
+        boxShadow: '0 16px 40px rgba(0,0,0,0.1)',
+        transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] }
+    },
+    tap: { scale: 0.98 }
 };
 
 // ─────────────────────────────────────────────────────────────────────
 // SUB-COMPONENTS
 // ─────────────────────────────────────────────────────────────────────
 
-const GlowOrb = ({ color, size, x, y, blur = 110, opacity = 0.09 }) => (
-    <div style={{
-        position: 'fixed', left: x, top: y, width: size, height: size,
-        borderRadius: '50%', background: color,
-        filter: `blur(${blur}px)`, opacity, pointerEvents: 'none', zIndex: 0,
-        transform: 'translate(-50%,-50%)',
-    }} />
-);
-
-const StatCard = ({ title, value, icon, accent, spark, onClick, theme }) => {
-    const [hov, setHov] = useState(false);
-    return (
-        <motion.div
-            onClick={onClick}
-            onHoverStart={() => setHov(true)}
-            onHoverEnd={() => setHov(false)}
-            whileHover={{ y: -8, scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            initial={{ opacity: 0, y: 28 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            style={{
-                position: 'relative', overflow: 'hidden',
-                background: theme.card,
-                border: `1px solid ${hov ? accent : theme.border}`,
-                borderRadius: 24, padding: '26px 26px 20px',
-                cursor: onClick ? 'pointer' : 'default',
-                backdropFilter: 'blur(28px)',
-                WebkitBackdropFilter: 'blur(28px)',
-                boxShadow: hov
-                    ? `0 24px 60px ${accent}35, 0 0 0 1px ${accent}`
-                    : `0 10px 30px rgba(0,0,0,0.15), 0 0 0 1px ${theme.border}`,
-                transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-            }}
+const StatCard = ({ title, value, icon, accent, spark, onClick, theme, index }) => (
+    <motion.div
+        variants={itemVariants}
+        initial="rest"
+        whileHover="hover"
+        whileTap="tap"
+        animate="rest"
+        onClick={onClick}
+        style={{
+            background: theme.surfaceRaised,
+            border: `1px solid ${theme.border}`,
+            borderRadius: 12,
+            padding: '22px 20px 18px',
+            cursor: onClick ? 'pointer' : 'default',
+            position: 'relative',
+            overflow: 'hidden',
+        }}
+    >
+        <motion.div 
+            variants={cardHover}
+            style={{ height: '100%' }}
         >
-
-            {/* Corner bloom */}
-            <motion.div animate={{ opacity: hov ? 1 : 0 }} transition={{ duration: 0.3 }}
-                style={{
-                    position: 'absolute', top: -60, right: -60,
-                    width: 180, height: 180, borderRadius: '50%',
-                    background: accent, filter: 'blur(65px)', opacity: 0.14, pointerEvents: 'none'
-                }} />
-
-            {/* Bottom accent line */}
-            <motion.div animate={{ scaleX: hov ? 1 : 0 }} transition={{ duration: 0.3 }}
-                style={{
-                    position: 'absolute', bottom: 0, left: 0, right: 0, height: 2,
-                    background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
-                    transformOrigin: 'center'
-                }} />
-
-            {/* Icon */}
-            <div style={{
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                width: 42, height: 42, borderRadius: 13,
-                background: accent + '18', border: `1px solid ${accent}30`,
-                fontSize: 19, marginBottom: 16,
-                boxShadow: hov ? `0 0 18px ${accent}40` : 'none',
-                transition: 'box-shadow 0.3s'
-            }}>
-                {icon}
-            </div>
-
-            {/* Value */}
-            <div style={{
-                fontFamily: "'Outfit', 'DM Sans', sans-serif",
-                fontSize: 36, fontWeight: 800,
-                color: theme.text, letterSpacing: '-1.5px', lineHeight: 1, marginBottom: 6
-            }}>
-                {typeof value === 'number' ? <AnimatedNumber value={value} /> : value}
-            </div>
-
-            {/* Label + spark */}
-            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-                <span style={{
-                    fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
-                    letterSpacing: '1.3px', color: theme.sub
-                }}>{title}</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <div style={{
+                    width: 38, height: 38, borderRadius: 10,
+                    background: `color-mix(in srgb, ${accent} 12%, transparent)`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: accent, fontSize: 18
+                }}>{icon}</div>
                 {spark && <Sparkline data={spark} color={accent} />}
             </div>
+            
+            <div style={{
+                fontSize: 34, fontWeight: 500,
+                color: theme.text, lineHeight: 1.1,
+                marginBottom: 6, fontVariantNumeric: 'tabular-nums',
+                fontFeatureSettings: '"tnum" 1',
+                fontFamily: 'var(--kimi-font-sans, sans-serif)'
+            }}>
+                {typeof value === 'number' ? <AnimatedCounter value={value} /> : value}
+            </div>
+            
+            <div style={{ fontSize: 13, color: theme.textSecondary, fontWeight: 400 }}>
+                {title}
+            </div>
         </motion.div>
-    );
-};
+    </motion.div>
+);
 
 const SubjectCard = ({ sub, idx, theme, onClick }) => {
-    const pct = sub.studentCount > 0 ? (sub.paidFees / sub.studentCount) * 100 : 0;
+    const pct = sub.studentCount > 0 
+        ? Math.round((sub.paidFees / sub.studentCount) * 100) 
+        : 0;
     const good = pct > 80;
-    const accent = good ? C.emerald : C.rose;
-    const [hov, setHov] = useState(false);
-
+    const accent = good ? C.positive : C.warning;
+    
     return (
         <motion.div
+            variants={itemVariants}
+            whileHover={{ y: -4, scale: 1.015, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } }}
+            whileTap={{ scale: 0.985 }}
             onClick={onClick}
-            onHoverStart={() => setHov(true)}
-            onHoverEnd={() => setHov(false)}
-            initial={{ opacity: 0, y: 36 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: idx * 0.07 }}
-            whileHover={{ y: -5, scale: 1.015 }}
-            whileTap={{ scale: 0.98 }}
             style={{
-                position: 'relative', overflow: 'hidden',
-                background: theme.card,
-                border: `1px solid ${hov ? accent : theme.border}`,
-                borderRadius: 22, padding: '24px',
+                background: theme.surfaceRaised,
+                border: `1px solid ${theme.border}`,
+                borderRadius: 12,
+                padding: 20,
                 cursor: 'pointer',
-                backdropFilter: 'blur(28px)',
-                WebkitBackdropFilter: 'blur(28px)',
-                boxShadow: hov
-                    ? `0 20px 50px ${accent}28, 0 0 0 1px ${accent}`
-                    : `0 8px 24px rgba(0,0,0,0.12), 0 0 0 1px ${theme.border}`,
-                transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+                position: 'relative',
+                overflow: 'hidden',
             }}
-
         >
-            {/* Ambient glow */}
-            <div style={{
-                position: 'absolute', top: -40, right: -40,
-                width: 120, height: 120, borderRadius: '50%',
-                background: accent, filter: 'blur(48px)',
-                opacity: hov ? 0.16 : 0.06, transition: 'opacity 0.3s', pointerEvents: 'none'
-            }} />
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <span style={{ fontWeight: 700, fontSize: 15, color: theme.text, letterSpacing: '-0.3px' }}>
-                    {sub.subject}
-                </span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <RadialRing pct={Math.round(pct)} color={accent} />
-                    <span style={{
-                        fontSize: 12, fontWeight: 800, color: accent,
-                        background: accent + '18', padding: '3px 9px',
-                        borderRadius: 99, border: `1px solid ${accent}30`
-                    }}>
-                        {Math.round(pct)}%
-                    </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+                <div>
+                    <div style={{ fontWeight: 500, fontSize: 15, color: theme.text, marginBottom: 2 }}>
+                        {sub.subject}
+                    </div>
+                    <div style={{ fontSize: 12, color: theme.textTertiary }}>
+                        {sub.studentCount} students enrolled
+                    </div>
                 </div>
+                <RadialRing pct={pct} color={accent} delay={idx * 0.07} />
             </div>
-
-            {/* Progress bar */}
-            <div style={{
-                height: 5, borderRadius: 99, overflow: 'hidden',
-                background: 'rgba(128,128,128,0.12)', marginBottom: 14
+            
+            <ProgressBar pct={pct} color={accent} delay={idx * 0.07} />
+            
+            <div style={{ 
+                display: 'flex', justifyContent: 'space-between', 
+                marginTop: 12, fontSize: 12, color: theme.textSecondary 
             }}>
-                <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${pct}%` }}
-                    transition={{ duration: 1.2, ease: 'easeOut', delay: idx * 0.07 + 0.2 }}
-                    style={{
-                        height: '100%', borderRadius: 99,
-                        background: good
-                            ? `linear-gradient(90deg, ${C.emerald}, ${C.cyan})`
-                            : `linear-gradient(90deg, ${C.rose}, ${C.amber})`,
-                    }}
-                />
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 12, color: theme.sub }}>👥 {sub.studentCount} students</span>
-                <span style={{
-                    fontSize: 11, fontWeight: 700, color: accent,
-                    background: accent + '14', padding: '3px 10px',
-                    borderRadius: 99, border: `1px solid ${accent}22`
-                }}>
-                    {sub.paidFees} Paid
+                <span>{sub.paidFees} paid</span>
+                <span style={{ color: accent, fontWeight: 500 }}>
+                    {sub.studentCount - sub.paidFees} pending
                 </span>
             </div>
         </motion.div>
@@ -280,7 +261,7 @@ const SubjectCard = ({ sub, idx, theme, onClick }) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────
-// MAIN DASHBOARD  — all original logic preserved exactly
+// MAIN DASHBOARD
 // ─────────────────────────────────────────────────────────────────────
 export default function Dashboard() {
     // ── original state ──
@@ -289,11 +270,9 @@ export default function Dashboard() {
     const [reportOpen, setReportOpen] = useState(false);
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [selectedSubject, setSelectedSubject] = useState(null);
-
-    // ── new UI state ──
     const [isDark, setIsDark] = useState(true);
+    
     const theme = isDark ? DARK : LIGHT;
-
     const { t } = useTranslation();
     const navigate = useNavigate();
 
@@ -332,7 +311,7 @@ export default function Dashboard() {
         }
     };
 
-    // ── compute overall collection rate from real data ──
+    // ── compute overall collection rate ──
     const collectionRate = stats && stats.subjectStats && stats.subjectStats.length > 0
         ? Math.round(
             (stats.subjectStats.reduce((a, s) => a + s.paidFees, 0) /
@@ -340,326 +319,355 @@ export default function Dashboard() {
           )
         : 0;
 
-    // ─────────────────────────────────────────────────────────────
-    // LOADING STATE
-    // ─────────────────────────────────────────────────────────────
+    // ── loading state ──
     if (loading) return (
         <div style={{
-            minHeight: '100vh', background: DARK.bg,
-            display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center', gap: 20
+            minHeight: '100vh', display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: 20,
+            background: 'var(--kimi-color-surface, #0a0e1e)'
         }}>
             <motion.div
                 animate={{ rotate: 360 }}
-                transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                 style={{
-                    width: 52, height: 52, borderRadius: '50%',
-                    border: `3px solid rgba(255,255,255,0.08)`,
-                    borderTop: `3px solid ${C.cyan}`,
+                    width: 44, height: 44, borderRadius: '50%',
+                    border: '3px solid var(--kimi-color-border)',
+                    borderTopColor: 'var(--kimi-chart-1, #3b82f6)',
                 }}
             />
             <span style={{
-                fontFamily: "'DM Sans', sans-serif",
-                color: '#888880', fontSize: 13, letterSpacing: '2px',
-                textTransform: 'uppercase'
-            }}>Loading Dashboard…</span>
+                color: 'var(--kimi-color-text-tertiary)', fontSize: 13,
+                letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: 500
+            }}>Loading dashboard…</span>
         </div>
     );
 
-    // ─────────────────────────────────────────────────────────────
-    // ERROR STATE
-    // ─────────────────────────────────────────────────────────────
+    // ── error state ──
     if (!stats || typeof stats === 'string') return (
         <div style={{
-            minHeight: '100vh', background: DARK.bg,
-            display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center', gap: 16
+            minHeight: '100vh', display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: 16,
+            background: 'var(--kimi-color-surface, #0a0e1e)'
         }}>
-            <div style={{ fontSize: 36 }}>⚠️</div>
-            <div style={{ color: '#f2f1ee', fontWeight: 700, fontSize: 18, fontFamily: "'DM Sans',sans-serif" }}>
-                Error loading stats
-            </div>
+            <div style={{ fontSize: 32 }}>⚠️</div>
+            <div style={{ 
+                color: 'var(--kimi-color-text-primary)', 
+                fontWeight: 500, fontSize: 16 
+            }}>Error loading stats</div>
             <motion.button
                 whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                 onClick={fetchStats}
                 style={{
-                    border: 'none', cursor: 'pointer', padding: '10px 24px',
-                    borderRadius: 12, background: C.cyan, color: '#000',
-                    fontWeight: 700, fontSize: 13, fontFamily: "'DM Sans',sans-serif"
+                    border: 'none', cursor: 'pointer', padding: '10px 22px',
+                    borderRadius: 10, background: 'var(--kimi-chart-1, #3b82f6)',
+                    color: '#fff', fontWeight: 500, fontSize: 13,
                 }}
             >↺ Retry</motion.button>
         </div>
     );
 
-    // ─────────────────────────────────────────────────────────────
-    // MAIN RENDER
-    // ─────────────────────────────────────────────────────────────
+    // ── main render ──
     return (
         <div style={{
             minHeight: '100vh',
             background: theme.bg,
-            fontFamily: "'DM Sans', 'Inter', sans-serif",
+            fontFamily: 'var(--kimi-font-sans, sans-serif)',
             color: theme.text,
             position: 'relative',
             overflow: 'hidden',
-            transition: 'background 0.4s, color 0.4s',
+            transition: 'color 0.3s',
         }}>
-            {/* ── Background orbs ── */}
-            <GlowOrb color={C.cyan}    size={520} x="8%"  y="12%"  blur={120} opacity={isDark ? 0.11 : 0.06} />
-            <GlowOrb color={C.violet}  size={420} x="88%" y="20%"  blur={110} opacity={isDark ? 0.09 : 0.05} />
-            <GlowOrb color={C.emerald} size={360} x="55%" y="85%"  blur={100} opacity={isDark ? 0.08 : 0.04} />
-
-            {/* ── Dot-grid texture ── */}
+            {/* Background dot pattern */}
             <div style={{
                 position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
-                backgroundImage: `
-                    linear-gradient(${theme.border} 1px, transparent 1px),
-                    linear-gradient(90deg, ${theme.border} 1px, transparent 1px)`,
-                backgroundSize: '48px 48px',
-                opacity: isDark ? 0.55 : 0.35,
+                backgroundImage: `radial-gradient(circle, ${theme.border} 1px, transparent 1px)`,
+                backgroundSize: '24px 24px',
+                opacity: 0.4,
             }} />
 
-            {/* ── Page content ── */}
-            <div style={{ position: 'relative', zIndex: 1, maxWidth: 1280, margin: '0 auto', padding: '0 28px 80px' }}>
-
+            {/* Page content */}
+            <div style={{ position: 'relative', zIndex: 1, maxWidth: 1200, margin: '0 auto', padding: '0 24px 60px' }}>
+                
                 {/* ═══ TOP NAV ═══ */}
-                <div style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '22px 0 28px',
-                    borderBottom: `1px solid ${theme.border}`,
-                    marginBottom: 40, flexWrap: 'wrap', gap: 16,
-                }}>
+                <motion.div
+                    initial={{ opacity: 0, y: -12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                    style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '20px 0 24px',
+                        borderBottom: `1px solid ${theme.border}`,
+                        marginBottom: 32, flexWrap: 'wrap', gap: 14,
+                    }}
+                >
                     {/* Logo */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{
-                            width: 40, height: 40, borderRadius: 13,
-                            background: `linear-gradient(135deg, ${C.cyan}, ${C.indigo})`,
+                            width: 38, height: 38, borderRadius: 10,
+                            background: 'var(--kimi-color-text-primary)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 19, fontWeight: 900, color: '#fff',
-                            boxShadow: `0 0 22px ${C.cyan}44`,
+                            fontSize: 17, fontWeight: 600, color: 'var(--kimi-color-surface)',
                         }}>E</div>
                         <div>
-                            <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: '-0.4px' }}>EduFlex</div>
-                            <div style={{ fontSize: 10, color: theme.sub, marginTop: -1 }}>Institute Dashboard</div>
+                            <div style={{ fontWeight: 500, fontSize: 16 }}>EduFlex</div>
+                            <div style={{ fontSize: 11, color: theme.textSecondary, marginTop: -1 }}>
+                                Institute dashboard
+                            </div>
                         </div>
                     </div>
 
                     {/* Right actions */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                        {/* Live indicator */}
+                        <div style={{
+                            display: 'flex', alignItems: 'center', gap: 6,
+                            fontSize: 12, color: C.positive, fontWeight: 500,
+                            background: `color-mix(in srgb, ${C.positive} 8%, transparent)`,
+                            padding: '5px 10px', borderRadius: 99,
+                        }}>
+                            <span style={{
+                                width: 7, height: 7, borderRadius: '50%',
+                                background: C.positive,
+                                animation: 'pulse 2s ease-in-out infinite',
+                                display: 'inline-block'
+                            }} />
+                            Live data
+                        </div>
+
                         {/* Theme toggle */}
                         <motion.button
                             whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
                             onClick={() => setIsDark(!isDark)}
                             style={{
-                                width: 38, height: 38, borderRadius: 11,
+                                width: 36, height: 36, borderRadius: 8,
                                 border: `1px solid ${theme.border}`,
                                 background: theme.surface, cursor: 'pointer',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: 16, backdropFilter: 'blur(20px)',
+                                fontSize: 15, color: theme.textSecondary,
                             }}
                         >{isDark ? '☀️' : '🌙'}</motion.button>
 
-                        {/* Fix Data — original handler */}
+                        {/* Fix Data */}
                         <motion.button
                             whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
                             onClick={handleFixData}
                             style={{
-                                border: `1px solid ${C.amber}33`, cursor: 'pointer',
-                                padding: '8px 16px', borderRadius: 11,
-                                background: C.amber + '14', color: C.amber,
-                                fontWeight: 700, fontSize: 12,
-                                fontFamily: "'DM Sans',sans-serif",
+                                border: `1px solid ${C.warning}33`, cursor: 'pointer',
+                                padding: '7px 14px', borderRadius: 8,
+                                background: `color-mix(in srgb, ${C.warning} 8%, transparent)`,
+                                color: C.warning, fontWeight: 500, fontSize: 12,
                             }}
-                        >🔧 Fix Data</motion.button>
+                        >🔧 Fix data</motion.button>
 
-                        {/* Generate Report — original handler */}
+                        {/* Generate Report */}
                         <motion.button
                             whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
                             onClick={() => setReportOpen(true)}
                             style={{
                                 border: 'none', cursor: 'pointer',
-                                padding: '9px 18px', borderRadius: 11,
-                                background: `linear-gradient(135deg, ${C.cyan}, ${C.indigo})`,
-                                color: '#fff', fontWeight: 700, fontSize: 12,
-                                fontFamily: "'DM Sans',sans-serif",
-                                boxShadow: `0 0 22px ${C.cyan}40`,
+                                padding: '8px 16px', borderRadius: 8,
+                                background: 'var(--kimi-color-text-primary)',
+                                color: 'var(--kimi-color-surface)', fontWeight: 500, fontSize: 12,
                             }}
                         >📊 {t('generate_report')}</motion.button>
 
-                        {/* QR Scan — original navigate */}
+                        {/* QR Scan */}
                         <motion.button
                             whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
                             onClick={() => navigate('/qr-scanner')}
                             style={{
                                 border: 'none', cursor: 'pointer',
-                                padding: '9px 18px', borderRadius: 11,
-                                background: `linear-gradient(135deg, ${C.amber}, ${C.rose})`,
-                                color: '#fff', fontWeight: 700, fontSize: 12,
-                                fontFamily: "'DM Sans',sans-serif",
-                                boxShadow: `0 0 22px ${C.amber}40`,
+                                padding: '8px 16px', borderRadius: 8,
+                                background: C.blue, color: '#fff',
+                                fontWeight: 500, fontSize: 12,
                             }}
                         >📷 Scan</motion.button>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* ═══ HERO HEADER ═══ */}
                 <motion.div
-                    initial={{ opacity: 0, y: -18 }}
+                    initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.55 }}
+                    transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
                     style={{
                         display: 'flex', alignItems: 'flex-end',
                         justifyContent: 'space-between',
-                        flexWrap: 'wrap', gap: 20, marginBottom: 44
+                        flexWrap: 'wrap', gap: 16, marginBottom: 28
                     }}
                 >
                     <div>
                         <div style={{
-                            fontSize: 10, fontWeight: 800, letterSpacing: '3px',
-                            textTransform: 'uppercase', color: C.cyan, marginBottom: 10,
-                        }}>● Live Dashboard</div>
+                            fontSize: 11, fontWeight: 600, letterSpacing: '2px',
+                            textTransform: 'uppercase', color: C.blue, marginBottom: 8,
+                        }}>● Live overview</div>
                         <h1 style={{
                             margin: 0,
-                            fontSize: 'clamp(30px,5vw,52px)',
-                            fontWeight: 900, letterSpacing: '-2px', lineHeight: 1.05,
-                            fontFamily: "'Outfit','DM Sans',sans-serif",
-                            background: isDark
-                                ? `linear-gradient(135deg, #fff 30%, ${C.cyan} 75%)`
-                                : `linear-gradient(135deg, #0f0e0c 30%, ${C.indigo} 75%)`,
-                            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                            fontSize: 'clamp(28px, 4vw, 44px)',
+                            fontWeight: 500, lineHeight: 1.1,
+                            fontFamily: 'var(--kimi-font-sans, sans-serif)',
+                            color: theme.text,
                         }}>
                             {t('dashboard_overview')}
                         </h1>
-                        <p style={{ margin: '8px 0 0', fontSize: 14, color: theme.sub, fontWeight: 500 }}>
+                        <p style={{ margin: '6px 0 0', fontSize: 14, color: theme.textSecondary }}>
                             {t('dashboard_subtitle')}
                         </p>
                     </div>
 
-                    {/* Overall collection rate from REAL data */}
-                    <div style={{
-                        background: theme.surface, border: `1px solid ${theme.border}`,
-                        borderRadius: 18, padding: '18px 24px',
-                        backdropFilter: 'blur(20px)', textAlign: 'right',
-                        boxShadow: `0 0 30px ${C.emerald}12`
-                    }}>
-                        <div style={{ fontSize: 10, color: theme.sub, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                            Overall Collection Rate
+                    {/* Overall collection rate */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.5, delay: 0.3 }}
+                        style={{
+                            background: theme.surface,
+                            border: `1px solid ${theme.border}`,
+                            borderRadius: 12, padding: '16px 22px',
+                            textAlign: 'right',
+                        }}
+                    >
+                        <div style={{ fontSize: 11, color: theme.textSecondary, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 500 }}>
+                            Overall collection
                         </div>
                         <div style={{
-                            fontSize: 30, fontWeight: 900, letterSpacing: '-1px',
-                            color: C.emerald, fontFamily: "'Outfit',sans-serif"
+                            fontSize: 28, fontWeight: 500, lineHeight: 1,
+                            color: C.positive, fontVariantNumeric: 'tabular-nums',
                         }}>
-                            <AnimatedNumber value={collectionRate} />%
+                            <AnimatedCounter value={collectionRate} />%
                         </div>
-                        <div style={{ fontSize: 10, color: theme.sub, marginTop: 3 }}>from MongoDB live data</div>
-                    </div>
+                        <div style={{ fontSize: 10, color: theme.textTertiary, marginTop: 4 }}>
+                            from MongoDB live data
+                        </div>
+                    </motion.div>
                 </motion.div>
 
-                {/* ═══ STAT CARDS — wired to real stats ═══ */}
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
-                    gap: 18, marginBottom: 36
-                }}>
+                {/* ═══ STAT CARDS ═══ */}
+                <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                        gap: 16, marginBottom: 28
+                    }}
+                >
                     <StatCard
                         title={t('total_students')}
                         value={stats.totalStudents}
                         icon="👥"
-                        accent={C.cyan}
+                        accent={C.blue}
                         spark={SPARKS.students}
                         theme={theme}
+                        index={0}
                     />
                     <StatCard
                         title={t('total_subjects')}
                         value={stats.totalSubjects}
                         icon="📚"
-                        accent={C.indigo}
+                        accent={C.purple}
                         spark={SPARKS.subjects}
                         theme={theme}
+                        index={1}
                     />
                     <StatCard
                         title="Teachers"
                         value={stats.teacherCount || 0}
                         icon="🎓"
-                        accent={C.emerald}
+                        accent={C.green}
                         spark={SPARKS.teachers}
                         theme={theme}
                         onClick={() => navigate('/teachers')}
+                        index={2}
                     />
-                </div>
+                    <StatCard
+                        title="Collection rate"
+                        value={`${collectionRate}%`}
+                        icon="📈"
+                        accent={C.positive}
+                        theme={theme}
+                        index={3}
+                    />
+                </motion.div>
 
-                {/* ═══ ANALYTICS CHART — your original component ═══ */}
+                {/* ═══ ANALYTICS CHART ═══ */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.55, delay: 0.15 }}
+                    transition={{ duration: 0.5, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
                     style={{
-                        background: theme.card,
+                        background: theme.surfaceRaised,
                         border: `1px solid ${theme.border}`,
-                        borderRadius: 24, padding: 30,
-                        backdropFilter: 'blur(28px)',
-                        WebkitBackdropFilter: 'blur(28px)',
-                        marginBottom: 36,
-                        boxShadow: '0 16px 40px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.08)'
+                        borderRadius: 12, padding: 24,
+                        marginBottom: 28,
                     }}
                 >
-
-                    <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: '-0.3px', marginBottom: 4 }}>
+                    <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 4 }}>
                         Analytics
                     </div>
-                    <div style={{ fontSize: 12, color: theme.sub, marginBottom: 20 }}>
+                    <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 16 }}>
                         Live data from your MongoDB
                     </div>
                     <AnalyticsChart />
                 </motion.div>
 
-                {/* ═══ SUBJECT PERFORMANCE — wired to real stats.subjectStats ═══ */}
-                <div>
+                {/* ═══ SUBJECT PERFORMANCE ═══ */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.45 }}
+                >
                     <div style={{
                         display: 'flex', alignItems: 'flex-end',
                         justifyContent: 'space-between',
-                        flexWrap: 'wrap', gap: 12, marginBottom: 24
+                        flexWrap: 'wrap', gap: 12, marginBottom: 20
                     }}>
                         <div>
                             <h2 style={{
-                                margin: 0, fontWeight: 900, fontSize: 22,
-                                letterSpacing: '-0.8px', color: theme.text
+                                margin: 0, fontWeight: 500, fontSize: 18,
+                                color: theme.text
                             }}>
-                                Subject Performance
+                                Subject performance
                             </h2>
-                            <p style={{ margin: '4px 0 0', fontSize: 12, color: theme.sub }}>
+                            <p style={{ margin: '4px 0 0', fontSize: 12, color: theme.textSecondary }}>
                                 Fee collection rates — live from MongoDB
                             </p>
                         </div>
                         <div style={{ display: 'flex', gap: 14 }}>
                             {[
-                                { color: C.emerald, label: 'Good (>80%)' },
-                                { color: C.rose,    label: 'Needs Attention' },
+                                { color: C.positive, label: 'Good (>80%)' },
+                                { color: C.warning, label: 'Needs attention' },
                             ].map(({ color, label }) => (
-                                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: theme.sub }}>
-                                    <div style={{ width: 9, height: 9, borderRadius: 3, background: color }} />
+                                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: theme.textSecondary }}>
+                                    <div style={{ width: 8, height: 8, borderRadius: 2, background: color }} />
                                     {label}
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
-                        gap: 16
-                    }}>
+                    <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                            gap: 14
+                        }}
+                    >
                         {(stats.subjectStats || []).map((sub, i) => (
                             <SubjectCard
                                 key={sub.subject}
                                 sub={sub}
                                 idx={i}
                                 theme={theme}
-                                onClick={() => handleSubjectClick(sub.subject)}   // original handler
+                                onClick={() => handleSubjectClick(sub.subject)}
                             />
                         ))}
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
 
                 {/* ═══ FOOTER ═══ */}
                 <motion.div
@@ -667,28 +675,27 @@ export default function Dashboard() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.8 }}
                     style={{
-                        marginTop: 52,
+                        marginTop: 40,
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '18px 0',
+                        padding: '16px 0',
                         borderTop: `1px solid ${theme.border}`,
-                        fontSize: 11, color: theme.sub, flexWrap: 'wrap', gap: 8,
+                        fontSize: 11, color: theme.textTertiary, flexWrap: 'wrap', gap: 8,
                     }}
                 >
-                    <span>EduFlex Institute • Real-time Dashboard</span>
+                    <span>EduFlex Institute • Real-time dashboard</span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{
-                            width: 7, height: 7, borderRadius: '50%',
-                            background: C.emerald, display: 'inline-block',
-                            boxShadow: `0 0 7px ${C.emerald}`,
-                            animation: 'blink 2s ease-in-out infinite'
+                            width: 6, height: 6, borderRadius: '50%',
+                            background: C.positive, display: 'inline-block',
+                            animation: 'pulse 2s ease-in-out infinite'
                         }} />
-                        MongoDB Connected
+                        MongoDB connected
                     </span>
                     <span>Live data · auto-refresh on mount</span>
                 </motion.div>
             </div>
 
-            {/* ═══ ALL ORIGINAL DIALOGS — completely unchanged ═══ */}
+            {/* ═══ ALL ORIGINAL DIALOGS — unchanged ═══ */}
             <ReportDialog
                 open={reportOpen}
                 onClose={() => setReportOpen(false)}
@@ -700,8 +707,9 @@ export default function Dashboard() {
             />
 
             <style>{`
-                @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
+                @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.35;transform:scale(0.8)} }
             `}</style>
         </div>
     );
 }
+
