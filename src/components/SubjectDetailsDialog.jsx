@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions, Button,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-    CircularProgress, Typography, Box, Chip, FormControl, InputLabel, Select, MenuItem
+    CircularProgress, Typography, Box, Chip, FormControl, InputLabel, Select, MenuItem,
+    TextField, Grid, Tooltip, IconButton
 } from '@mui/material';
 import axios from 'axios';
 import API_BASE_URL from '../config';
@@ -12,7 +13,12 @@ import StudentListDialog from './StudentListDialog';
 import { useTranslation } from 'react-i18next';
 import { setupPdfFont, getTranslatedMonth, formatDate } from '../utils/pdfUtils';
 
-export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
+const COLOR_PRESETS = [
+    '#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b',
+    '#ec4899', '#ff5c7c', '#6366f1', '#14b8a6'
+];
+
+export default function SubjectDetailsDialog({ open, onClose, subjectName, onUpdate }) {
     const { t, i18n } = useTranslation();
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [details, setDetails] = useState([]);
@@ -26,6 +32,7 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
     const [newFeeType, setNewFeeType] = useState('monthly');
     const [newClassDaysCount, setNewClassDaysCount] = useState(5);
     const [showScheduleEditor, setShowScheduleEditor] = useState(false);
+    const [showEditSubject, setShowEditSubject] = useState(false);
     const [schedules, setSchedules] = useState([]);
     const [allGrades, setAllGrades] = useState([]);
     const [newSchGrade, setNewSchGrade] = useState('');
@@ -33,6 +40,14 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
     const [newSchStartTime, setNewSchStartTime] = useState('');
     const [newSchEndTime, setNewSchEndTime] = useState('');
     const [newSchStartDate, setNewSchStartDate] = useState('');
+
+    // Full edit states
+    const [editName, setEditName] = useState('');
+    const [editDescription, setEditDescription] = useState('');
+    const [editColor, setEditColor] = useState('#0ea5e9');
+    const [editTeacherName, setEditTeacherName] = useState('');
+    const [teachersList, setTeachersList] = useState([]);
+    const [savingSubject, setSavingSubject] = useState(false);
     const currentLang = i18n.language;
 
     const monthNames = [
@@ -152,8 +167,12 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
 
     const fetchSubjectInfo = async () => {
         try {
-            const { data } = await axios.get(`${API_BASE_URL}/api/subjects`);
-            const sub = data.find(s => s.name === subjectName);
+            const [subRes, teachersRes, gradesRes] = await Promise.all([
+                axios.get(`${API_BASE_URL}/api/subjects`),
+                axios.get(`${API_BASE_URL}/api/auth/teachers`),
+                axios.get(`${API_BASE_URL}/api/students/grades`)
+            ]);
+            const sub = subRes.data.find(s => s.name === subjectName);
             if (sub) {
                 setSubjectFee(sub.fee || 0);
                 setNewFee(sub.fee || 0);
@@ -162,14 +181,59 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                 setSubjectClassDaysCount(sub.classDaysCount || 5);
                 setNewClassDaysCount(sub.classDaysCount || 5);
                 setSchedules(sub.gradeSchedules || []);
+
+                setEditName(sub.name);
+                setEditDescription(sub.description || '');
+                setEditColor(sub.color || '#0ea5e9');
             }
 
-            const gradesRes = await axios.get(`${API_BASE_URL}/api/students/grades`);
+            const tList = teachersRes.data || [];
+            setTeachersList(tList);
+            const assignedT = tList.find(t => t.assignedSubject === subjectName);
+            setEditTeacherName(assignedT ? assignedT.username : '');
             setAllGrades(gradesRes.data || []);
         } catch (err) {
             console.error("Error fetching subject info", err);
         }
-    }
+    };
+
+    const handleSaveFullSubject = async () => {
+        if (!editName.trim()) return alert("Subject name is required");
+        setSavingSubject(true);
+        try {
+            await axios.put(`${API_BASE_URL}/api/subjects/${encodeURIComponent(subjectName)}`, {
+                name: editName.trim(),
+                description: editDescription,
+                color: editColor,
+                fee: newFee,
+                feeType: newFeeType,
+                classDaysCount: newClassDaysCount,
+                teacherName: editTeacherName
+            });
+            alert("Subject updated successfully!");
+            setShowEditSubject(false);
+            if (onUpdate) onUpdate();
+            onClose();
+        } catch (err) {
+            console.error("Error updating subject", err);
+            alert(err.response?.data?.message || "Failed to update subject");
+        } finally {
+            setSavingSubject(false);
+        }
+    };
+
+    const handleDeleteSubject = async () => {
+        if (!window.confirm(`Are you sure you want to permanently delete "${subjectName}"? This will unlink teachers and remove enrollments.`)) return;
+        try {
+            await axios.delete(`${API_BASE_URL}/api/subjects/${encodeURIComponent(subjectName)}`);
+            alert("Subject deleted successfully!");
+            if (onUpdate) onUpdate();
+            onClose();
+        } catch (err) {
+            console.error("Error deleting subject", err);
+            alert(err.response?.data?.message || "Failed to delete subject");
+        }
+    };
 
     const [studentListOpen, setStudentListOpen] = useState(false);
     const [selectedGradeData, setSelectedGradeData] = useState(null);
@@ -260,10 +324,145 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-            <DialogTitle sx={{ fontWeight: 'bold' }}>
-                {subjectName} - {t('grade_breakdown')}
+            <DialogTitle sx={{ fontWeight: 'bold', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                <span>{subjectName}</span>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button 
+                        size="small" 
+                        variant={showEditSubject ? "contained" : "outlined"} 
+                        color="primary"
+                        onClick={() => {
+                            setShowEditSubject(!showEditSubject);
+                            setShowScheduleEditor(false);
+                        }}
+                    >
+                        {showEditSubject ? "View Stats" : "✏️ Edit Subject"}
+                    </Button>
+                    <Button 
+                        size="small" 
+                        variant="outlined" 
+                        color="error"
+                        onClick={handleDeleteSubject}
+                    >
+                        🗑 Delete
+                    </Button>
+                </Box>
             </DialogTitle>
             <DialogContent dividers>
+                {showEditSubject ? (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, py: 1 }}>
+                        <Typography variant="h6" sx={{ fontSize: '1.05rem', fontWeight: 700 }}>
+                            Edit Subject Details
+                        </Typography>
+
+                        <TextField
+                            fullWidth
+                            label="Subject Name"
+                            size="small"
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                        />
+
+                        <TextField
+                            fullWidth
+                            label="Description (Optional)"
+                            size="small"
+                            multiline
+                            rows={2}
+                            value={editDescription}
+                            onChange={(e) => setEditDescription(e.target.value)}
+                        />
+
+                        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                            <FormControl size="small" sx={{ flex: 1, minWidth: 140 }}>
+                                <InputLabel id="edit-feetype-label">Fee Type</InputLabel>
+                                <Select
+                                    labelId="edit-feetype-label"
+                                    value={newFeeType}
+                                    label="Fee Type"
+                                    onChange={(e) => setNewFeeType(e.target.value)}
+                                >
+                                    <MenuItem value="monthly">Monthly Fee</MenuItem>
+                                    <MenuItem value="daily">Day Fee</MenuItem>
+                                </Select>
+                            </FormControl>
+
+                            <TextField
+                                label="Fee Amount (LKR)"
+                                type="number"
+                                size="small"
+                                sx={{ flex: 1, minWidth: 140 }}
+                                value={newFee}
+                                onChange={(e) => setNewFee(parseFloat(e.target.value) || 0)}
+                            />
+
+                            <TextField
+                                label="Monthly Sessions (Days)"
+                                type="number"
+                                size="small"
+                                sx={{ flex: 1, minWidth: 140 }}
+                                value={newClassDaysCount}
+                                onChange={(e) => setNewClassDaysCount(parseInt(e.target.value) || 5)}
+                            />
+                        </Box>
+
+                        <FormControl fullWidth size="small">
+                            <InputLabel id="edit-teacher-label">Assigned Teacher</InputLabel>
+                            <Select
+                                labelId="edit-teacher-label"
+                                value={editTeacherName}
+                                label="Assigned Teacher"
+                                onChange={(e) => setEditTeacherName(e.target.value)}
+                            >
+                                <MenuItem value=""><em>None / Unassigned</em></MenuItem>
+                                {teachersList.map((t) => (
+                                    <MenuItem key={t._id} value={t.username}>{t.username}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <Box>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', mb: 1 }}>
+                                Theme Color
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                                {COLOR_PRESETS.map((c) => (
+                                    <Box
+                                        key={c}
+                                        onClick={() => setEditColor(c)}
+                                        sx={{
+                                            width: 28, height: 28, borderRadius: '50%',
+                                            bgcolor: c, cursor: 'pointer',
+                                            border: editColor === c ? '3px solid #fff' : '2px solid transparent',
+                                            boxShadow: editColor === c ? '0 0 10px rgba(0,0,0,0.5)' : 'none',
+                                            transition: 'transform 0.15s ease',
+                                            '&:hover': { transform: 'scale(1.15)' }
+                                        }}
+                                    />
+                                ))}
+                            </Box>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', gap: 1.5, mt: 1 }}>
+                            <Button 
+                                variant="contained" 
+                                color="primary" 
+                                onClick={handleSaveFullSubject}
+                                disabled={savingSubject}
+                                sx={{ flex: 1 }}
+                            >
+                                {savingSubject ? "Saving..." : "Save Subject"}
+                            </Button>
+                            <Button 
+                                variant="outlined" 
+                                onClick={() => setShowEditSubject(false)}
+                            >
+                                Cancel
+                            </Button>
+                        </Box>
+                    </Box>
+                ) : (
+                    <>
                 <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Typography variant="subtitle1">
@@ -495,14 +694,20 @@ export default function SubjectDetailsDialog({ open, onClose, subjectName }) {
                         </TableContainer>
                     )
                 )}
+                    </>
+                )}
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => setShowScheduleEditor(!showScheduleEditor)} variant="outlined" color="secondary">
-                    {showScheduleEditor ? "Show Student Stats" : "Manage Grade Associations"}
-                </Button>
-                <Button onClick={handleDownloadPDF} variant="contained" color="primary" disabled={details.length === 0 || showScheduleEditor}>
-                    {t('download_pdf')}
-                </Button>
+                {!showEditSubject && (
+                    <>
+                        <Button onClick={() => setShowScheduleEditor(!showScheduleEditor)} variant="outlined" color="secondary">
+                            {showScheduleEditor ? "Show Student Stats" : "Manage Grade Associations"}
+                        </Button>
+                        <Button onClick={handleDownloadPDF} variant="contained" color="primary" disabled={details.length === 0 || showScheduleEditor}>
+                            {t('download_pdf')}
+                        </Button>
+                    </>
+                )}
                 <Button onClick={onClose}>{t('close')}</Button>
             </DialogActions>
 

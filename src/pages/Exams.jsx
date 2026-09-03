@@ -47,6 +47,9 @@ export default function Exams() {
   const [selectedSubject, setSelectedSubject] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newExamTitle, setNewExamTitle] = useState('');
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editExamTitle, setEditExamTitle] = useState('');
+  const [editExamDate, setEditExamDate] = useState('');
   const [selectedExam, setSelectedExam] = useState(null);
   const [examStudents, setExamStudents] = useState([]);
   const [savingId, setSavingId] = useState(null);
@@ -164,6 +167,31 @@ export default function Exams() {
       fetchExams();
     } catch (err) {
       toast.error('Failed to delete exam');
+    }
+  };
+
+  const handleOpenEdit = () => {
+    setEditExamTitle(selectedExam.title);
+    setEditExamDate(selectedExam.date ? new Date(selectedExam.date).toISOString().split('T')[0] : '');
+    setShowEditModal(true);
+  };
+
+  const handleUpdateExam = async (e) => {
+    e.preventDefault();
+    if (!editExamTitle.trim()) return toast.error('Exam title is required');
+    try {
+      const { data } = await axios.put(
+        `${API_BASE_URL}/api/exams/${selectedExam._id}`,
+        { title: editExamTitle, date: editExamDate },
+        { headers: { Authorization: `Bearer ${getToken()}` } }
+      );
+      setSelectedExam(data);
+      toast.success('Exam updated successfully');
+      setShowEditModal(false);
+      fetchExams();
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to update exam');
     }
   };
 
@@ -436,7 +464,18 @@ export default function Exams() {
                   {selectedExam.grade} · {selectedExam.subject?.name}
                 </p>
               </div>
-              <div style={{ display: 'flex', gap: 10 }}>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <motion.button
+                  whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                  onClick={handleOpenEdit}
+                  style={{
+                    padding: '9px 18px', borderRadius: 10, border: `1px solid ${C.cyan}`,
+                    background: 'transparent', color: C.cyan, fontWeight: 600, fontSize: 13, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                  }}
+                >
+                  ✏️ Edit Details
+                </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
                   onClick={handleDeleteExam}
@@ -699,8 +738,8 @@ export default function Exams() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setShowCreateModal(false)}
             style={{
-              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)',
-              backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center',
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
+              display: 'flex', alignItems: 'center',
               justifyContent: 'center', zIndex: 1000, padding: 16,
             }}
           >
@@ -758,6 +797,86 @@ export default function Exams() {
         )}
       </AnimatePresence>
 
+      {/* ── Edit modal ── */}
+      <AnimatePresence>
+        {showEditModal && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowEditModal(false)}
+            style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
+              display: 'flex', alignItems: 'center',
+              justifyContent: 'center', zIndex: 1000, padding: 16,
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.93, opacity: 0, y: 12 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: C.surface, border: `1px solid ${C.border}`,
+                borderRadius: 16, padding: 28, width: 420, maxWidth: '100%',
+              }}
+            >
+              <h3 style={{ margin: '0 0 6px', fontSize: 17, fontWeight: 700 }}>Edit Exam Details</h3>
+              <p style={{ margin: '0 0 20px', fontSize: 13, color: C.muted }}>
+                {selectedExam?.grade} · {selectedExam?.subject?.name}
+              </p>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 12, color: C.muted, marginBottom: 6 }}>Exam Title</label>
+                <input
+                  type="text"
+                  placeholder="Exam title"
+                  value={editExamTitle}
+                  onChange={e => setEditExamTitle(e.target.value)}
+                  style={{
+                    width: '100%', padding: '11px 14px', borderRadius: 10,
+                    border: `1px solid ${C.border}`, background: C.surfaceAlt,
+                    color: C.text, fontSize: 14, outline: 'none', boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', fontSize: 12, color: C.muted, marginBottom: 6 }}>Exam Date</label>
+                <input
+                  type="date"
+                  value={editExamDate}
+                  onChange={e => setEditExamDate(e.target.value)}
+                  style={{
+                    width: '100%', padding: '11px 14px', borderRadius: 10,
+                    border: `1px solid ${C.border}`, background: C.surfaceAlt,
+                    color: C.text, fontSize: 14, outline: 'none', boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  style={{
+                    flex: 1, padding: '11px', borderRadius: 10, border: `1px solid ${C.border}`,
+                    background: 'transparent', color: C.text, cursor: 'pointer', fontSize: 14,
+                  }}
+                >
+                  Cancel
+                </button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                  onClick={handleUpdateExam}
+                  style={{
+                    flex: 1, padding: '11px', borderRadius: 10, border: 'none',
+                    background: C.cyan, color: '#000', cursor: 'pointer',
+                    fontSize: 14, fontWeight: 600,
+                  }}
+                >
+                  Save Changes
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Report modal ── */}
       <AnimatePresence>
         {showReport && selectedExam && (
@@ -765,7 +884,7 @@ export default function Exams() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             style={{
               position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
-              backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center',
+              display: 'flex', alignItems: 'center',
               justifyContent: 'center', zIndex: 2000, padding: 20, flexDirection: 'column'
             }}
           >
@@ -818,15 +937,15 @@ export default function Exams() {
 
                   {/* Stats */}
                   <div style={{ display: 'flex', gap: 15, marginBottom: 35, position: 'relative', zIndex: 2 }}>
-                      <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px', backdropFilter: 'blur(10px)' }}>
+                      <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px' }}>
                           <p style={{ margin: 0, fontSize: 11, color: '#8e93b5', textTransform: 'uppercase', letterSpacing: 1 }}>Total Students</p>
                           <p style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 700, color: '#63b3ed' }}>{examStudents.length}</p>
                       </div>
-                      <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px', backdropFilter: 'blur(10px)' }}>
+                      <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px' }}>
                           <p style={{ margin: 0, fontSize: 11, color: '#8e93b5', textTransform: 'uppercase', letterSpacing: 1 }}>Graded</p>
                           <p style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 700, color: '#f6ad55' }}>{gradedStudents.length}</p>
                       </div>
-                      <div style={{ flex: 2, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px', backdropFilter: 'blur(10px)' }}>
+                      <div style={{ flex: 2, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px' }}>
                           <p style={{ margin: 0, fontSize: 11, color: '#8e93b5', textTransform: 'uppercase', letterSpacing: 1 }}>Grade Breakdown</p>
                           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
                               {Object.entries(GRADE_COLORS).map(([grade, info]) => {
@@ -852,7 +971,7 @@ export default function Exams() {
                               })}
                           </div>
                       </div>
-                      <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px', backdropFilter: 'blur(10px)' }}>
+                      <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px' }}>
                           <p style={{ margin: 0, fontSize: 11, color: '#8e93b5', textTransform: 'uppercase', letterSpacing: 1 }}>Pass Rate</p>
                           <p style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 700, color: '#fc814a' }}>{gradedStudents.length ? `${Math.round(passCount / gradedStudents.length * 100)}%` : '—'}</p>
                       </div>

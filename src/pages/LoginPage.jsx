@@ -4,131 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import API_BASE_URL from '../config';
 import logo from '../assets/logo.jpg';
-import instituteLoginBg from '../assets/institute-login-bg.png';
-
-
-
 /* ─────────────────────────────────────────────────────────────────────
-   ANIMATED CANVAS BACKGROUND — soft aurora orbs
+   LIGHTWEIGHT BACKGROUND & AMBIENT ELEMENTS
 ───────────────────────────────────────────────────────────────────── */
-function AuroraBackground() {
-  const canvasRef = useRef(null);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    let raf;
-    let t = 0;
 
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resize();
-    window.addEventListener('resize', resize);
-
-    const orbs = [
-      { cx: 0.15, cy: 0.25, r: 420, color: '#1a56db', speed: 0.0004 },
-      { cx: 0.85, cy: 0.15, r: 360, color: '#7c3aed', speed: 0.0003 },
-      { cx: 0.5,  cy: 0.85, r: 500, color: '#0e9f6e', speed: 0.00025 },
-      { cx: 0.75, cy: 0.65, r: 300, color: '#e3a008', speed: 0.0005 },
-      { cx: 0.25, cy: 0.75, r: 280, color: '#e74694', speed: 0.00035 },
-    ];
-
-    const draw = () => {
-      t += 1;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#06070d';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      orbs.forEach((orb, i) => {
-        const dx = Math.sin(t * orb.speed + i * 1.3) * 80;
-        const dy = Math.cos(t * orb.speed * 1.2 + i * 0.9) * 60;
-        const x = orb.cx * canvas.width + dx;
-        const y = orb.cy * canvas.height + dy;
-
-        const g = ctx.createRadialGradient(x, y, 0, x, y, orb.r);
-        g.addColorStop(0, orb.color + '28');
-        g.addColorStop(0.5, orb.color + '10');
-        g.addColorStop(1, 'transparent');
-
-        ctx.beginPath();
-        ctx.arc(x, y, orb.r, 0, Math.PI * 2);
-        ctx.fillStyle = g;
-        ctx.fill();
-      });
-
-      // subtle grid
-      ctx.strokeStyle = 'rgba(255,255,255,0.025)';
-      ctx.lineWidth = 1;
-      const step = 60;
-      for (let x = 0; x < canvas.width; x += step) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-      }
-      for (let y = 0; y < canvas.height; y += step) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-      }
-
-      raf = requestAnimationFrame(draw);
-    };
-    draw();
-
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
-  }, []);
-
-  return (
-    <canvas ref={canvasRef} style={{
-      position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none'
-    }} />
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────────
-   FLOATING STAT BADGES — decorative ambient elements
-───────────────────────────────────────────────────────────────────── */
-const badges = [
-  { label: 'Students', value: '2,840', icon: '🎓', top: '12%', left: '4%' },
-  { label: 'Teachers', value: '148',   icon: '📚', top: '20%', right: '5%' },
-  { label: 'Courses',  value: '96',    icon: '📖', bottom: '28%', left: '3%' },
-  { label: 'Avg Grade','value': 'A+',  icon: '🏆', bottom: '18%', right: '4%' },
-];
-
-function FloatingBadge({ label, value, icon, style, delay }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.8, ease: 'easeOut' }}
-      style={{
-        position: 'fixed',
-        zIndex: 5,
-        ...style,
-      }}
-    >
-      <motion.div
-        animate={{ y: [0, -8, 0] }}
-        transition={{ duration: 4 + delay, repeat: Infinity, ease: 'easeInOut' }}
-        style={{
-          background: 'rgba(255,255,255,0.04)',
-          backdropFilter: 'blur(16px)',
-          border: '1px solid rgba(255,255,255,0.10)',
-          borderRadius: 16,
-          padding: '10px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          minWidth: 130,
-        }}
-      >
-        <span style={{ fontSize: 22 }}>{icon}</span>
-        <div>
-          <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 10, fontFamily: "'DM Sans', sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</div>
-          <div style={{ color: '#fff', fontSize: 18, fontFamily: "'Sora', sans-serif", fontWeight: 700, lineHeight: 1.2 }}>{value}</div>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
 
 /* ─────────────────────────────────────────────────────────────────────
    ROLE CONFIG
@@ -189,11 +69,10 @@ function RoleCard({ config, selected, onClick, delay }) {
         borderRadius: 28,
         background: selected
           ? `linear-gradient(160deg, ${config.accent}22 0%, ${config.accent}08 100%)`
-          : 'rgba(255,255,255,0.025)',
-        border: `1.5px solid ${selected ? config.accent : 'rgba(255,255,255,0.07)'}`,
-        backdropFilter: 'blur(24px)',
-        boxShadow: selected ? `0 0 40px ${config.glow}, inset 0 1px 0 rgba(255,255,255,0.08)` : '0 4px 24px rgba(0,0,0,0.2)',
-        transition: 'all 0.3s ease',
+          : '#0b1120',
+        border: `1.5px solid ${selected ? config.accent : 'rgba(255,255,255,0.08)'}`,
+        boxShadow: selected ? `0 0 30px ${config.glow}` : '0 4px 20px rgba(0,0,0,0.3)',
+        transition: 'all 0.2s ease',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-start',
@@ -436,29 +315,17 @@ export default function LoginPage() {
         minHeight: '100vh',
         position: 'relative',
         overflow: 'hidden',
-        backgroundImage: `url(${instituteLoginBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
+        background: 'radial-gradient(ellipse at 50% 15%, #0f172a 0%, #030712 100%)',
         color: '#fff'
       }}>
-        {/* Institute Wallpaper Dark Mask Overlay */}
+        {/* Crisp subtle micro-dot pattern (lightweight CSS, zero repaint lag) */}
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: 'radial-gradient(circle at 50% 30%, rgba(6, 8, 20, 0.65) 0%, rgba(6, 8, 20, 0.92) 80%, #060814 100%)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          zIndex: 1
+          backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px)',
+          backgroundSize: '28px 28px',
+          pointerEvents: 'none',
         }} />
-
-        <AuroraBackground />
-
-
-        {/* Floating ambient badges */}
-        {badges.map((b, i) => (
-          <FloatingBadge key={i} {...b} style={{ top: b.top, bottom: b.bottom, left: b.left, right: b.right }} delay={0.5 + i * 0.15} />
-        ))}
 
         {/* Main content */}
         <div style={{
@@ -549,12 +416,11 @@ export default function LoginPage() {
                 style={{ width: '100%', maxWidth: 460 }}
               >
                 <div style={{
-                  background: 'rgba(255,255,255,0.025)',
-                  backdropFilter: 'blur(40px)',
-                  border: '1px solid rgba(255,255,255,0.07)',
-                  borderRadius: 36,
-                  padding: '40px 40px 36px',
-                  boxShadow: `0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03)`,
+                  background: '#0c1322',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 24,
+                  padding: '36px 36px 32px',
+                  boxShadow: '0 25px 60px rgba(0,0,0,0.6)',
                   position: 'relative',
                   overflow: 'hidden',
                 }}>

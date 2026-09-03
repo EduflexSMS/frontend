@@ -198,13 +198,12 @@ Thank you!`;
     const StatCard = ({ title, value, color, icon }) => (
         <Card component={motion.div} variants={itemVariants} sx={{
             height: '100%',
-            background: alpha(theme.palette.background.paper, 0.5),
-            backdropFilter: 'blur(10px)',
+            background: theme.palette.background.paper,
             borderRadius: 3,
             border: `1px solid ${theme.palette.divider}`,
-            transition: 'transform 0.2s',
-            boxShadow: `0 4px 20px 0 ${alpha(color, 0.15)}`,
-            '&:hover': { transform: 'translateY(-2px)', boxShadow: `0 6px 25px 0 ${alpha(color, 0.25)}` }
+            transition: 'transform 0.15s ease',
+            boxShadow: `0 4px 16px 0 ${alpha(color, 0.12)}`,
+            '&:hover': { transform: 'translateY(-2px)' }
         }}>
             <CardContent sx={{ display: 'flex', alignItems: 'center', p: { xs: 2, md: 3 } }}>
                 <Avatar sx={{ bgcolor: alpha(color, 0.1), color: color, width: 48, height: 48, mr: 2 }}>
@@ -233,7 +232,7 @@ Thank you!`;
                 </Box>
             </Box>
 
-            <MotionPaper variants={itemVariants} elevation={0} sx={{ p: { xs: 2.5, md: 3 }, mb: 4, borderRadius: 4, background: alpha(theme.palette.background.paper, 0.6), backdropFilter: 'blur(24px)', border: `1px solid ${theme.palette.divider}` }}>
+            <MotionPaper variants={itemVariants} elevation={0} sx={{ p: { xs: 2.5, md: 3 }, mb: 4, borderRadius: 4, background: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}>
                 <Grid container spacing={3} alignItems="center">
                     <Grid item xs={12} sm={6} md={3}>
                         <FormControl fullWidth size="small">
@@ -339,7 +338,7 @@ Thank you!`;
                         <Grid item xs={12} sm={6} md={4}><StatCard title={isDaily ? "Left to Pay (Today)" : "Left to Pay (This Month)"} value={summary.unpaidMonth} color={theme.palette.error.light} icon={<Cancel />} /></Grid>
                     </Grid>
 
-                    <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 4, bgcolor: alpha(theme.palette.background.paper, 0.6), backdropFilter: 'blur(20px)', border: `1px solid ${theme.palette.divider}` }}>
+                    <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 4, bgcolor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}>
                         <Table>
                             <TableHead>
                                 <TableRow sx={{ background: alpha(theme.palette.primary.main, 0.05) }}>

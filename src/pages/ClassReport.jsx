@@ -468,15 +468,14 @@ export default function ClassReport() {
                 sx={{
                     mb: 2,
                     borderRadius: 3,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-                    background: alpha(theme.palette.background.paper, 0.5),
-                    backdropFilter: 'blur(10px)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    background: theme.palette.background.paper,
                     border: `1px solid ${theme.palette.divider}`,
                     overflow: 'hidden',
-                    transition: 'transform 0.2s',
+                    transition: 'transform 0.15s ease',
                     '&:hover': {
                         transform: 'translateY(-2px)',
-                        boxShadow: '0 6px 16px rgba(0,0,0,0.3)'
+                        boxShadow: '0 6px 16px rgba(0,0,0,0.2)'
                     }
                 }}
             >
@@ -672,9 +671,8 @@ export default function ClassReport() {
                     p: { xs: 2.5, md: 4 },
                     mb: 4,
                     borderRadius: 4,
-                    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
-                    background: alpha(theme.palette.background.paper, 0.6), // Dark Glass
-                    backdropFilter: 'blur(24px)',
+                    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
+                    background: theme.palette.background.paper,
                     border: `1px solid ${theme.palette.divider}`
                 }}
             >
@@ -909,7 +907,7 @@ export default function ClassReport() {
                     {isMobile ? (
                         <Box>
                             {reportData.length === 0 ? (
-                                <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 4, bgcolor: alpha(theme.palette.background.paper, 0.6), backdropFilter: 'blur(10px)', border: `1px solid ${theme.palette.divider}` }}>
+                                <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 4, bgcolor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}>
                                     <Typography color="text.secondary">No students found matching your criteria.</Typography>
                                 </Paper>
                             ) : (
@@ -927,10 +925,9 @@ export default function ClassReport() {
                             sx={{
                                 borderRadius: 4,
                                 overflow: 'hidden',
-                                boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
+                                boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
                                 border: `1px solid ${theme.palette.divider}`,
-                                bgcolor: alpha(theme.palette.background.paper, 0.6), // Dark Glass
-                                backdropFilter: 'blur(20px)'
+                                bgcolor: theme.palette.background.paper
                             }}
                         >
                             <Table>
@@ -1060,9 +1057,8 @@ export default function ClassReport() {
                         sx={{
                             p: { xs: 3, md: 5 },
                             borderRadius: 4,
-                            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
-                            background: alpha(theme.palette.background.paper, 0.6),
-                            backdropFilter: 'blur(20px)',
+                            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
+                            background: theme.palette.background.paper,
                             border: `1px solid ${theme.palette.divider}`,
                             textAlign: 'center'
                         }}

@@ -1,133 +1,113 @@
-import { easeInOut } from "framer-motion";
-
 // --- Easing Curves ---
-// Custom cubic-bezier for a super smooth, "Apple-like" glide
+// Snappy, silky-smooth 60-120 FPS transitions
 export const EASE_GLIDE = [0.16, 1, 0.3, 1];
-export const EASE_SNAPPY = [0.0, 0.0, 0.2, 1];
+export const EASE_SNAPPY = [0.2, 0.0, 0, 1];
 
 // --- Spring Presets ---
-// 1. Ultra-snappy Spring (Buttons, Hover, Small items) - Instant, glassy feel
 export const springFast = {
     type: "spring",
-    damping: 15,
-    stiffness: 400,
-    mass: 0.6
+    damping: 20,
+    stiffness: 350,
+    mass: 0.5
 };
 
-// 2. Elegant, Deep Spring (Modals, Large Cards, Routes) - Liquid glide
 export const springSmooth = {
     type: "spring",
-    damping: 24,
-    stiffness: 200,
-    mass: 0.8
+    damping: 25,
+    stiffness: 220,
+    mass: 0.7
 };
 
-// --- Variants ---
-
-// 3. Page Transition (Premium Depth-Scale & Zoom Fade)
+// --- Page & Component Variants ---
 export const pageVariants = {
     initial: {
         opacity: 0,
-        y: 15, // Slight upward drift
-        scale: 0.95, // Deep back distance
-        filter: 'blur(8px)',
-        transformOrigin: "center center"
+        y: 6,
     },
     animate: {
         opacity: 1,
         y: 0,
-        scale: 1, // Snap forward exactly to screen
-        filter: 'blur(0px)',
         transition: {
-            duration: 0.7,
-            ease: [0.16, 1, 0.3, 1], // Apple glide
-            staggerChildren: 0.08
+            duration: 0.22,
+            ease: EASE_GLIDE
         }
     },
     exit: {
         opacity: 0,
-        y: -10, // Drift up away
-        scale: 1.05, // Slight zoom toward the user when exiting
-        filter: 'blur(10px)',
+        y: -4,
         transition: {
-            duration: 0.4,
-            ease: [0.32, 0, 0.67, 0] // Snappy shrink
+            duration: 0.15,
+            ease: EASE_SNAPPY
         }
     }
 };
 
 export const slideInRight = {
-    initial: { opacity: 0, x: 40, filter: 'blur(3px)' },
-    animate: { opacity: 1, x: 0, filter: 'blur(0px)', transition: { duration: 0.6, ease: EASE_GLIDE } },
-    exit: { opacity: 0, x: -40, filter: 'blur(3px)', transition: { duration: 0.4, ease: [0.32, 0, 0.67, 0] } }
+    initial: { opacity: 0, x: 16 },
+    animate: { opacity: 1, x: 0, transition: { duration: 0.2, ease: EASE_GLIDE } },
+    exit: { opacity: 0, x: -16, transition: { duration: 0.15, ease: EASE_SNAPPY } }
 };
 
 export const slideInLeft = {
-    initial: { opacity: 0, x: -40, filter: 'blur(3px)' },
-    animate: { opacity: 1, x: 0, filter: 'blur(0px)', transition: { duration: 0.6, ease: EASE_GLIDE } },
-    exit: { opacity: 0, x: 40, filter: 'blur(3px)', transition: { duration: 0.4, ease: [0.32, 0, 0.67, 0] } }
+    initial: { opacity: 0, x: -16 },
+    animate: { opacity: 1, x: 0, transition: { duration: 0.2, ease: EASE_GLIDE } },
+    exit: { opacity: 0, x: 16, transition: { duration: 0.15, ease: EASE_SNAPPY } }
 };
 
-// 4. Stagger Container
-export const containerStagger = (staggerDelay = 0.06) => ({
+// Stagger Container
+export const containerStagger = (staggerDelay = 0.04) => ({
     hidden: { opacity: 0 },
     visible: {
         opacity: 1,
         transition: {
             staggerChildren: staggerDelay,
-            delayChildren: 0.08,
+            delayChildren: 0.02,
             ease: EASE_GLIDE
         }
     }
 });
 
-// 5. Item Fade Up (Standard list item)
+// Item Fade Up
 export const itemFadeUp = {
-    hidden: { opacity: 0, y: 20, scale: 0.97, filter: 'blur(2px)' },
+    hidden: { opacity: 0, y: 8 },
     visible: {
         opacity: 1,
         y: 0,
-        scale: 1,
-        filter: 'blur(0px)',
         transition: {
-            duration: 0.5,
+            duration: 0.25,
             ease: EASE_GLIDE
         }
     }
 };
 
-// 6. Simple Fade In
+// Simple Fade In
 export const fadeIn = {
-    hidden: { opacity: 0, filter: 'blur(4px)' },
+    hidden: { opacity: 0 },
     visible: {
         opacity: 1,
-        filter: 'blur(0px)',
-        transition: { duration: 0.5, ease: EASE_GLIDE }
+        transition: { duration: 0.2, ease: EASE_GLIDE }
     }
 };
 
-// 7. Slide Up (Cards, Sections)
+// Slide Up
 export const slideUp = {
-    hidden: { opacity: 0, y: 30, scale: 0.98, filter: 'blur(5px)' },
+    hidden: { opacity: 0, y: 12 },
     visible: {
         opacity: 1,
         y: 0,
-        scale: 1,
-        filter: 'blur(0px)',
-        transition: springSmooth
+        transition: { duration: 0.25, ease: EASE_GLIDE }
     }
 };
 
-// 8. Hover Scale (Cards) - Crystal liquid pop
+// Hover Scale (Cards) - Crisp & responsive
 export const hoverScale = {
-    scale: 1.03,
-    y: -6,
-    boxShadow: "0px 25px 50px rgba(0,0,0,0.15)",
+    scale: 1.015,
+    y: -2,
     transition: springFast
 };
 
-// 9. Tap Feedback
+// Tap Feedback
 export const tapScale = {
-    scale: 0.96,
+    scale: 0.98,
     transition: springFast
 };

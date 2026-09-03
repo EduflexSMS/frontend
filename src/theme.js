@@ -102,60 +102,43 @@ export const getDesignTokens = (mode) => ({
         MuiButton: {
             styleOverrides: {
                 root: {
-                    borderRadius: '16px',
-                    padding: '10px 24px',
-                    transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-                    backgroundSize: '200% auto',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    '&::after': {
-                        content: '""',
-                        position: 'absolute',
-                        top: 0, left: 0, right: 0, bottom: 0,
-                        background: 'linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%)',
-                        transform: 'translateX(-100%)',
-                        transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-                    },
+                    borderRadius: '12px',
+                    padding: '9px 20px',
+                    transition: 'all 0.18s ease-in-out',
+                    fontWeight: 600,
                     '&:hover': {
-                        transform: 'translateY(-4px) scale(1.03)',
+                        transform: 'translateY(-2px)',
                         boxShadow: mode === 'dark' 
-                            ? '0 20px 30px -8px rgba(0, 0, 0, 0.8)' 
-                            : '0 20px 30px -8px rgba(15, 23, 42, 0.2)',
-                        '&::after': {
-                            transform: 'translateX(100%)',
-                        }
+                            ? '0 10px 20px -5px rgba(0, 0, 0, 0.5)' 
+                            : '0 10px 20px -5px rgba(15, 23, 42, 0.15)',
                     },
                     '&:active': {
-                        transform: 'translateY(-1px) scale(0.97)',
-                        transition: 'all 0.1s ease',
+                        transform: 'translateY(0)',
+                        transition: 'all 0.08s ease',
                     }
                 },
                 containedPrimary: {
-                    background: 'linear-gradient(135deg, #0ea5e9 0%, #38bdf8 50%, #0284c7 100%)',
-                    backgroundSize: '200% auto',
+                    background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
                     boxShadow: mode === 'dark' 
-                        ? '0 8px 25px rgba(14, 165, 233, 0.5)'
-                        : '0 8px 20px rgba(14, 165, 233, 0.4)',
+                        ? '0 4px 14px rgba(14, 165, 233, 0.4)'
+                        : '0 4px 14px rgba(14, 165, 233, 0.3)',
                     color: '#fff',
                     '&:hover': {
-                        backgroundPosition: 'right center',
                         boxShadow: mode === 'dark' 
-                            ? '0 15px 35px rgba(14, 165, 233, 0.7)'
-                            : '0 12px 28px rgba(14, 165, 233, 0.5)',
+                            ? '0 8px 22px rgba(14, 165, 233, 0.55)'
+                            : '0 8px 20px rgba(14, 165, 233, 0.45)',
                     }
                 },
                 containedSecondary: {
-                    background: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 50%, #7c3aed 100%)',
-                    backgroundSize: '200% auto',
+                    background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
                     color: '#fff',
                     boxShadow: mode === 'dark' 
-                        ? '0 8px 25px rgba(139, 92, 246, 0.5)'
-                        : '0 8px 20px rgba(139, 92, 246, 0.4)',
+                        ? '0 4px 14px rgba(139, 92, 246, 0.4)'
+                        : '0 4px 14px rgba(139, 92, 246, 0.3)',
                     '&:hover': {
-                        backgroundPosition: 'right center',
                         boxShadow: mode === 'dark' 
-                            ? '0 15px 35px rgba(139, 92, 246, 0.7)'
-                            : '0 12px 28px rgba(139, 92, 246, 0.5)',
+                            ? '0 8px 22px rgba(139, 92, 246, 0.55)'
+                            : '0 8px 20px rgba(139, 92, 246, 0.45)',
                     }
                 }
             },
@@ -163,18 +146,15 @@ export const getDesignTokens = (mode) => ({
         MuiCard: {
             styleOverrides: {
                 root: {
-                    background: mode === 'dark' ? 'rgba(15, 23, 42, 0.45)' : 'rgba(255, 255, 255, 0.7)',
-                    backdropFilter: 'blur(32px)',
-                    WebkitBackdropFilter: 'blur(32px)',
-                    border: mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(15, 23, 42, 0.05)',
-                    borderRadius: '24px',
-                    boxShadow: mode === 'dark' ? '0 20px 40px rgba(0, 0, 0, 0.4)' : '0 20px 40px rgba(15, 23, 42, 0.06)',
-                    transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-                    transform: 'translateZ(0)',
+                    background: mode === 'dark' ? '#0b0f19' : '#ffffff',
+                    border: mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(15, 23, 42, 0.08)',
+                    borderRadius: '16px',
+                    boxShadow: mode === 'dark' ? '0 10px 25px rgba(0, 0, 0, 0.3)' : '0 10px 25px rgba(15, 23, 42, 0.04)',
+                    transition: 'border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease',
                     '&:hover': {
-                        borderColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(15, 23, 42, 0.12)',
-                        boxShadow: mode === 'dark' ? '0 30px 60px rgba(14, 165, 233, 0.15)' : '0 30px 60px rgba(14, 165, 233, 0.1)',
-                        transform: 'translateY(-6px) scale(1.02) perspective(1000px) rotateX(2deg)',
+                        borderColor: mode === 'dark' ? 'rgba(14, 165, 233, 0.3)' : 'rgba(14, 165, 233, 0.3)',
+                        boxShadow: mode === 'dark' ? '0 15px 30px rgba(0, 0, 0, 0.45)' : '0 15px 30px rgba(15, 23, 42, 0.08)',
+                        transform: 'translateY(-2px)',
                     }
                 },
             },
@@ -183,10 +163,9 @@ export const getDesignTokens = (mode) => ({
             styleOverrides: {
                 root: {
                     backgroundImage: 'none',
-                    background: mode === 'dark' ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255, 255, 255, 0.85)',
-                    backdropFilter: 'blur(30px)',
-                    borderRadius: '24px',
-                    transition: 'background 0.4s ease, box-shadow 0.4s ease',
+                    background: mode === 'dark' ? '#0f172a' : '#ffffff',
+                    borderRadius: '16px',
+                    transition: 'background 0.2s ease, box-shadow 0.2s ease',
                 }
             }
         },
@@ -194,16 +173,16 @@ export const getDesignTokens = (mode) => ({
             styleOverrides: {
                 root: {
                     borderBottom: mode === 'dark' ? '1px solid rgba(248, 250, 252, 0.08)' : '1px solid rgba(15, 23, 42, 0.06)',
-                    padding: '20px 24px',
-                    transition: 'all 0.3s ease',
+                    padding: '16px 20px',
+                    transition: 'all 0.15s ease',
                 },
                 head: {
                     fontWeight: 700,
                     color: mode === 'dark' ? '#94a3b8' : '#475569',
-                    background: mode === 'dark' ? 'rgba(2, 6, 23, 0.8)' : 'rgba(241, 245, 249, 0.9)',
+                    background: mode === 'dark' ? '#090d16' : '#f8fafc',
                     fontSize: '0.75rem',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.1em',
+                    letterSpacing: '0.08em',
                 }
             }
         },
@@ -211,18 +190,17 @@ export const getDesignTokens = (mode) => ({
             styleOverrides: {
                 paper: {
                     background: mode === 'dark' ? '#0f172a' : '#ffffff',
-                    border: mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.05)',
-                    borderRadius: '32px',
-                    boxShadow: mode === 'dark' ? '0 50px 100px -20px rgba(0, 0, 0, 0.6)' : '0 50px 100px -20px rgba(15, 23, 42, 0.2)',
+                    border: mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(15, 23, 42, 0.08)',
+                    borderRadius: '20px',
+                    boxShadow: mode === 'dark' ? '0 25px 60px -15px rgba(0, 0, 0, 0.7)' : '0 25px 60px -15px rgba(15, 23, 42, 0.2)',
                 }
             }
         },
         MuiBackdrop: {
             styleOverrides: {
                 root: {
-                    backdropFilter: 'blur(20px)',
-                    backgroundColor: mode === 'dark' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(15, 23, 42, 0.4)',
-                    transition: 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                    backgroundColor: mode === 'dark' ? 'rgba(0, 0, 0, 0.75)' : 'rgba(15, 23, 42, 0.45)',
+                    transition: 'opacity 0.2s ease',
                 }
             }
         },

@@ -99,8 +99,7 @@ const TeacherPaymentDialog = ({ open, onClose, teacherId, teacherName }) => {
             PaperProps={{
                 style: {
                     borderRadius: 24,
-                    background: 'rgba(12, 12, 24, 0.75)',
-                    backdropFilter: 'blur(20px)',
+                    background: '#0d1122',
                     border: '1px solid rgba(255, 255, 255, 0.1)',
                     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
                 }

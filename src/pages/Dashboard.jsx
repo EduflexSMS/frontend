@@ -703,6 +703,7 @@ export default function Dashboard() {
             <SubjectDetailsDialog
                 open={detailsOpen}
                 onClose={() => setDetailsOpen(false)}
+                onUpdate={fetchStats}
                 subjectName={selectedSubject}
             />
 

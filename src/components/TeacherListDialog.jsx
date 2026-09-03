@@ -273,7 +273,7 @@ function TeacherCard({ teacher, index, onPayment }) {
                             position:'absolute', top:12, right:12,
                             fontFamily:"'DM Sans', sans-serif",
                             fontWeight:600, fontSize:'0.67rem',
-                            bgcolor:'rgba(255,255,255,0.2)', backdropFilter:'blur(10px)',
+                            bgcolor:'rgba(0,0,0,0.3)',
                             color:'#fff', border:'1px solid rgba(255,255,255,0.28)',
                             height:24, maxWidth:'65%',
                             '& .MuiChip-label':{ px:0.8, overflow:'hidden', textOverflow:'ellipsis' },
@@ -286,7 +286,7 @@ function TeacherCard({ teacher, index, onPayment }) {
                         display:'flex', gap:0.8,
                         opacity: hovering ? 1 : 0,
                         transform: hovering ? 'translateY(0)' : 'translateY(-6px)',
-                        transition:'opacity 0.25s, transform 0.25s',
+                        transition:'opacity 0.2s, transform 0.2s',
                     }}>
                         <Tooltip title="Download Photo" placement="bottom">
                             <IconButton
@@ -294,9 +294,9 @@ function TeacherCard({ teacher, index, onPayment }) {
                                 className="tlg-action-btn"
                                 onClick={() => downloadProfileImage(teacher)}
                                 sx={{
-                                    bgcolor:'rgba(0,0,0,0.38)', backdropFilter:'blur(8px)',
+                                    bgcolor:'rgba(0,0,0,0.5)',
                                     color:'#fff', width:30, height:30,
-                                    '&:hover':{ bgcolor:'rgba(0,0,0,0.6)' },
+                                    '&:hover':{ bgcolor:'rgba(0,0,0,0.7)' },
                                 }}
                             >
                                 <FileDownload sx={{ fontSize:15 }} />
@@ -308,11 +308,10 @@ function TeacherCard({ teacher, index, onPayment }) {
                                 className="tlg-action-btn"
                                 onClick={() => handleShareCard(teacher, index, setCopied)}
                                 sx={{
-                                    bgcolor: copied ? 'rgba(16,185,129,0.55)' : 'rgba(0,0,0,0.38)',
-                                    backdropFilter:'blur(8px)',
+                                    bgcolor: copied ? 'rgba(16,185,129,0.7)' : 'rgba(0,0,0,0.5)',
                                     color:'#fff', width:30, height:30,
-                                    transition:'background 0.3s',
-                                    '&:hover':{ bgcolor:'rgba(99,102,241,0.65)' },
+                                    transition:'background 0.2s',
+                                    '&:hover':{ bgcolor:'rgba(99,102,241,0.75)' },
                                 }}
                             >
                                 {copied

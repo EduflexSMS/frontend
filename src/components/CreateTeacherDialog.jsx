@@ -63,8 +63,7 @@ export default function CreateTeacherDialog({ open, onClose }) {
             PaperProps={{
                 sx: {
                     borderRadius: '24px',
-                    bgcolor: 'rgba(30, 41, 59, 0.85)', // Dark Glass
-                    backdropFilter: 'blur(20px)',
+                    bgcolor: '#0f172a',
                     border: '1px solid rgba(255, 255, 255, 0.1)',
                     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
                 }

@@ -50,10 +50,10 @@ export default function POS() {
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const searchRef = useRef(null);
 
-    const surface = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.85)';
-    const surfaceHover = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.95)';
-    const border = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)';
-    const subtleBg = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)';
+    const surface = isDark ? '#111526' : '#ffffff';
+    const surfaceHover = isDark ? '#161c32' : '#f8fafc';
+    const border = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+    const subtleBg = isDark ? '#0c1020' : '#f1f5f9';
 
     useEffect(() => {
         const fetchSubjects = async () => {
@@ -219,7 +219,6 @@ export default function POS() {
                             <Box key={stat.label} sx={{
                                 px: 2.5, py: 1.5, borderRadius: 3,
                                 background: surface, border: `1px solid ${border}`,
-                                backdropFilter: 'blur(20px)',
                                 display: 'flex', alignItems: 'center', gap: 1.5
                             }}>
                                 <Box sx={{ color: stat.color, display: 'flex', opacity: 0.8 }}>{stat.icon}</Box>
@@ -240,10 +239,9 @@ export default function POS() {
                             borderRadius: '24px',
                             background: surface,
                             border: `1px solid ${border}`,
-                            backdropFilter: 'blur(40px)',
                             overflow: 'hidden',
                             minHeight: '78vh',
-                            boxShadow: isDark ? '0 32px 64px rgba(0,0,0,0.5)' : '0 16px 64px rgba(99,102,241,0.08)',
+                            boxShadow: isDark ? '0 16px 40px rgba(0,0,0,0.4)' : '0 10px 30px rgba(0,0,0,0.06)',
                         }}>
                             {/* Search area */}
                             <Box sx={{ p: 3, pb: 0, position: 'relative', zIndex: 10 }}>
@@ -291,12 +289,11 @@ export default function POS() {
                                             transition={{ duration: 0.15 }}
                                             sx={{
                                                 position: 'absolute', top: 'calc(100% - 4px)', left: 24, right: 24,
-                                                background: isDark ? 'rgba(20,22,30,0.97)' : 'rgba(255,255,255,0.98)',
-                                                backdropFilter: 'blur(40px)',
+                                                background: isDark ? '#141724' : '#ffffff',
                                                 border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
                                                 borderRadius: '16px',
                                                 overflow: 'hidden',
-                                                boxShadow: isDark ? '0 24px 48px rgba(0,0,0,0.6)' : '0 16px 48px rgba(0,0,0,0.15)',
+                                                boxShadow: isDark ? '0 16px 36px rgba(0,0,0,0.5)' : '0 12px 32px rgba(0,0,0,0.1)',
                                                 zIndex: 50,
                                             }}
                                         >
@@ -606,11 +603,10 @@ export default function POS() {
                             borderRadius: '24px',
                             background: surface,
                             border: `1px solid ${border}`,
-                            backdropFilter: 'blur(40px)',
                             minHeight: '78vh',
                             display: 'flex', flexDirection: 'column',
                             overflow: 'hidden',
-                            boxShadow: isDark ? '0 32px 64px rgba(0,0,0,0.5)' : '0 16px 64px rgba(99,102,241,0.08)',
+                            boxShadow: isDark ? '0 16px 40px rgba(0,0,0,0.4)' : '0 10px 30px rgba(0,0,0,0.06)',
                             position: 'sticky', top: 24
                         }}>
                             {/* Bill header */}

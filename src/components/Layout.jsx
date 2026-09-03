@@ -4,38 +4,36 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../contexts/ThemeContext';
 import logo from '../assets/logo.jpg';
-import Background3D from './Background3D';
-
 
 // ─── DESIGN TOKENS ────────────────────────────────────────────────────────────
 const T = {
   dark: {
-    bg:         'transparent',
-    sidebar:    'rgba(10, 14, 30, 0.65)',
-    sidebarBorder: 'rgba(255, 255, 255, 0.12)',
-    card:       'rgba(255, 255, 255, 0.06)',
-    glass:      'rgba(10, 14, 30, 0.55)',
-    border:     'rgba(255, 255, 255, 0.12)',
+    bg:         '#070913',
+    sidebar:    '#0c1022',
+    sidebarBorder: 'rgba(255, 255, 255, 0.08)',
+    card:       '#0f172a',
+    glass:      '#0c1022',
+    border:     'rgba(255, 255, 255, 0.08)',
     text:       '#f8fafc',
     muted:      '#94a3b8',
     sub:        '#64748b',
     activeText: '#ffffff',
-    surface:    'rgba(255, 255, 255, 0.05)',
-    inputBg:    'rgba(255, 255, 255, 0.07)',
+    surface:    '#111728',
+    inputBg:    '#151c30',
   },
   light: {
-    bg:         'transparent',
-    sidebar:    'rgba(255, 255, 255, 0.75)',
-    sidebarBorder: 'rgba(15, 23, 42, 0.1)',
-    card:       'rgba(255, 255, 255, 0.8)',
-    glass:      'rgba(255, 255, 255, 0.75)',
-    border:     'rgba(15, 23, 42, 0.1)',
+    bg:         '#f8fafc',
+    sidebar:    '#ffffff',
+    sidebarBorder: 'rgba(15, 23, 42, 0.08)',
+    card:       '#ffffff',
+    glass:      '#ffffff',
+    border:     'rgba(15, 23, 42, 0.08)',
     text:       '#0f172a',
     muted:      '#64748b',
     sub:        '#94a3b8',
     activeText: '#ffffff',
-    surface:    'rgba(255, 255, 255, 0.7)',
-    inputBg:    'rgba(241, 245, 249, 0.8)',
+    surface:    '#ffffff',
+    inputBg:    '#f1f5f9',
   },
 };
 
@@ -395,12 +393,10 @@ export default function Layout() {
       width: collapsed ? 72 : 256,
       height: '100%',
       background: colors.sidebar,
-      backdropFilter: 'blur(28px)',
-      WebkitBackdropFilter: 'blur(28px)',
       display: 'flex',
       flexDirection: 'column',
       borderRight: `1px solid ${colors.sidebarBorder}`,
-      transition: 'width 0.3s cubic-bezier(0.4,0,0.2,1)',
+      transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)',
       overflow: 'hidden',
     }}>
 
@@ -646,10 +642,9 @@ export default function Layout() {
       background: 'transparent',
       fontFamily: "'Outfit', 'Inter', sans-serif",
       color: colors.text,
-      transition: 'background 0.35s, color 0.35s',
+      transition: 'background 0.2s, color 0.2s',
       position: 'relative',
     }}>
-      <Background3D />
 
 
       {/* ── DESKTOP SIDEBAR ── */}
@@ -715,8 +710,7 @@ export default function Layout() {
                 position: 'fixed',
                 inset: 0,
                 zIndex: 200,
-                background: 'rgba(0,0,0,0.55)',
-                backdropFilter: 'blur(6px)',
+                background: 'rgba(0,0,0,0.7)',
               }}
             />
             <motion.div
@@ -754,8 +748,6 @@ export default function Layout() {
           top: 0,
           zIndex: 100,
           background: colors.glass,
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
           borderBottom: `1px solid ${scrolled ? colors.border : 'transparent'}`,
           padding: '0 20px',
           height: 62,
@@ -901,8 +893,6 @@ export default function Layout() {
           right: 0,
           zIndex: 150,
           background: colors.glass,
-          backdropFilter: 'blur(28px)',
-          WebkitBackdropFilter: 'blur(28px)',
           borderTop: `1px solid ${colors.border}`,
           display: 'flex',
           alignItems: 'stretch',

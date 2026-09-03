@@ -252,9 +252,9 @@ const GlobalStyle = () => (
 
     /* ── Confirm Popup ── */
     .confirm-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
       z-index: 9999; display: flex; align-items: center; justify-content: center;
-      animation: vs-fadein 0.2s ease;
+      animation: vs-fadein 0.15s ease;
     }
     .confirm-box {
       background: var(--bg2); border: 1px solid var(--border2);

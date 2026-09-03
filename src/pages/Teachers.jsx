@@ -349,12 +349,12 @@ export default function Teachers() {
             <Box sx={{
                 position: 'fixed', top: '15%', left: '5%', width: 500, height: 500,
                 borderRadius: '50%', background: 'radial-gradient(circle, rgba(108,95,255,0.08) 0%, transparent 70%)',
-                filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0
+                pointerEvents: 'none', zIndex: 0
             }} />
             <Box sx={{
                 position: 'fixed', bottom: '10%', right: '5%', width: 450, height: 450,
                 borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,207,255,0.08) 0%, transparent 70%)',
-                filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0
+                pointerEvents: 'none', zIndex: 0
             }} />
 
             <Box sx={{ position: 'relative', zIndex: 1 }}>
@@ -448,10 +448,10 @@ export default function Teachers() {
                                         transition={{ duration: 0.3 }}
                                         sx={{
                                             width: '100%', borderRadius: '24px', display: 'flex', flexDirection: 'column',
-                                            bgcolor: isDark ? 'rgba(18,18,22,0.6)' : '#ffffff',
-                                            border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.07)'}`,
+                                            bgcolor: isDark ? '#0c1022' : '#ffffff',
+                                            border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)'}`,
                                             boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.3)' : '0 10px 25px rgba(0,0,0,0.05)',
-                                            backdropFilter: 'blur(20px)', position: 'relative', overflow: 'hidden'
+                                            position: 'relative', overflow: 'hidden'
                                         }}
                                     >
                                         {/* Top Color Banner */}
@@ -467,7 +467,7 @@ export default function Teachers() {
                                                 sx={{
                                                     position: 'absolute', top: 12, right: 12,
                                                     fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: '0.67rem',
-                                                    bgcolor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)',
+                                                    bgcolor: 'rgba(0,0,0,0.25)',
                                                     color: '#fff', border: '1px solid rgba(255,255,255,0.28)', height: 24, maxWidth: '65%'
                                                 }}
                                             />
@@ -584,8 +584,7 @@ export default function Teachers() {
                 PaperProps={{
                     sx: {
                         borderRadius: '24px',
-                        bgcolor: isDark ? 'rgba(20, 20, 26, 0.95)' : '#ffffff',
-                        backdropFilter: 'blur(20px)',
+                        bgcolor: isDark ? '#0c1022' : '#ffffff',
                         backgroundImage: 'none',
                         border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`
                     }

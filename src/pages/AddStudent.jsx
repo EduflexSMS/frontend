@@ -115,11 +115,9 @@ export default function AddStudent() {
                 sx={{
                     p: { xs: 3, sm: 5 },
                     width: '100%',
-                    borderRadius: 4,
-                    background: alpha(theme.palette.background.paper, 0.6), // Dark Glass
-                    backdropFilter: 'blur(24px)',
-                    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: theme.palette.background.paper,
+                    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
+                    border: `1px solid ${theme.palette.divider}`,
                     overflow: 'hidden',
                     position: 'relative'
                 }}
@@ -133,8 +131,7 @@ export default function AddStudent() {
                         width: 300,
                         height: 300,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(6,182,212,0.15) 0%, transparent 70%)', // Cyan
-                        filter: 'blur(40px)',
+                        background: 'radial-gradient(circle, rgba(6,182,212,0.15) 0%, transparent 70%)',
                         zIndex: 0,
                     }}
                 />
@@ -146,8 +143,7 @@ export default function AddStudent() {
                         width: 300,
                         height: 300,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(217,70,239,0.15) 0%, transparent 70%)', // Magenta
-                        filter: 'blur(40px)',
+                        background: 'radial-gradient(circle, rgba(217,70,239,0.15) 0%, transparent 70%)',
                         zIndex: 0,
                     }}
                 />

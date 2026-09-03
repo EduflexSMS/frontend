@@ -24,11 +24,10 @@ const SubjectGrid = ({ student, studentId, studentGrade, enrollments, onUpdate, 
                         sx={{
                             mb: 3,
                             p: isMobile ? 2 : 3,
-                            background: `linear-gradient(135deg, ${alpha(color, 0.1)} 0%, ${alpha('#050510', 0.8)} 100%)`,
-                            backdropFilter: 'blur(20px)',
-                            borderRadius: '24px',
-                            border: `1px solid ${alpha(color, 0.2)}`,
-                            boxShadow: `0 8px 32px 0 ${alpha('#000000', 0.5)}`,
+                            background: theme.palette.mode === 'dark' ? '#0d1222' : '#ffffff',
+                            borderRadius: '20px',
+                            border: `1px solid ${alpha(color, 0.25)}`,
+                            boxShadow: `0 4px 20px 0 ${alpha('#000000', 0.2)}`,
                             overflow: 'hidden',
                             position: 'relative'
                         }}

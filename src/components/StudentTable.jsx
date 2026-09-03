@@ -239,11 +239,10 @@ function StudentCard({ row, onUpdate, onEdit, onDelete, subjectColorMap, index }
             transition={{ delay: index * 0.05 }}
             sx={{
                 mb: 2,
-                borderRadius: '20px',
-                boxShadow: '0 10px 30px -5px rgba(0, 0, 0, 0.3)',
+                borderRadius: '16px',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)',
                 border: `1px solid ${theme.palette.divider}`,
-                background: alpha(theme.palette.background.paper, 0.6),
-                backdropFilter: 'blur(16px)',
+                background: theme.palette.background.paper,
                 overflow: 'visible'
             }}
         >
@@ -425,11 +424,10 @@ export default function StudentTable({ students, onUpdate, subjectColorMap }) {
                     component={Paper}
                     elevation={0}
                     sx={{
-                        borderRadius: '24px',
-                        boxShadow: '0 20px 50px -10px rgba(0, 0, 0, 0.5)',
+                        borderRadius: '20px',
+                        boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.4)',
                         border: `1px solid ${theme.palette.divider}`,
-                        bgcolor: alpha(theme.palette.background.paper, 0.6),
-                        backdropFilter: 'blur(30px)',
+                        bgcolor: theme.palette.background.paper,
                         overflow: 'hidden'
                     }}
                 >
@@ -482,9 +480,8 @@ export default function StudentTable({ students, onUpdate, subjectColorMap }) {
                 onClose={() => setDeleteConfirmOpen(false)}
                 PaperProps={{
                     style: {
-                        borderRadius: 24,
-                        background: alpha(theme.palette.background.paper, 0.95),
-                        backdropFilter: 'blur(20px)',
+                        borderRadius: 20,
+                        background: theme.palette.background.paper,
                         border: `1px solid ${theme.palette.divider}`
                     }
                 }}
