@@ -1,385 +1,260 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Container, Grid, Paper, Typography, Avatar, useTheme, alpha, IconButton, CircularProgress, Alert, Button, LinearProgress, Divider } from '@mui/material';
-import { motion } from 'framer-motion';
-import { Class, People, ArrowForwardIos, QrCodeScanner, AccountBalanceWallet, RequestQuote, Insights, TrendingUp, Group } from '@mui/icons-material';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+    Box, Container, Grid, Paper, Typography, Avatar, useTheme, alpha,
+    IconButton, CircularProgress, Alert, Button, LinearProgress, Divider,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+    FormControl, Select, MenuItem, Chip, Tabs, Tab
+} from '@mui/material';
+import {
+    Class, ArrowForwardIos, QrCodeScanner, AccountBalanceWallet,
+    RequestQuote, TrendingUp, Group, Logout,
+    Assessment, CalendarMonth
+} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import API_BASE_URL from '../config';
-import { itemFadeUp, containerStagger } from '../utils/animations';
 import StudentListDialog from '../components/StudentListDialog';
 
-const BorderLinearProgress = ({ value, color }) => (
+const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+// ── Deterministic Progress Bar ───────────────────────────────────────────────
+const CleanLinearProgress = ({ value, color }) => (
     <LinearProgress
         variant="determinate"
-        value={value}
+        value={Math.min(Math.max(value || 0, 0), 100)}
         sx={{
-            height: 10,
-            borderRadius: 5,
-            bgcolor: (theme) => alpha(color ? color : theme.palette.primary.main, 0.2),
+            height: 7,
+            borderRadius: 4,
+            bgcolor: (theme) => alpha(color || theme.palette.primary.main, 0.15),
             '& .MuiLinearProgress-bar': {
-                borderRadius: 5,
-                bgcolor: color ? color : 'primary.main',
+                borderRadius: 4,
+                bgcolor: color || 'primary.main',
             },
         }}
     />
 );
 
-const TEACHER_SHARE_PERCENTAGE = 0.8;
+// ── SVG Donut Chart ─────────────────────────────────────────────────────────
+const DonutChart = ({ paid = 0, pending = 0, free = 0, size = 160 }) => {
+    const total = paid + pending + free;
+    const paidPct = total > 0 ? (paid / total) : 0;
+    const pendingPct = total > 0 ? (pending / total) : 0;
+    const freePct = total > 0 ? (free / total) : 0;
 
-// ── Mini chart components ──────────────────────────────────────────────────────
-
-const SparkBar = ({ data, color = '#3266ad' }) => {
-    const max = Math.max(...data);
-    return (
-        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: 40 }}>
-            {data.map((v, i) => (
-                <Box key={i} sx={{
-                    flex: 1,
-                    height: `${(v / max) * 100}%`,
-                    bgcolor: color,
-                    borderRadius: '3px 3px 0 0',
-                    opacity: i === data.length - 1 ? 1 : 0.45,
-                    transition: 'height 0.4s ease'
-                }} />
-            ))}
-        </Box>
-    );
-};
-
-const DonutChart = ({ paid, total, size = 80 }) => {
-    const pct = total > 0 ? paid / total : 0;
-    const r = 28;
+    const r = 50;
     const circ = 2 * Math.PI * r;
-    const dash = pct * circ;
+
+    const paidDash = paidPct * circ;
+    const pendingDash = pendingPct * circ;
+    const freeDash = freePct * circ;
+
+    const paidOffset = 0;
+    const pendingOffset = -paidDash;
+    const freeOffset = -(paidDash + pendingDash);
+
     return (
-        <Box sx={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-            <svg width={size} height={size} viewBox="0 0 80 80">
-                <circle cx="40" cy="40" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="10" />
-                <circle cx="40" cy="40" r={r} fill="none" stroke="#3a9e6e" strokeWidth="10"
-                    strokeDasharray={`${dash} ${circ}`}
-                    strokeLinecap="round"
-                    transform="rotate(-90 40 40)"
-                    style={{ transition: 'stroke-dasharray 0.6s ease' }}
-                />
+        <Box sx={{ position: 'relative', width: size, height: size, mx: 'auto' }}>
+            <svg width={size} height={size} viewBox="0 0 140 140">
+                <circle cx="70" cy="70" r={r} fill="none" stroke="rgba(128,128,128,0.1)" strokeWidth="16" />
+                {total > 0 && (
+                    <>
+                        {/* Paid Arc */}
+                        <circle
+                            cx="70" cy="70" r={r} fill="none" stroke="#10b981" strokeWidth="16"
+                            strokeDasharray={`${paidDash} ${circ}`}
+                            strokeDashoffset={paidOffset}
+                            strokeLinecap="round"
+                            transform="rotate(-90 70 70)"
+                            style={{ transition: 'stroke-dasharray 0.6s ease' }}
+                        />
+                        {/* Pending Arc */}
+                        <circle
+                            cx="70" cy="70" r={r} fill="none" stroke="#f59e0b" strokeWidth="16"
+                            strokeDasharray={`${pendingDash} ${circ}`}
+                            strokeDashoffset={pendingOffset}
+                            transform="rotate(-90 70 70)"
+                            style={{ transition: 'stroke-dasharray 0.6s ease' }}
+                        />
+                        {/* Free Card Arc */}
+                        <circle
+                            cx="70" cy="70" r={r} fill="none" stroke="#6366f1" strokeWidth="16"
+                            strokeDasharray={`${freeDash} ${circ}`}
+                            strokeDashoffset={freeOffset}
+                            transform="rotate(-90 70 70)"
+                            style={{ transition: 'stroke-dasharray 0.6s ease' }}
+                        />
+                    </>
+                )}
             </svg>
-            <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Typography variant="caption" fontWeight="700" sx={{ fontSize: '13px', color: '#fff' }}>
-                    {Math.round(pct * 100)}%
+            <Box sx={{
+                position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center'
+            }}>
+                <Typography variant="h5" fontWeight="800" sx={{ lineHeight: 1 }}>
+                    {total > 0 ? Math.round(paidPct * 100) : 0}%
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '11px', mt: 0.5 }}>
+                    Collected
                 </Typography>
             </Box>
         </Box>
     );
 };
 
-// ── Summary stat card ──────────────────────────────────────────────────────────
-
-const StatCard = ({ icon, label, value, sub, subColor, gradient, sparkData }) => {
-    return (
-        <Paper component={motion.div} variants={itemFadeUp} sx={{
-            p: 3, borderRadius: '20px',
-            background: gradient || 'linear-gradient(145deg, #1e293b, #0f172a)',
-            border: '1px solid', borderColor: alpha('#64748b', 0.2),
-            position: 'relative', overflow: 'hidden', height: '100%'
-        }}>
-            <Box sx={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.05)' }} />
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-                <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.15)', color: '#fff', mr: 1.5, width: 36, height: 36 }}>
-                    {icon}
-                </Avatar>
-                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>{label}</Typography>
-            </Box>
-            <Typography variant="h4" fontWeight="800" sx={{ color: '#fff', lineHeight: 1.1, mb: 0.5 }}>
-                {value}
-            </Typography>
-            {sub && (
-                <Typography variant="body2" sx={{ color: subColor || 'rgba(255,255,255,0.55)', mt: 0.5 }}>
-                    {sub}
-                </Typography>
-            )}
-            {sparkData && (
-                <Box sx={{ mt: 2 }}>
-                    <SparkBar data={sparkData} color="rgba(255,255,255,0.6)" />
-                </Box>
-            )}
-        </Paper>
-    );
-};
-
-// ── Revenue trend bar chart ────────────────────────────────────────────────────
-
-const RevenueTrendChart = ({ classes }) => {
-    const months = ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'];
-    const multipliers = [0.63, 0.69, 0.76, 0.80, 0.88, 1];
-    const totalExpected = classes.reduce((a, c) => a + c.expectedCollection, 0);
-    const totalCollected = classes.reduce((a, c) => a + c.collection, 0);
-
-    const collectedSeries = multipliers.map(m => Math.round(totalCollected * m));
-    const expectedSeries  = multipliers.map(m => Math.round(totalExpected  * m));
-    const maxVal = Math.max(...expectedSeries, 1);
+// ── SVG Revenue Comparison Chart ────────────────────────────────────────────
+const RevenueTrendChart = ({ data = [] }) => {
+    const maxVal = Math.max(...data.map(d => Math.max(d.collected || 0, d.expected || 0)), 1);
 
     return (
-        <Paper component={motion.div} variants={itemFadeUp} sx={{
-            p: 3, borderRadius: '20px',
-            background: 'linear-gradient(145deg, #1e293b, #0f172a)',
-            border: '1px solid', borderColor: alpha('#64748b', 0.2)
-        }}>
-            <Typography variant="h6" fontWeight="700" color="#fff" mb={0.5}>Monthly Revenue Trend</Typography>
-            <Typography variant="body2" color="text.secondary" mb={3}>Collected vs Expected (LKR)</Typography>
+        <Box sx={{ width: '100%', pt: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 160, pb: 1 }}>
+                {data.map((item, idx) => {
+                    const collectedH = Math.min(Math.round((item.collected / maxVal) * 100), 100);
+                    const expectedH = Math.min(Math.round((item.expected / maxVal) * 100), 100);
 
-            <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1.5, height: 140 }}>
-                {months.map((month, i) => (
-                    <Box key={i} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', height: '100%', justifyContent: 'flex-end' }}>
-                        <Box sx={{ width: '100%', display: 'flex', gap: '2px', alignItems: 'flex-end', height: '100%' }}>
-                            <Box sx={{
-                                flex: 1,
-                                height: `${(expectedSeries[i] / maxVal) * 100}%`,
-                                bgcolor: alpha('#b5d4f4', 0.3),
-                                borderRadius: '4px 4px 0 0',
-                                transition: 'height 0.6s ease'
-                            }} />
-                            <Box sx={{
-                                flex: 1,
-                                height: `${(collectedSeries[i] / maxVal) * 100}%`,
-                                bgcolor: i === months.length - 1 ? '#3266ad' : alpha('#3266ad', 0.6),
-                                borderRadius: '4px 4px 0 0',
-                                transition: 'height 0.6s ease'
-                            }} />
-                        </Box>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '10px', mt: 0.5 }}>{month}</Typography>
-                    </Box>
-                ))}
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                    <Box sx={{ width: 10, height: 10, borderRadius: '2px', bgcolor: alpha('#b5d4f4', 0.4) }} />
-                    <Typography variant="caption" color="text.secondary">Expected</Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                    <Box sx={{ width: 10, height: 10, borderRadius: '2px', bgcolor: '#3266ad' }} />
-                    <Typography variant="caption" color="text.secondary">Collected</Typography>
-                </Box>
-            </Box>
-        </Paper>
-    );
-};
-
-// ── Attendance overview chart ──────────────────────────────────────────────────
-
-const AttendanceOverviewChart = ({ classes }) => {
-    const avgAttendance = classes.length > 0
-        ? Math.round(classes.reduce((a, c) => a + c.attendanceRate, 0) / classes.length)
-        : 0;
-
-    return (
-        <Paper component={motion.div} variants={itemFadeUp} sx={{
-            p: 3, borderRadius: '20px',
-            background: 'linear-gradient(145deg, #1e293b, #0f172a)',
-            border: '1px solid', borderColor: alpha('#64748b', 0.2),
-            height: '100%'
-        }}>
-            <Typography variant="h6" fontWeight="700" color="#fff" mb={0.5}>Attendance Overview</Typography>
-            <Typography variant="body2" color="text.secondary" mb={3}>Per class rate</Typography>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {classes.map((cls) => {
-                    const color = cls.attendanceRate >= 85 ? '#3a9e6e' : cls.attendanceRate >= 75 ? '#e8c44a' : '#d85a30';
-                    const shortName = cls.name.includes(' - ') ? cls.name.split(' - ')[1] : cls.name;
                     return (
-                        <Box key={cls.id}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.75 }}>
-                                <Typography variant="body2" color="text.secondary" noWrap sx={{ maxWidth: '70%' }}>{shortName}</Typography>
-                                <Typography variant="body2" fontWeight="700" sx={{ color }}>{cls.attendanceRate}%</Typography>
-                            </Box>
-                            <Box sx={{ height: 6, bgcolor: 'rgba(255,255,255,0.07)', borderRadius: 3, overflow: 'hidden' }}>
+                        <Box key={idx} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
+                            <Box sx={{ width: '100%', display: 'flex', gap: '3px', alignItems: 'flex-end', height: '100%' }}>
+                                {/* Expected Bar */}
                                 <Box sx={{
-                                    height: '100%', width: `${cls.attendanceRate}%`,
-                                    bgcolor: color, borderRadius: 3,
-                                    transition: 'width 0.8s ease'
-                                }} />
+                                    flex: 1,
+                                    height: `${expectedH}%`,
+                                    bgcolor: 'rgba(99, 102, 241, 0.25)',
+                                    borderRadius: '4px 4px 0 0',
+                                    transition: 'height 0.4s ease'
+                                }} title={`Expected: LKR ${item.expected?.toLocaleString()}`} />
+                                {/* Collected Bar */}
+                                <Box sx={{
+                                    flex: 1,
+                                    height: `${collectedH}%`,
+                                    bgcolor: idx === data.length - 1 ? '#3b82f6' : 'rgba(59, 130, 246, 0.75)',
+                                    borderRadius: '4px 4px 0 0',
+                                    transition: 'height 0.4s ease'
+                                }} title={`Collected: LKR ${item.collected?.toLocaleString()}`} />
                             </Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '11px', mt: 1, fontWeight: 500 }}>
+                                {item.month}
+                            </Typography>
                         </Box>
                     );
                 })}
             </Box>
 
-            <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" color="text.secondary">Institute avg</Typography>
-                <Typography variant="body2" fontWeight="700" color={avgAttendance >= 80 ? '#3a9e6e' : '#e8c44a'}>{avgAttendance}%</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mt: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                    <Box sx={{ width: 12, height: 12, borderRadius: '3px', bgcolor: 'rgba(99, 102, 241, 0.4)' }} />
+                    <Typography variant="caption" color="text.secondary">Expected Target</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                    <Box sx={{ width: 12, height: 12, borderRadius: '3px', bgcolor: '#3b82f6' }} />
+                    <Typography variant="caption" color="text.secondary">Actual Collected</Typography>
+                </Box>
             </Box>
-        </Paper>
+        </Box>
     );
 };
 
-// ── Class card ────────────────────────────────────────────────────────────────
-
-const ClassCard = ({ cls, onClick }) => {
+// ── Metric Card ─────────────────────────────────────────────────────────────
+const MetricCard = ({ label, value, sub, badgeText, badgeColor = 'success', icon, accentColor = '#3b82f6' }) => {
     const theme = useTheme();
     return (
-        <Paper
-            component={motion.div}
-            variants={itemFadeUp}
-            whileHover={{ y: -5, boxShadow: `0 12px 24px ${alpha(theme.palette.primary.main, 0.15)}` }}
-            onClick={() => onClick(cls)}
-            sx={{
-                p: 3, borderRadius: '20px',
-                bgcolor: 'background.paper',
-                border: '1px solid', borderColor: alpha('#cbd5e1', 0.1),
-                cursor: 'pointer', transition: 'all 0.3s ease'
-            }}
-        >
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar variant="rounded" sx={{
-                        bgcolor: alpha(theme.palette.primary.main, 0.15),
-                        color: theme.palette.primary.main,
-                        width: 52, height: 52, borderRadius: '14px'
-                    }}>
-                        <Class />
-                    </Avatar>
-                    <Box>
-                        <Typography variant="h6" fontWeight="700" color="text.primary">{cls.name}</Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <People fontSize="small" /> {cls.students} Students
-                        </Typography>
-                    </Box>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <DonutChart paid={cls.paidCount} total={cls.students} size={70} />
-                    <IconButton size="small" sx={{ bgcolor: alpha('#475569', 0.1) }}>
-                        <ArrowForwardIos fontSize="inherit" />
-                    </IconButton>
-                </Box>
-            </Box>
-
-            <Divider sx={{ my: 2, borderColor: alpha('#fff', 0.05) }} />
-
-            <Grid container spacing={2}>
-                <Grid item xs={6}>
-                    <Box sx={{ mb: 1, display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary" fontWeight={500}>Attendance</Typography>
-                        <Typography variant="body2" fontWeight="bold" color="info.main">{cls.attendanceRate}%</Typography>
-                    </Box>
-                    <BorderLinearProgress value={cls.attendanceRate} color={theme.palette.info.main} />
-                </Grid>
-                <Grid item xs={6}>
-                    <Box sx={{ mb: 1, display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary" fontWeight={500}>Fee Paid</Typography>
-                        <Typography variant="body2" fontWeight="bold" color="success.main">{cls.paidCount}/{cls.students}</Typography>
-                    </Box>
-                    <BorderLinearProgress value={cls.activeRate} color={theme.palette.success.main} />
-                </Grid>
-            </Grid>
-
-            <Box sx={{
-                mt: 2.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                p: 1.5, bgcolor: alpha(theme.palette.primary.main, 0.05), borderRadius: '12px'
-            }}>
+        <Paper sx={{
+            p: 2.5, borderRadius: '16px',
+            bgcolor: 'background.paper',
+            border: `1px solid ${theme.palette.divider}`,
+            position: 'relative', overflow: 'hidden', height: '100%',
+            display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }
+        }}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1.5 }}>
                 <Box>
-                    <Typography variant="caption" color="text.secondary" display="block">Class Collection</Typography>
-                    <Typography variant="subtitle1" fontWeight="bold" color="text.primary">LKR {cls.collection.toLocaleString()}</Typography>
-                </Box>
-                <Box sx={{ textAlign: 'right' }}>
-                    <Typography variant="caption" color="text.secondary" display="block">Your Share (80%)</Typography>
-                    <Typography variant="subtitle1" fontWeight="bold" color="success.main">
-                        LKR {(cls.collection * TEACHER_SHARE_PERCENTAGE).toLocaleString()}
+                    <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                        {label}
+                    </Typography>
+                    <Typography variant="h4" fontWeight="800" sx={{ mt: 0.5, color: 'text.primary', lineHeight: 1.2 }}>
+                        {value}
                     </Typography>
                 </Box>
+                <Avatar sx={{
+                    bgcolor: alpha(accentColor, 0.12),
+                    color: accentColor,
+                    width: 44, height: 44, borderRadius: '12px'
+                }}>
+                    {icon}
+                </Avatar>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
+                {sub && (
+                    <Typography variant="caption" color="text.secondary" fontWeight={500}>
+                        {sub}
+                    </Typography>
+                )}
+                {badgeText && (
+                    <Chip
+                        label={badgeText}
+                        size="small"
+                        color={badgeColor}
+                        sx={{ fontWeight: 600, fontSize: '11px', height: 22, borderRadius: '6px' }}
+                    />
+                )}
             </Box>
         </Paper>
     );
 };
 
-// ── Main Dashboard ────────────────────────────────────────────────────────────
-
+// ── MAIN TEACHER DASHBOARD ──────────────────────────────────────────────────
 export default function TeacherDashboard() {
     const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const [teacherData, setTeacherData] = useState(null);
+
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+    const [portalData, setPortalData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [activeTab, setActiveTab] = useState(0);
+
+    // Modal state for student list
     const [selectedClass, setSelectedClass] = useState(null);
     const [studentListOpen, setStudentListOpen] = useState(false);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const { data: subjects } = await axios.get(`${API_BASE_URL}/api/subjects`);
-                const currentMonth = new Date().getMonth();
+    const fetchPortal = useCallback(async (monthIdx) => {
+        try {
+            setLoading(true);
+            setError('');
 
-                const promises = subjects.map(async (subject) => {
-                    const gradePromises = subject.gradeSchedules.map(async (schedule) => {
-                        try {
-                            const { data: report } = await axios.get(`${API_BASE_URL}/api/reports/class-report`, {
-                                params: { subject: subject.name, grade: schedule.grade, month: currentMonth }
-                            });
-
-                            const studentCount = report.length;
-                            const freeCount = report.filter(s => s.isFreeCard).length;
-                            const paidCount = report.filter(s => s.feePaid && !s.isFreeCard).length;
-                            const estimatedFee = subject.fee || 1000;
-                            const collection = paidCount * estimatedFee;
-                            const expectedCollection = (studentCount - freeCount) * estimatedFee;
-
-                            let totalSessions = 0, totalPresents = 0;
-                            report.forEach(s => {
-                                s.attendance.forEach(a => {
-                                    if (a !== 'pending') {
-                                        totalSessions++;
-                                        if (a === 'present' || a === true || a === 'true') totalPresents++;
-                                    }
-                                });
-                            });
-
-                            const attendanceRate = totalSessions > 0 ? Math.round((totalPresents / totalSessions) * 100) : 0;
-                            const feePaidRate = studentCount > 0 ? Math.round((paidCount / studentCount) * 100) : 0;
-
-                            return {
-                                id: `${subject._id}-${schedule.grade}`,
-                                name: `${subject.name} - ${schedule.grade}`,
-                                students: studentCount,
-                                paidCount,
-                                collection,
-                                expectedCollection,
-                                studentList: report,
-                                activeRate: feePaidRate,
-                                attendanceRate
-                            };
-                        } catch (e) {
-                            console.error(`Failed to load data for ${subject.name} ${schedule.grade}`, e);
-                            return null;
-                        }
-                    });
-                    return Promise.all(gradePromises);
-                });
-
-                const results = await Promise.all(promises);
-                const flatClasses = results.flat().flat().filter(c => c !== null);
-
-                const user = JSON.parse(sessionStorage.getItem('userInfo')) || JSON.parse(localStorage.getItem('userInfo'));
-                if (!user || user.role !== 'teacher') throw new Error('Unauthorized');
-                const assignedSubject = user?.assignedSubject;
-
-                const filteredClasses = assignedSubject
-                    ? flatClasses.filter(c => {
-                        const subjectName = c.name.split(' - ')[0].toLowerCase().trim();
-                        const teacherSubject = assignedSubject.toLowerCase().replace('teacher', '').trim();
-                        return subjectName.includes(teacherSubject) || teacherSubject.includes(subjectName);
-                    })
-                    : flatClasses;
-
-                setTeacherData({ name: user?.name || 'Teacher', subject: assignedSubject || 'Institute Overview', classes: filteredClasses });
-                setLoading(false);
-            } catch (err) {
-                console.error(err);
-                setError('Failed to load dashboard data');
-                setLoading(false);
+            const user = JSON.parse(sessionStorage.getItem('userInfo')) || JSON.parse(localStorage.getItem('userInfo'));
+            if (!user || user.role !== 'teacher') {
+                window.location.href = '/login';
+                return;
             }
-        };
-        fetchData();
+
+            const teacherName = user.name || user.username || '';
+            const assignedSubject = user.assignedSubject || '';
+
+            const response = await axios.get(`${API_BASE_URL}/api/auth/teacher-portal`, {
+                params: {
+                    teacherName,
+                    subject: assignedSubject,
+                    month: monthIdx
+                }
+            });
+
+            setPortalData(response.data);
+            setLoading(false);
+        } catch (err) {
+            console.error('Error fetching teacher portal:', err);
+            setError(err.response?.data?.message || 'Failed to load teacher portal data.');
+            setLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        fetchPortal(selectedMonth);
+    }, [selectedMonth, fetchPortal]);
 
     const handleLogout = () => {
         sessionStorage.removeItem('userInfo');
@@ -387,179 +262,567 @@ export default function TeacherDashboard() {
         window.location.href = '/login';
     };
 
-    if (loading) return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-            <CircularProgress size={60} thickness={4} />
-        </Box>
-    );
+    const handleOpenClassList = (cls) => {
+        setSelectedClass(cls);
+        setStudentListOpen(true);
+    };
 
-    if (error) return (
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-            <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
-        </Container>
-    );
+    if (loading && !portalData) {
+        return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '85vh', gap: 2 }}>
+                <CircularProgress size={54} thickness={4} sx={{ color: '#3b82f6' }} />
+                <Typography variant="body2" color="text.secondary">Loading Teacher Workspace...</Typography>
+            </Box>
+        );
+    }
 
-    const totalStudents           = teacherData?.classes.reduce((a, c) => a + c.students, 0) || 0;
-    const totalCollection         = teacherData?.classes.reduce((a, c) => a + c.collection, 0) || 0;
-    const totalExpectedCollection = teacherData?.classes.reduce((a, c) => a + c.expectedCollection, 0) || 0;
-    const teacherEarning          = totalCollection * TEACHER_SHARE_PERCENTAGE;
-    const teacherExpected         = totalExpectedCollection * TEACHER_SHARE_PERCENTAGE;
-    const instituteShare          = totalCollection - teacherEarning;
-    const overallFeePct           = totalExpectedCollection > 0 ? Math.round((totalCollection / totalExpectedCollection) * 100) : 0;
-    const sparkData               = [0.63, 0.69, 0.76, 0.80, 0.88, 1].map(m => Math.round(totalCollection * m));
+    const summary = portalData?.summary || {};
+    const teacher = portalData?.teacher || {};
+    const classes = portalData?.classes || [];
+    const monthlyTrend = portalData?.monthlyTrend || [];
+    const exams = portalData?.exams || [];
+
+    const collectionPct = summary.expectedRevenue > 0
+        ? Math.round((summary.grossRevenue / summary.expectedRevenue) * 100)
+        : 0;
 
     return (
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-            <motion.div variants={containerStagger(0.1)} initial="hidden" animate="visible">
-
-                {/* ── Header ── */}
-                <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Container maxWidth="xl" sx={{ py: 3, pb: 8 }}>
+            {/* ── Top Header ── */}
+            <Paper sx={{
+                p: { xs: 2.5, md: 3 },
+                borderRadius: '20px',
+                bgcolor: 'background.paper',
+                border: `1px solid ${theme.palette.divider}`,
+                mb: 3
+            }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                    {/* Left: Profile & Subject */}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Box sx={{ position: 'relative' }}>
-                            <Avatar sx={{
-                                width: 72, height: 72,
-                                bgcolor: theme.palette.primary.main,
-                                fontSize: '2rem', fontWeight: 'bold',
-                                boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.4)}`
-                            }}>
-                                {teacherData?.name?.charAt(0)}
-                            </Avatar>
-                            <Box sx={{ position: 'absolute', bottom: 0, right: 0, width: 18, height: 18, bgcolor: '#10b981', borderRadius: '50%', border: '3px solid #0f172a' }} />
-                        </Box>
+                        <Avatar
+                            src={teacher.image || undefined}
+                            sx={{
+                                width: 62, height: 62,
+                                bgcolor: '#3b82f6',
+                                fontSize: '1.6rem', fontWeight: 'bold',
+                                border: '3px solid rgba(59, 130, 246, 0.3)'
+                            }}
+                        >
+                            {teacher.name?.charAt(0) || 'T'}
+                        </Avatar>
                         <Box>
-                            <Typography variant="h3" fontWeight="800" sx={{ background: 'linear-gradient(45deg, #fff, #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                                {teacherData?.name}
-                            </Typography>
-                            <Typography variant="subtitle1" sx={{ color: 'primary.light', fontWeight: 600, letterSpacing: 1 }}>
-                                {teacherData?.subject} {t('Teacher')}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                                <Typography variant="h5" fontWeight="800" color="text.primary">
+                                    {teacher.name}
+                                </Typography>
+                                <Chip
+                                    label={`${teacher.subject} Teacher`}
+                                    size="small"
+                                    color="primary"
+                                    sx={{ fontWeight: 700, borderRadius: '8px' }}
+                                />
+                            </Box>
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                {teacher.description || 'EduFlex Faculty Portal'}
                             </Typography>
                         </Box>
                     </Box>
-                    <Box sx={{ display: 'flex', gap: 2 }}>
+
+                    {/* Right: Month Selector & Actions */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                        <FormControl size="small" sx={{ minWidth: 150 }}>
+                            <Select
+                                value={selectedMonth}
+                                onChange={(e) => setSelectedMonth(e.target.value)}
+                                sx={{
+                                    borderRadius: '12px',
+                                    fontWeight: 600,
+                                    bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                                }}
+                                startAdornment={<CalendarMonth sx={{ mr: 1, color: 'text.secondary', fontSize: 20 }} />}
+                            >
+                                {MONTH_NAMES.map((m, idx) => (
+                                    <MenuItem key={idx} value={idx}>
+                                        {m}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
                         <Button
                             variant="contained"
                             startIcon={<QrCodeScanner />}
                             onClick={() => navigate('/qr-scanner')}
                             sx={{
                                 borderRadius: '12px',
-                                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                                boxShadow: '0 8px 16px rgba(245,158,11,0.3)',
-                                fontWeight: 'bold', py: 1.5, px: 3,
-                                '&:hover': { transform: 'translateY(-2px)' },
-                                transition: 'all 0.3s'
+                                bgcolor: '#f59e0b',
+                                color: '#fff',
+                                fontWeight: 700,
+                                px: 2.5,
+                                py: 1,
+                                textTransform: 'none',
+                                '&:hover': { bgcolor: '#d97706' }
                             }}
                         >
                             Scan Attendance
                         </Button>
-                        <IconButton onClick={handleLogout} sx={{
-                            bgcolor: alpha(theme.palette.error.main, 0.1), color: 'error.main',
-                            '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.2), transform: 'scale(1.05)' },
-                            transition: 'all 0.2s', width: 50, height: 50
-                        }}>
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                <path d="M17 7L15.59 8.41L18.17 11H8V13H18.17L15.59 15.58L17 17L22 12L17 7ZM4 5H12V3H4C2.9 3 2 3.9 2 5V19C2 20.1 2.9 21 4 21H12V19H4V5Z" fill="currentColor" />
-                            </svg>
+
+                        <IconButton
+                            onClick={handleLogout}
+                            title="Logout"
+                            sx={{
+                                border: `1px solid ${theme.palette.divider}`,
+                                borderRadius: '12px',
+                                width: 42, height: 42,
+                                color: 'error.main',
+                                '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.1) }
+                            }}
+                        >
+                            <Logout fontSize="small" />
                         </IconButton>
                     </Box>
                 </Box>
+            </Paper>
 
-                {/* ── Stat Cards ── */}
-                <Grid container spacing={3} sx={{ mb: 4 }}>
-                    <Grid item xs={12} sm={6} md={3}>
-                        <StatCard
-                            icon={<Group fontSize="small" />}
-                            label="Total Students"
-                            value={totalStudents}
-                            sub={`${teacherData?.classes.length} active classes`}
-                            sparkData={sparkData}
-                        />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                        <StatCard
-                            icon={<RequestQuote fontSize="small" />}
-                            label="Gross Revenue"
-                            value={`LKR ${totalCollection.toLocaleString()}`}
-                            sub={`${overallFeePct}% of expected`}
-                            subColor="#4ade80"
-                            gradient="linear-gradient(145deg, #6d28d9, #4c1d95)"
-                        />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                        <StatCard
-                            icon={<AccountBalanceWallet fontSize="small" />}
-                            label="Your Earnings (80%)"
-                            value={`LKR ${teacherEarning.toLocaleString()}`}
-                            sub={`LKR ${(teacherExpected - teacherEarning).toLocaleString()} pending`}
-                            subColor="#fbbf24"
-                            gradient="linear-gradient(145deg, #059669, #047857)"
-                        />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                        <StatCard
-                            icon={<TrendingUp fontSize="small" />}
-                            label="Institute Share (20%)"
-                            value={`LKR ${instituteShare.toLocaleString()}`}
-                            sub="This month"
-                            gradient="linear-gradient(145deg, #0369a1, #075985)"
-                        />
-                    </Grid>
-                </Grid>
+            {error && (
+                <Alert severity="error" sx={{ mb: 3, borderRadius: '14px' }}>
+                    {error}
+                </Alert>
+            )}
 
-                {/* ── Charts Row ── */}
-                <Grid container spacing={3} sx={{ mb: 4 }}>
-                    <Grid item xs={12} md={7}>
-                        <RevenueTrendChart classes={teacherData?.classes || []} />
-                    </Grid>
-                    <Grid item xs={12} md={5}>
-                        <AttendanceOverviewChart classes={teacherData?.classes || []} />
-                    </Grid>
-                </Grid>
-
-                {/* ── Earnings Progress ── */}
-                <Paper component={motion.div} variants={itemFadeUp} sx={{
-                    p: 3, mb: 4, borderRadius: '20px',
-                    background: 'linear-gradient(145deg, #1e293b, #0f172a)',
-                    border: '1px solid', borderColor: alpha('#64748b', 0.2)
-                }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                        <Typography variant="h6" fontWeight="700" color="#fff">Earnings Progress</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            LKR {teacherEarning.toLocaleString()} / LKR {teacherExpected.toLocaleString()}
-                        </Typography>
-                    </Box>
-                    <BorderLinearProgress
-                        value={teacherExpected > 0 ? (teacherEarning / teacherExpected) * 100 : 0}
-                        color="#34d399"
+            {/* ── Metric Grid ── */}
+            <Grid container spacing={2.5} sx={{ mb: 3 }}>
+                <Grid item xs={12} sm={6} md={3}>
+                    <MetricCard
+                        label="Total Students"
+                        value={summary.totalStudents || 0}
+                        sub={`Across ${classes.length} active classes`}
+                        badgeText={`${classes.length} Grades`}
+                        badgeColor="info"
+                        icon={<Group />}
+                        accentColor="#3b82f6"
                     />
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-                        <Typography variant="caption" color="text.secondary">Collected</Typography>
-                        <Typography variant="caption" color="#34d399" fontWeight="bold">
-                            {teacherExpected > 0 ? Math.round((teacherEarning / teacherExpected) * 100) : 0}%
-                        </Typography>
-                    </Box>
-                </Paper>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                    <MetricCard
+                        label="Gross Collection"
+                        value={`LKR ${(summary.grossRevenue || 0).toLocaleString()}`}
+                        sub={`Expected: LKR ${(summary.expectedRevenue || 0).toLocaleString()}`}
+                        badgeText={`${collectionPct}% Collected`}
+                        badgeColor={collectionPct >= 80 ? 'success' : 'warning'}
+                        icon={<RequestQuote />}
+                        accentColor="#10b981"
+                    />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                    <MetricCard
+                        label="Your Share (80%)"
+                        value={`LKR ${(summary.teacherEarnings || 0).toLocaleString()}`}
+                        sub={`Pending: LKR ${(summary.teacherExpected - summary.teacherEarnings || 0).toLocaleString()}`}
+                        badgeText="80% Share"
+                        badgeColor="primary"
+                        icon={<AccountBalanceWallet />}
+                        accentColor="#8b5cf6"
+                    />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                    <MetricCard
+                        label="Avg Attendance"
+                        value={`${summary.avgAttendanceRate || 0}%`}
+                        sub={`Institute avg for ${MONTH_NAMES[selectedMonth]}`}
+                        badgeText={summary.avgAttendanceRate >= 80 ? 'Good' : 'Needs Followup'}
+                        badgeColor={summary.avgAttendanceRate >= 80 ? 'success' : 'warning'}
+                        icon={<TrendingUp />}
+                        accentColor="#f59e0b"
+                    />
+                </Grid>
+            </Grid>
 
-                {/* ── Class Cards ── */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Typography variant="h4" fontWeight="800" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Insights color="primary" /> Class Specific Insights
-                    </Typography>
-                </Box>
+            {/* ── Charts Row ── */}
+            <Grid container spacing={2.5} sx={{ mb: 3 }}>
+                {/* Monthly Revenue Trend */}
+                <Grid item xs={12} md={7}>
+                    <Paper sx={{
+                        p: 3, borderRadius: '20px',
+                        bgcolor: 'background.paper',
+                        border: `1px solid ${theme.palette.divider}`,
+                        height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+                    }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Box>
+                                <Typography variant="subtitle1" fontWeight="700" color="text.primary">
+                                    Revenue Target vs. Collected
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                    Last 6 months trend for {teacher.subject}
+                                </Typography>
+                            </Box>
+                            <Chip label="LKR" size="small" sx={{ borderRadius: '6px', fontWeight: 600 }} />
+                        </Box>
 
-                <Grid container spacing={3}>
-                    {teacherData?.classes.length === 0 ? (
-                        <Grid item xs={12}>
-                            <Alert severity="info" sx={{ borderRadius: '16px', py: 2, fontSize: '1.1rem' }}>No active classes found.</Alert>
-                        </Grid>
-                    ) : teacherData?.classes.map((cls) => (
-                        <Grid item xs={12} md={6} key={cls.id}>
-                            <ClassCard cls={cls} onClick={(c) => { setSelectedClass(c); setStudentListOpen(true); }} />
-                        </Grid>
-                    ))}
+                        <RevenueTrendChart data={monthlyTrend} />
+                    </Paper>
                 </Grid>
 
-            </motion.div>
+                {/* Fee Status Donut */}
+                <Grid item xs={12} md={5}>
+                    <Paper sx={{
+                        p: 3, borderRadius: '20px',
+                        bgcolor: 'background.paper',
+                        border: `1px solid ${theme.palette.divider}`,
+                        height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+                    }}>
+                        <Box>
+                            <Typography variant="subtitle1" fontWeight="700" color="text.primary">
+                                Fee Collection Status
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                Status breakdown for {MONTH_NAMES[selectedMonth]}
+                            </Typography>
+                        </Box>
 
+                        <DonutChart
+                            paid={summary.totalPaid || 0}
+                            pending={summary.totalPending || 0}
+                            free={summary.totalFree || 0}
+                            size={170}
+                        />
+
+                        {/* Legend */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-around', pt: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
+                            <Box sx={{ textAlign: 'center' }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10b981' }} /> Paid
+                                </Typography>
+                                <Typography variant="body1" fontWeight="700" color="text.primary">
+                                    {summary.totalPaid || 0}
+                                </Typography>
+                            </Box>
+                            <Box sx={{ textAlign: 'center' }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#f59e0b' }} /> Pending
+                                </Typography>
+                                <Typography variant="body1" fontWeight="700" color="text.primary">
+                                    {summary.totalPending || 0}
+                                </Typography>
+                            </Box>
+                            <Box sx={{ textAlign: 'center' }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#6366f1' }} /> Free Card
+                                </Typography>
+                                <Typography variant="body1" fontWeight="700" color="text.primary">
+                                    {summary.totalFree || 0}
+                                </Typography>
+                            </Box>
+                        </Box>
+                    </Paper>
+                </Grid>
+            </Grid>
+
+            {/* ── Navigation Tabs ── */}
+            <Box sx={{ borderBottom: `1px solid ${theme.palette.divider}`, mb: 3 }}>
+                <Tabs
+                    value={activeTab}
+                    onChange={(e, val) => setActiveTab(val)}
+                    textColor="primary"
+                    indicatorColor="primary"
+                    sx={{
+                        '& .MuiTab-root': {
+                            textTransform: 'none',
+                            fontWeight: 700,
+                            fontSize: '15px',
+                            minHeight: 48
+                        }
+                    }}
+                >
+                    <Tab icon={<Class sx={{ fontSize: 18 }} />} iconPosition="start" label="Class Breakdown & Students" />
+                    <Tab icon={<Assessment sx={{ fontSize: 18 }} />} iconPosition="start" label={`Exams & Marks (${exams.length})`} />
+                </Tabs>
+            </Box>
+
+            {/* ── TAB 0: CLASS BREAKDOWN & CARDS ── */}
+            {activeTab === 0 && (
+                <>
+                    {/* Class Table */}
+                    <Paper sx={{
+                        borderRadius: '20px',
+                        bgcolor: 'background.paper',
+                        border: `1px solid ${theme.palette.divider}`,
+                        overflow: 'hidden',
+                        mb: 4
+                    }}>
+                        <Box sx={{ p: 2.5, pb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography variant="h6" fontWeight="800">
+                                Class Performance Table
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                Click any row to view students roster
+                            </Typography>
+                        </Box>
+
+                        <TableContainer>
+                            <Table sx={{ minWidth: 650 }}>
+                                <TableHead sx={{ bgcolor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }}>
+                                    <TableRow>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', color: 'text.secondary' }}>Class / Grade</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', color: 'text.secondary' }}>Students</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', color: 'text.secondary' }}>Attendance</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', color: 'text.secondary' }}>Fee Paid</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', color: 'text.secondary' }}>Collection</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', color: 'text.secondary' }}>Your Share (80%)</TableCell>
+                                        <TableCell align="right" sx={{ fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', color: 'text.secondary' }}>Action</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {classes.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={7} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                                                No active classes found for this subject.
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        classes.map((cls) => {
+                                            const attColor = cls.attendanceRate >= 85 ? '#10b981' : cls.attendanceRate >= 75 ? '#f59e0b' : '#ef4444';
+                                            const feePillBg = cls.feePaidRate >= 85 ? alpha('#10b981', 0.15) : cls.feePaidRate >= 65 ? alpha('#f59e0b', 0.15) : alpha('#ef4444', 0.15);
+                                            const feePillColor = cls.feePaidRate >= 85 ? '#10b981' : cls.feePaidRate >= 65 ? '#f59e0b' : '#ef4444';
+
+                                            return (
+                                                <TableRow
+                                                    key={cls.id}
+                                                    hover
+                                                    onClick={() => handleOpenClassList(cls)}
+                                                    sx={{
+                                                        cursor: 'pointer',
+                                                        transition: 'background-color 0.15s',
+                                                        '&:last-child td, &:last-child th': { border: 0 }
+                                                    }}
+                                                >
+                                                    <TableCell sx={{ fontWeight: 700, color: 'text.primary' }}>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                                            <Avatar sx={{ width: 32, height: 32, borderRadius: '8px', bgcolor: alpha('#3b82f6', 0.12), color: '#3b82f6', fontSize: '13px' }}>
+                                                                <Class sx={{ fontSize: 18 }} />
+                                                            </Avatar>
+                                                            {cls.name}
+                                                        </Box>
+                                                    </TableCell>
+                                                    <TableCell sx={{ fontWeight: 600 }}>
+                                                        {cls.students}
+                                                    </TableCell>
+                                                    <TableCell sx={{ minWidth: 140 }}>
+                                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                                            <Typography variant="caption" fontWeight="700" sx={{ color: attColor }}>
+                                                                {cls.attendanceRate}%
+                                                            </Typography>
+                                                        </Box>
+                                                        <CleanLinearProgress value={cls.attendanceRate} color={attColor} />
+                                                    </TableCell>
+                                                    <TableCell sx={{ minWidth: 130 }}>
+                                                        <Box sx={{ display: 'inline-flex', alignItems: 'center', px: 1.2, py: 0.3, borderRadius: '12px', bgcolor: feePillBg, color: feePillColor, fontWeight: 700, fontSize: '12px' }}>
+                                                            {cls.paidCount}/{cls.students}
+                                                        </Box>
+                                                    </TableCell>
+                                                    <TableCell sx={{ fontWeight: 600 }}>
+                                                        LKR {cls.collection.toLocaleString()}
+                                                    </TableCell>
+                                                    <TableCell sx={{ fontWeight: 700, color: '#10b981' }}>
+                                                        LKR {cls.teacherShare.toLocaleString()}
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <Button
+                                                            size="small"
+                                                            variant="outlined"
+                                                            endIcon={<ArrowForwardIos sx={{ fontSize: '10px !important' }} />}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleOpenClassList(cls);
+                                                            }}
+                                                            sx={{
+                                                                borderRadius: '8px',
+                                                                textTransform: 'none',
+                                                                fontSize: '12px',
+                                                                fontWeight: 600,
+                                                                py: 0.4
+                                                            }}
+                                                        >
+                                                            Roster
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Paper>
+
+                    {/* Class Cards Grid */}
+                    <Typography variant="h6" fontWeight="800" sx={{ mb: 2 }}>
+                        Class Cards
+                    </Typography>
+                    <Grid container spacing={2.5}>
+                        {classes.map((cls) => (
+                            <Grid item xs={12} sm={6} md={4} key={cls.id}>
+                                <Paper sx={{
+                                    p: 2.5, borderRadius: '18px',
+                                    bgcolor: 'background.paper',
+                                    border: `1px solid ${theme.palette.divider}`,
+                                    cursor: 'pointer',
+                                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                                    '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 10px 25px rgba(0,0,0,0.08)' }
+                                }}
+                                onClick={() => handleOpenClassList(cls)}
+                                >
+                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                            <Avatar sx={{ bgcolor: alpha('#3b82f6', 0.15), color: '#3b82f6', width: 42, height: 42, borderRadius: '10px' }}>
+                                                <Class />
+                                            </Avatar>
+                                            <Box>
+                                                <Typography variant="subtitle1" fontWeight="700" color="text.primary">
+                                                    {cls.name}
+                                                </Typography>
+                                                <Typography variant="caption" color="text.secondary">
+                                                    {cls.students} Enrolled Students
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                        <IconButton size="small">
+                                            <ArrowForwardIos sx={{ fontSize: 14 }} />
+                                        </IconButton>
+                                    </Box>
+
+                                    <Divider sx={{ my: 1.5 }} />
+
+                                    <Box sx={{ mb: 1.5 }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                            <Typography variant="caption" color="text.secondary">Monthly Attendance</Typography>
+                                            <Typography variant="caption" fontWeight="700" color="#10b981">{cls.attendanceRate}%</Typography>
+                                        </Box>
+                                        <CleanLinearProgress value={cls.attendanceRate} color="#10b981" />
+                                    </Box>
+
+                                    <Box sx={{ mb: 2 }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                            <Typography variant="caption" color="text.secondary">Fee Collection</Typography>
+                                            <Typography variant="caption" fontWeight="700" color="#3b82f6">{cls.paidCount}/{cls.students}</Typography>
+                                        </Box>
+                                        <CleanLinearProgress value={cls.feePaidRate} color="#3b82f6" />
+                                    </Box>
+
+                                    <Box sx={{
+                                        p: 1.5, borderRadius: '10px',
+                                        bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                    }}>
+                                        <Box>
+                                            <Typography variant="caption" color="text.secondary">Class Revenue</Typography>
+                                            <Typography variant="subtitle2" fontWeight="700">
+                                                LKR {cls.collection.toLocaleString()}
+                                            </Typography>
+                                        </Box>
+                                        <Box sx={{ textAlign: 'right' }}>
+                                            <Typography variant="caption" color="text.secondary">Your Share</Typography>
+                                            <Typography variant="subtitle2" fontWeight="700" color="#10b981">
+                                                LKR {cls.teacherShare.toLocaleString()}
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                </Paper>
+                            </Grid>
+                        ))}
+                    </Grid>
+                </>
+            )}
+
+            {/* ── TAB 1: EXAMS & RESULTS ── */}
+            {activeTab === 1 && (
+                <Paper sx={{
+                    borderRadius: '20px',
+                    bgcolor: 'background.paper',
+                    border: `1px solid ${theme.palette.divider}`,
+                    overflow: 'hidden'
+                }}>
+                    <Box sx={{ p: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5 }}>
+                        <Box>
+                            <Typography variant="h6" fontWeight="800">
+                                Exams for {teacher.subject}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                Student performance, marks, and grading breakdown
+                            </Typography>
+                        </Box>
+                        <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() => navigate('/exams')}
+                            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}
+                        >
+                            Open Exams Center
+                        </Button>
+                    </Box>
+
+                    <TableContainer>
+                        <Table sx={{ minWidth: 600 }}>
+                            <TableHead sx={{ bgcolor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }}>
+                                <TableRow>
+                                    <TableCell sx={{ fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', color: 'text.secondary' }}>Exam Title</TableCell>
+                                    <TableCell sx={{ fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', color: 'text.secondary' }}>Grade</TableCell>
+                                    <TableCell sx={{ fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', color: 'text.secondary' }}>Date</TableCell>
+                                    <TableCell sx={{ fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', color: 'text.secondary' }}>Participants</TableCell>
+                                    <TableCell sx={{ fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', color: 'text.secondary' }}>Class Average</TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', color: 'text.secondary' }}>Action</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {exams.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={6} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                                            No exams scheduled or conducted yet for {teacher.subject}.
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    exams.map((ex) => (
+                                        <TableRow key={ex.id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                            <TableCell sx={{ fontWeight: 700, color: 'text.primary' }}>
+                                                {ex.title}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Chip label={ex.grade} size="small" sx={{ borderRadius: '6px', fontWeight: 600 }} />
+                                            </TableCell>
+                                            <TableCell color="text.secondary">
+                                                {ex.date ? new Date(ex.date).toLocaleDateString() : 'N/A'}
+                                            </TableCell>
+                                            <TableCell sx={{ fontWeight: 600 }}>
+                                                {ex.studentCount} Students
+                                            </TableCell>
+                                            <TableCell>
+                                                <Typography variant="body2" fontWeight="700" sx={{
+                                                    color: ex.averageMarks >= 75 ? '#10b981' : ex.averageMarks >= 50 ? '#f59e0b' : '#ef4444'
+                                                }}>
+                                                    {ex.averageMarks}%
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                <Button
+                                                    size="small"
+                                                    variant="outlined"
+                                                    onClick={() => navigate('/exams')}
+                                                    sx={{ borderRadius: '8px', textTransform: 'none', fontSize: '12px', fontWeight: 600 }}
+                                                >
+                                                    Enter Marks
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Paper>
+            )}
+
+            {/* ── Student List Dialog Roster Modal ── */}
             <StudentListDialog
                 open={studentListOpen}
                 onClose={() => setStudentListOpen(false)}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { CssBaseline } from '@mui/material';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { ThemeContextProvider } from './contexts/ThemeContext';
 import Layout from './components/Layout';
 import ViewStudents from './pages/ViewStudents';
