@@ -208,7 +208,6 @@ const MetricCard = ({ label, value, sub, badgeText, badgeColor = 'success', icon
 export default function TeacherDashboard() {
     const theme = useTheme();
     const isDark = theme.palette.mode === 'dark';
-    const { t } = useTranslation();
     const navigate = useNavigate();
 
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());

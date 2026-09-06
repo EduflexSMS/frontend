@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import {
     Person, AutoAwesome, School, FileDownload, Share, CheckCircle, Edit, Delete,
-    AddCircleOutline, CloudUpload, ArrowBack, VpnKey
+    AddCircleOutline, CloudUpload, ArrowBack, VpnKey, Visibility, VisibilityOff, ContentCopy, Lock
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import axios from 'axios';
@@ -54,6 +54,16 @@ export default function Teachers() {
     // Alert / Toast state
     const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
     const [copiedStates, setCopiedStates] = useState({});
+    const [showPasswordStates, setShowPasswordStates] = useState({});
+    const [copiedPassId, setCopiedPassId] = useState(null);
+    const [showEditorPassword, setShowEditorPassword] = useState(false);
+
+    const toggleShowPassword = (id) => setShowPasswordStates(prev => ({ ...prev, [id]: !prev[id] }));
+    const copyPassword = (id, pass) => {
+        navigator.clipboard.writeText(pass);
+        setCopiedPassId(id);
+        setTimeout(() => setCopiedPassId(null), 2000);
+    };
 
     // Fetch teachers & subjects on mount
     useEffect(() => {
@@ -128,7 +138,7 @@ export default function Teachers() {
         setEditingTeacherId(teacher._id);
         setEditorForm({
             username: teacher.username || '',
-            password: '', // blank by default
+            password: teacher.plainPassword || 'password',
             assignedSubject: teacher.assignedSubject || '',
             description: teacher.description || '',
             image: teacher.image || ''
@@ -527,10 +537,62 @@ export default function Teachers() {
                                             <Box sx={{ width: 32, height: 3, borderRadius: 2, mb: 2, background: `linear-gradient(90deg, ${pal.from}, ${pal.to})` }} />
 
                                             <Typography variant="body2" color="text.secondary" sx={{
-                                                fontSize: '0.8rem', lineHeight: 1.6, minHeight: '4.8em', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3, overflow: 'hidden', mb: 3
+                                                fontSize: '0.8rem', lineHeight: 1.6, minHeight: '4.8em', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3, overflow: 'hidden', mb: 2
                                             }}>
                                                 {teacher.description || `Expert instructor assigned to ${teacher.assignedSubject || 'academic courses'}. Dedicated to boosting student performance.`}
                                             </Typography>
+
+                                            {/* Teacher Credentials Box */}
+                                            <Box sx={{
+                                                width: '100%',
+                                                p: 1.5,
+                                                borderRadius: '14px',
+                                                bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+                                                border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
+                                                textAlign: 'left',
+                                                mb: 1
+                                            }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.8 }}>
+                                                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                        <Lock sx={{ fontSize: 13 }} /> Username:
+                                                    </Typography>
+                                                    <Typography variant="caption" fontWeight={700} sx={{ color: 'text.primary', fontFamily: 'monospace' }}>
+                                                        {teacher.username}
+                                                    </Typography>
+                                                </Box>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                        <VpnKey sx={{ fontSize: 13 }} /> Password:
+                                                    </Typography>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                        <Typography variant="caption" fontWeight={700} sx={{ color: '#10b981', fontFamily: 'monospace', fontSize: '12px' }}>
+                                                            {showPasswordStates[teacher._id] ? (teacher.plainPassword || 'password') : '••••••••'}
+                                                        </Typography>
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                toggleShowPassword(teacher._id);
+                                                            }}
+                                                            sx={{ p: 0.2 }}
+                                                            title={showPasswordStates[teacher._id] ? "Hide password" : "Show password"}
+                                                        >
+                                                            {showPasswordStates[teacher._id] ? <VisibilityOff sx={{ fontSize: 14 }} /> : <Visibility sx={{ fontSize: 14 }} />}
+                                                        </IconButton>
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                copyPassword(teacher._id, teacher.plainPassword || 'password');
+                                                            }}
+                                                            sx={{ p: 0.2 }}
+                                                            title="Copy password"
+                                                        >
+                                                            {copiedPassId === teacher._id ? <CheckCircle sx={{ fontSize: 14, color: '#10b981' }} /> : <ContentCopy sx={{ fontSize: 14 }} />}
+                                                        </IconButton>
+                                                    </Box>
+                                                </Box>
+                                            </Box>
 
                                             <Box sx={{ flexGrow: 1 }} />
 
@@ -661,13 +723,22 @@ export default function Teachers() {
                         {/* Password change/input */}
                         <TextField
                             fullWidth
-                            label={editorMode === 'create' ? "Password" : "New Password (Leave empty to keep current)"}
-                            type="password"
+                            label={editorMode === 'create' ? "Password" : "Teacher Password"}
+                            type={showEditorPassword ? "text" : "password"}
                             value={editorForm.password}
                             onChange={(e) => setEditorForm(prev => ({ ...prev, password: e.target.value }))}
                             required={editorMode === 'create'}
                             InputProps={{
-                                startAdornment: <VpnKey sx={{ color: 'text.secondary', mr: 1, fontSize: 18 }} />
+                                startAdornment: <VpnKey sx={{ color: 'text.secondary', mr: 1, fontSize: 18 }} />,
+                                endAdornment: (
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => setShowEditorPassword(prev => !prev)}
+                                        edge="end"
+                                    >
+                                        {showEditorPassword ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
+                                    </IconButton>
+                                )
                             }}
                             variant="outlined"
                             sx={{

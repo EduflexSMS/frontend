@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Box, Container, Grid, Paper, Typography, TextField, InputAdornment, IconButton, Button, Divider, CircularProgress, alpha, useTheme, Card, CardContent, Chip, Avatar, Snackbar, Alert, Tooltip, Badge } from '@mui/material';
-import { Search, AddShoppingCart, PointOfSale, Delete, Download, CheckCircleOutline, WhatsApp, Receipt, Person, School, Phone, KeyboardArrowRight, CreditCard, LocalAtm, TrendingUp, Close, CheckCircle } from '@mui/icons-material';
+import {
+    Box, Container, Grid, Paper, Typography, TextField, InputAdornment,
+    IconButton, Button, Divider, CircularProgress, alpha, useTheme, Card,
+    CardContent, Chip, Avatar, Snackbar, Alert, Tooltip, Badge,
+    Dialog, DialogTitle, DialogContent, DialogActions, FormControlLabel,
+    Switch, MenuItem, Select, FormControl, InputLabel
+} from '@mui/material';
+import {
+    Search, AddShoppingCart, PointOfSale, Delete, Download, CheckCircleOutline,
+    WhatsApp, Receipt, Person, School, Phone, KeyboardArrowRight, CreditCard,
+    LocalAtm, TrendingUp, Close, CheckCircle, PhoneAndroid, Settings, Send
+} from '@mui/icons-material';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import API_BASE_URL from '../config';
@@ -49,6 +59,93 @@ export default function POS() {
     const [showSuccess, setShowSuccess] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const searchRef = useRef(null);
+
+    // SMS Gateway Settings State
+    const [smsSettingsOpen, setSmsSettingsOpen] = useState(false);
+    const [smsConfig, setSmsConfig] = useState({
+        enabled: true,
+        url: '',
+        user: '',
+        token: '',
+        simSlot: 1
+    });
+    const [testMobile, setTestMobile] = useState('');
+    const [testLoading, setTestLoading] = useState(false);
+    const [testAlert, setTestAlert] = useState({ open: false, message: '', severity: 'info' });
+    const [saveLoading, setSaveLoading] = useState(false);
+
+    // Post-payment Receipt Dialog
+    const [receiptModalOpen, setReceiptModalOpen] = useState(false);
+    const [lastReceiptData, setLastReceiptData] = useState(null);
+
+    const fetchSmsConfig = async () => {
+        try {
+            const { data } = await axios.get(`${API_BASE_URL}/api/sms/config`);
+            if (data) {
+                setSmsConfig({
+                    enabled: data.enabled !== false,
+                    url: data.url || '',
+                    user: data.user || '',
+                    token: data.token || '',
+                    simSlot: data.simSlot || 1
+                });
+            }
+        } catch (err) {
+            console.error("Failed to fetch SMS config", err);
+        }
+    };
+
+    useEffect(() => {
+        fetchSmsConfig();
+    }, []);
+
+    const handleSaveSmsConfig = async () => {
+        setSaveLoading(true);
+        try {
+            await axios.post(`${API_BASE_URL}/api/sms/config`, smsConfig);
+            setNotification({ open: true, message: 'Hutch SMS Gateway settings saved successfully!', type: 'success' });
+            setSmsSettingsOpen(false);
+        } catch (err) {
+            setTestAlert({ open: true, message: err.response?.data?.message || err.message, severity: 'error' });
+        } finally {
+            setSaveLoading(false);
+        }
+    };
+
+    const handleSendTestSms = async () => {
+        if (!testMobile.trim()) {
+            setTestAlert({ open: true, message: 'Please enter a mobile number for the test SMS', severity: 'warning' });
+            return;
+        }
+        setTestLoading(true);
+        setTestAlert({ open: false, message: '', severity: 'info' });
+        try {
+            const { data } = await axios.post(`${API_BASE_URL}/api/sms/test`, {
+                mobile: testMobile,
+                url: smsConfig.url,
+                user: smsConfig.user,
+                token: smsConfig.token,
+                simSlot: smsConfig.simSlot
+            });
+            setTestAlert({ open: true, message: data.message || 'Test SMS sent successfully!', severity: 'success' });
+        } catch (err) {
+            setTestAlert({
+                open: true,
+                message: err.response?.data?.message || 'Failed to reach phone gateway. Check IP address and Wi-Fi.',
+                severity: 'error'
+            });
+        } finally {
+            setTestLoading(false);
+        }
+    };
+
+    const openWhatsAppDirect = (mobile, message) => {
+        if (!mobile) return;
+        let cleaned = mobile.replace(/[^\d+]/g, '').trim().replace('+', '');
+        if (cleaned.startsWith('0')) cleaned = '94' + cleaned.slice(1);
+        if (cleaned.length === 9 && !cleaned.startsWith('94')) cleaned = '94' + cleaned;
+        window.open(`https://wa.me/${cleaned}?text=${encodeURIComponent(message || '')}`, '_blank');
+    };
 
     const surface = isDark ? '#111526' : '#ffffff';
     const surfaceHover = isDark ? '#161c32' : '#f8fafc';
@@ -167,8 +264,24 @@ export default function POS() {
             setTimeout(() => setShowSuccess(false), 2500);
 
             let msg = `Payment of Rs. ${totalAmount.toLocaleString()} received. TXN: ${res.data.transaction.transactionId}`;
-            if (res.data.waStatus === 'sent') msg += ' — WhatsApp receipt sent!';
-            setNotification({ open: true, message: msg, type: 'success' });
+            if (res.data.smsStatus === 'sent') {
+                msg += ' — 📱 SMS receipt sent via Hutch SIM!';
+            } else if (res.data.smsStatus === 'failed') {
+                msg += ' — ⚠️ SMS gateway unreachable (Check phone Wi-Fi)';
+            } else if (res.data.waStatus === 'sent') {
+                msg += ' — 💬 WhatsApp receipt sent!';
+            }
+            setNotification({ open: true, message: msg, type: res.data.smsStatus === 'failed' ? 'warning' : 'success' });
+
+            setLastReceiptData({
+                transaction: res.data.transaction,
+                student: updatedStudent,
+                smsStatus: res.data.smsStatus,
+                waStatus: res.data.waStatus,
+                waMessage: res.data.waMessage,
+                smsMessage: res.data.smsMessage
+            });
+            setReceiptModalOpen(true);
             setCart([]);
         } catch (error) {
             setNotification({ open: true, message: error.response?.data?.message || 'Checkout Failed', type: 'error' });
@@ -210,8 +323,8 @@ export default function POS() {
                             </Typography>
                         </Box>
                     </Box>
-                    {/* Stats row */}
-                    <Box sx={{ display: 'flex', gap: 2 }}>
+                    {/* Stats & SMS Gateway Action */}
+                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
                         {[
                             { label: 'Cart Items', value: cart.length, icon: <Receipt sx={{ fontSize: 16 }} />, color: '#6366f1' },
                             { label: 'Total Due', value: `Rs. ${totalAmount.toLocaleString()}`, icon: <LocalAtm sx={{ fontSize: 16 }} />, color: '#10b981' }
@@ -228,6 +341,32 @@ export default function POS() {
                                 </Box>
                             </Box>
                         ))}
+
+                        <Button
+                            variant="outlined"
+                            onClick={() => {
+                                fetchSmsConfig();
+                                setTestAlert({ open: false, message: '', severity: 'info' });
+                                setSmsSettingsOpen(true);
+                            }}
+                            startIcon={<PhoneAndroid sx={{ color: '#10b981' }} />}
+                            sx={{
+                                borderRadius: 3,
+                                textTransform: 'none',
+                                fontWeight: 700,
+                                fontSize: '0.85rem',
+                                px: 2, py: 1.4,
+                                border: `1px solid ${border}`,
+                                background: surface,
+                                color: isDark ? '#f1f5f9' : '#0f172a',
+                                '&:hover': {
+                                    borderColor: '#10b981',
+                                    background: isDark ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.05)'
+                                }
+                            }}
+                        >
+                            Hutch SMS Gateway
+                        </Button>
                     </Box>
                 </Box>
 
@@ -829,6 +968,234 @@ export default function POS() {
                     </Grid>
                 </Grid>
             </Container>
+
+            {/* ─── SMS GATEWAY SETTINGS DIALOG ─── */}
+            <Dialog
+                open={smsSettingsOpen}
+                onClose={() => setSmsSettingsOpen(false)}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: '24px',
+                        background: isDark ? '#111526' : '#ffffff',
+                        border: `1px solid ${border}`,
+                        boxShadow: '0 24px 48px rgba(0,0,0,0.4)',
+                        p: 1
+                    }
+                }}
+            >
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
+                    <Box sx={{ p: 1, borderRadius: 2, bgcolor: 'rgba(16,185,129,0.12)', color: '#10b981', display: 'flex' }}>
+                        <PhoneAndroid sx={{ fontSize: 24 }} />
+                    </Box>
+                    <Box>
+                        <Typography variant="h6" fontWeight={800}>Hutch SIM SMS Gateway</Typography>
+                        <Typography variant="caption" color="text.secondary">Send automated SMS receipts using your phone's SIM bundle</Typography>
+                    </Box>
+                </DialogTitle>
+                <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: '16px !important' }}>
+                    <Alert severity="info" sx={{ borderRadius: 3, fontSize: '0.82rem' }}>
+                        <strong>Easy Setup:</strong><br />
+                        1. Put your Hutch SIM in any Android phone connected to this Wi-Fi router.<br />
+                        2. Install <strong>Android SMS Gateway</strong> (by capcom6) or <strong>Traccar SMS Gateway</strong>.<br />
+                        3. Open the app, press <strong>Start</strong>, and copy the IP URL shown on the phone below.
+                    </Alert>
+
+                    <FormControlLabel
+                        control={
+                            <Switch
+                                checked={smsConfig.enabled}
+                                onChange={(e) => setSmsConfig(prev => ({ ...prev, enabled: e.target.checked }))}
+                                color="success"
+                            />
+                        }
+                        label={<Typography fontWeight={700}>Enable Automated Hutch SMS Receipts</Typography>}
+                    />
+
+                    <TextField
+                        fullWidth
+                        label="Phone Gateway URL / IP Address"
+                        placeholder="http://192.168.1.50:8080"
+                        value={smsConfig.url}
+                        onChange={(e) => setSmsConfig(prev => ({ ...prev, url: e.target.value }))}
+                        helperText="The local IP address shown on your Android SMS Gateway app"
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
+                    />
+
+                    <Grid container spacing={2}>
+                        <Grid item xs={6}>
+                            <FormControl fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}>
+                                <InputLabel>SIM Card Slot</InputLabel>
+                                <Select
+                                    label="SIM Card Slot"
+                                    value={smsConfig.simSlot}
+                                    onChange={(e) => setSmsConfig(prev => ({ ...prev, simSlot: e.target.value }))}
+                                >
+                                    <MenuItem value={1}>SIM 1 (Hutch)</MenuItem>
+                                    <MenuItem value={2}>SIM 2 (Hutch)</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <TextField
+                                fullWidth
+                                label="App Password / Token (Optional)"
+                                type="password"
+                                placeholder="Leave blank if none"
+                                value={smsConfig.token}
+                                onChange={(e) => setSmsConfig(prev => ({ ...prev, token: e.target.value }))}
+                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
+                            />
+                        </Grid>
+                    </Grid>
+
+                    <Divider sx={{ my: 0.5 }} />
+
+                    {/* Test SMS Section */}
+                    <Box sx={{
+                        p: 2, borderRadius: 3,
+                        background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+                        border: `1px dashed ${border}`
+                    }}>
+                        <Typography variant="subtitle2" fontWeight={800} mb={1}>
+                            Test Phone Connection
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1.5 }}>
+                            <TextField
+                                size="small"
+                                placeholder="e.g. 078XXXXXXX"
+                                value={testMobile}
+                                onChange={(e) => setTestMobile(e.target.value)}
+                                sx={{ flex: 1, '& .MuiOutlinedInput-root': { borderRadius: 2.5 } }}
+                            />
+                            <Button
+                                variant="contained"
+                                color="success"
+                                disabled={testLoading}
+                                onClick={handleSendTestSms}
+                                startIcon={testLoading ? <CircularProgress size={16} color="inherit" /> : <Send sx={{ fontSize: 16 }} />}
+                                sx={{ borderRadius: 2.5, textTransform: 'none', fontWeight: 700, px: 2.5 }}
+                            >
+                                Send Test
+                            </Button>
+                        </Box>
+                        {testAlert.open && (
+                            <Alert severity={testAlert.severity} sx={{ mt: 1.5, borderRadius: 2 }}>
+                                {testAlert.message}
+                            </Alert>
+                        )}
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ p: 2.5, pt: 1, gap: 1 }}>
+                    <Button onClick={() => setSmsSettingsOpen(false)} sx={{ borderRadius: 2.5, textTransform: 'none', color: 'text.secondary' }}>
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="contained"
+                        onClick={handleSaveSmsConfig}
+                        disabled={saveLoading}
+                        sx={{
+                            borderRadius: 2.5, textTransform: 'none', fontWeight: 700, px: 3,
+                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                        }}
+                    >
+                        {saveLoading ? <CircularProgress size={18} color="inherit" /> : 'Save Settings'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* ─── POST-PAYMENT RECEIPT DIALOG ─── */}
+            <Dialog
+                open={receiptModalOpen}
+                onClose={() => setReceiptModalOpen(false)}
+                maxWidth="xs"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: '24px',
+                        background: isDark ? '#111526' : '#ffffff',
+                        border: `1px solid ${border}`,
+                        textAlign: 'center',
+                        p: 2.5
+                    }
+                }}
+            >
+                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1.5 }}>
+                    <Box sx={{
+                        width: 64, height: 64, borderRadius: '50%',
+                        bgcolor: 'rgba(16,185,129,0.15)', color: '#10b981',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                        <CheckCircle sx={{ fontSize: 40 }} />
+                    </Box>
+                </Box>
+                <Typography variant="h5" fontWeight={900}>Payment Complete!</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
+                    {lastReceiptData?.student?.name} &bull; {lastReceiptData?.student?.indexNumber}
+                </Typography>
+
+                <Box sx={{
+                    p: 2, borderRadius: 3, mb: 2.5,
+                    bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                    border: `1px solid ${border}`,
+                    textAlign: 'left'
+                }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="caption" color="text.secondary">Receipt No:</Typography>
+                        <Typography variant="caption" fontWeight={700} fontFamily="monospace">{lastReceiptData?.transaction?.transactionId}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="caption" color="text.secondary">Total Paid:</Typography>
+                        <Typography variant="subtitle2" fontWeight={800} color="#10b981">Rs. {lastReceiptData?.transaction?.totalAmount?.toLocaleString()}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="caption" color="text.secondary">Hutch SMS:</Typography>
+                        <Chip
+                            size="small"
+                            label={lastReceiptData?.smsStatus === 'sent' ? 'Sent to Parent' : lastReceiptData?.smsStatus === 'failed' ? 'Failed / Unreachable' : 'Skipped'}
+                            color={lastReceiptData?.smsStatus === 'sent' ? 'success' : lastReceiptData?.smsStatus === 'failed' ? 'error' : 'default'}
+                            sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700 }}
+                        />
+                    </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                    {lastReceiptData?.student?.mobile && (
+                        <Button
+                            variant="contained"
+                            fullWidth
+                            onClick={() => openWhatsAppDirect(lastReceiptData.student.mobile, lastReceiptData.waMessage)}
+                            startIcon={<WhatsApp />}
+                            sx={{
+                                py: 1.3, borderRadius: 3, textTransform: 'none', fontWeight: 700,
+                                background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                                boxShadow: '0 8px 24px rgba(37, 211, 102, 0.3)'
+                            }}
+                        >
+                            Send via WhatsApp (Optional)
+                        </Button>
+                    )}
+
+                    <Button
+                        variant="outlined"
+                        fullWidth
+                        onClick={() => generateBillPDF(lastReceiptData.transaction)}
+                        startIcon={<Download />}
+                        sx={{ py: 1.2, borderRadius: 3, textTransform: 'none', fontWeight: 700 }}
+                    >
+                        Re-Download PDF Receipt
+                    </Button>
+
+                    <Button
+                        variant="text"
+                        onClick={() => setReceiptModalOpen(false)}
+                        sx={{ textTransform: 'none', color: 'text.secondary', fontWeight: 600 }}
+                    >
+                        Done & Close
+                    </Button>
+                </Box>
+            </Dialog>
 
             {/* Notification */}
             <Snackbar
