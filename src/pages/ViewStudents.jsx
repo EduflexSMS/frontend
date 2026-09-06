@@ -481,18 +481,20 @@ function StudentRow({ student, onUpdate, onEdit, subjectColors }) {
         await axios.patch(`${API_BASE_URL}/api/records/${student._id}/${encodeURIComponent(subjectName)}/${monthIndex}/fee`, {});
         
         if (!isPaid && student.mobile) {
-          let mobile = student.mobile.trim();
-          if (mobile.startsWith('0')) mobile = '94' + mobile.substring(1);
-          else if (mobile.startsWith('+')) mobile = mobile.substring(1);
-          else if (!mobile.startsWith('94')) mobile = '94' + mobile;
+          let mobile = student.mobile.replace(/[^\d+]/g, '').trim();
+          if (mobile.startsWith('+94')) mobile = '0' + mobile.slice(3);
+          else if (mobile.startsWith('94') && mobile.length === 11) mobile = '0' + mobile.slice(2);
+          else if (mobile.length === 9 && mobile.startsWith('7')) mobile = '0' + mobile;
 
           const monthsList = ["ජනවාරි", "පෙබරවාරි", "මාර්තු", "අප්‍රේල්", "මැයි", "ජූනි", "ජූලි", "අගෝස්තු", "සැප්තැම්බර්", "ඔක්තෝබර්", "නොවැම්බර්", "දෙසැම්බර්"];
           const monthName = monthsList[monthIndex];
           const feeAmount = subjectColors?.[subjectName]?.fee || 0;
           
-          const message = `ආයුබෝවන් ${student.name},\n\nඔබගේ ${monthName} මාසය සඳහා වන *${subjectName}* පන්තියේ ගාස්තුව වන රු. ${feeAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} සාර්ථකව ලැබී ඇත.\n\nස්තූතියි!\nEduflex Institute\nවිමසීම්: +94789232752`;
+          const message = `ආයුබෝවන් ${student.name},\nඔබගේ ${monthName} මාසය සඳහා වන ${subjectName} පන්තියේ ගාස්තුව (රු. ${feeAmount.toLocaleString()}) සාර්ථකව ලැබී ඇත.\nස්තූතියි!\nEduflex Institute`;
           
-          window.open(`https://wa.me/${mobile}?text=${encodeURIComponent(message)}`, '_blank');
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+          const sep = isIOS ? '&' : '?';
+          window.location.href = `sms:${mobile}${sep}body=${encodeURIComponent(message)}`;
         }
 
         if (onUpdate) onUpdate();
@@ -522,10 +524,10 @@ function StudentRow({ student, onUpdate, onEdit, subjectColors }) {
         await axios.patch(`${API_BASE_URL}/api/records/${student._id}/${encodeURIComponent(subjectName)}/${monthIndex}/daily-fee/${weekIndex}`, {});
         
         if (!isPaid && student.mobile) {
-          let mobile = student.mobile.trim();
-          if (mobile.startsWith('0')) mobile = '94' + mobile.substring(1);
-          else if (mobile.startsWith('+')) mobile = mobile.substring(1);
-          else if (!mobile.startsWith('94')) mobile = '94' + mobile;
+          let mobile = student.mobile.replace(/[^\d+]/g, '').trim();
+          if (mobile.startsWith('+94')) mobile = '0' + mobile.slice(3);
+          else if (mobile.startsWith('94') && mobile.length === 11) mobile = '0' + mobile.slice(2);
+          else if (mobile.length === 9 && mobile.startsWith('7')) mobile = '0' + mobile;
 
           const monthsList = ["ජනවාරි", "පෙබරවාරි", "මාර්තු", "අප්‍රේල්", "මැයි", "ජූනි", "ජූලි", "අගෝස්තු", "සැප්තැම්බර්", "ඔක්තෝබර්", "නොවැම්බර්", "දෙසැම්බර්"];
           const monthName = monthsList[monthIndex];
@@ -533,9 +535,11 @@ function StudentRow({ student, onUpdate, onEdit, subjectColors }) {
           const weekName = weeksList[weekIndex];
           const feeAmount = subjectColors?.[subjectName]?.fee || 0;
           
-          const message = `ආයුබෝවන් ${student.name},\n\nඔබගේ *${subjectName}* පන්තියේ ${monthName} මාසයේ ${weekName} සඳහා වන ගාස්තුව වන රු. ${feeAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} සාර්ථකව ලැබී ඇත.\n\nස්තූතියි!\nEduflex Institute\nවිමසීම්: +94789232752`;
+          const message = `ආයුබෝවන් ${student.name},\nඔබගේ ${subjectName} පන්තියේ ${monthName} (${weekName}) ගාස්තුව (රු. ${feeAmount.toLocaleString()}) සාර්ථකව ලැබී ඇත.\nස්තූතියි!\nEduflex Institute`;
           
-          window.open(`https://wa.me/${mobile}?text=${encodeURIComponent(message)}`, '_blank');
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+          const sep = isIOS ? '&' : '?';
+          window.location.href = `sms:${mobile}${sep}body=${encodeURIComponent(message)}`;
         }
 
         if (onUpdate) onUpdate();

@@ -147,6 +147,18 @@ export default function POS() {
         window.open(`https://wa.me/${cleaned}?text=${encodeURIComponent(message || '')}`, '_blank');
     };
 
+    const openDefaultSMS = (rawMobile, message) => {
+        if (!rawMobile) return;
+        let mobile = rawMobile.replace(/[^\d+]/g, '').trim();
+        if (mobile.startsWith('+94')) mobile = '0' + mobile.slice(3);
+        else if (mobile.startsWith('94') && mobile.length === 11) mobile = '0' + mobile.slice(2);
+        else if (mobile.length === 9 && mobile.startsWith('7')) mobile = '0' + mobile;
+
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const separator = isIOS ? '&' : '?';
+        window.location.href = `sms:${mobile}${separator}body=${encodeURIComponent(message || '')}`;
+    };
+
     const surface = isDark ? '#111526' : '#ffffff';
     const surfaceHover = isDark ? '#161c32' : '#f8fafc';
     const border = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
@@ -283,6 +295,11 @@ export default function POS() {
             });
             setReceiptModalOpen(true);
             setCart([]);
+
+            // Auto-open SMS app on device (Hutch SIM)
+            if (updatedStudent.mobile && res.data.smsMessage) {
+                openDefaultSMS(updatedStudent.mobile, res.data.smsMessage);
+            }
         } catch (error) {
             setNotification({ open: true, message: error.response?.data?.message || 'Checkout Failed', type: 'error' });
         } finally {
@@ -1165,12 +1182,28 @@ export default function POS() {
                         <Button
                             variant="contained"
                             fullWidth
+                            onClick={() => openDefaultSMS(lastReceiptData.student.mobile, lastReceiptData.smsMessage)}
+                            startIcon={<PhoneAndroid />}
+                            sx={{
+                                py: 1.3, borderRadius: 3, textTransform: 'none', fontWeight: 700,
+                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)'
+                            }}
+                        >
+                            Open in SMS App (Hutch SIM)
+                        </Button>
+                    )}
+
+                    {lastReceiptData?.student?.mobile && (
+                        <Button
+                            variant="outlined"
+                            fullWidth
                             onClick={() => openWhatsAppDirect(lastReceiptData.student.mobile, lastReceiptData.waMessage)}
                             startIcon={<WhatsApp />}
                             sx={{
-                                py: 1.3, borderRadius: 3, textTransform: 'none', fontWeight: 700,
-                                background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
-                                boxShadow: '0 8px 24px rgba(37, 211, 102, 0.3)'
+                                py: 1.2, borderRadius: 3, textTransform: 'none', fontWeight: 700,
+                                borderColor: '#25D366', color: '#25D366',
+                                '&:hover': { borderColor: '#128C7E', bgcolor: 'rgba(37, 211, 102, 0.08)' }
                             }}
                         >
                             Send via WhatsApp (Optional)

@@ -75,29 +75,22 @@ const StatusCell = ({ student, fee, studentId, subject, monthIndex, weekIndex, t
                 // Assuming toggle for fee/tute based on current click.
                 await axios.patch(url);
                 
-                // --- WHATSAPP NOTIFICATION ---
+                // --- DIRECT SMS APP NOTIFICATION ---
                 if (type === 'fee' && newStatus === 'present' && student && student.mobile) {
-                    let mobile = student.mobile.trim();
-                    if (mobile.startsWith('0')) {
-                        mobile = '94' + mobile.substring(1);
-                    } else if (mobile.startsWith('+')) {
-                        mobile = mobile.substring(1);
-                    } else if (!mobile.startsWith('94')) {
-                        // Assuming Sri Lanka by default if no code and doesn't start with 0
-                        mobile = '94' + mobile;
-                    }
+                    let mobile = student.mobile.replace(/[^\d+]/g, '').trim();
+                    if (mobile.startsWith('+94')) mobile = '0' + mobile.slice(3);
+                    else if (mobile.startsWith('94') && mobile.length === 11) mobile = '0' + mobile.slice(2);
+                    else if (mobile.length === 9 && mobile.startsWith('7')) mobile = '0' + mobile;
 
                     const monthsList = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
                     const monthName = monthsList[monthIndex];
-                    const feeAmount = fee ? fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 0;
+                    const feeAmount = fee ? fee.toLocaleString() : 0;
                     
-                    const message = `Hello ${student.name},\n\nYour payment of Rs. ${feeAmount} for the *${subject}* class (${monthName}) has been received successfully.\n\nThank you!\nEduflex Institute\nContact: +94789232752`;
+                    const message = `Hello ${student.name},\nYour payment of Rs. ${feeAmount} for ${subject} class (${monthName}) has been received.\nThank you!\nEduflex Institute`;
                     
-                    const waUrl = `https://wa.me/${mobile}?text=${encodeURIComponent(message)}`;
-                    
-                    // Open in new tab. Some browsers might require this to be directly from user interaction,
-                    // but usually it works after a quick async await if the user initiated the flow.
-                    window.open(waUrl, '_blank');
+                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                    const separator = isIOS ? '&' : '?';
+                    window.location.href = `sms:${mobile}${separator}body=${encodeURIComponent(message)}`;
                 }
             }
 
