@@ -236,41 +236,43 @@ export default function POS() {
         if (!selectedStudent || cart.length === 0) return;
         setIsProcessing(true);
         try {
-            const payload = { studentId: selectedStudent._id, items: cart, totalAmount };
+            const payload = { studentId: selectedStudent._id, items: cart, totalAmount, language: 'si' };
             const res = await axios.post(`${API_BASE_URL}/api/pos/checkout`, payload);
-            generateBillPDF(res.data.transaction);
+            generateBillPDF(res.data.transaction, 'si');
 
-            const updatedStudent = { ...selectedStudent };
-            cart.forEach(item => {
-                const enrollment = updatedStudent.enrollments.find(e => e.subject === item.subject);
-                if (enrollment) {
-                    const record = enrollment.monthlyRecords.find(r => r.monthIndex === item.month);
-                    if (record) {
-                        if (item.weekIndex !== undefined) {
-                            const classDaysCount = subjectsMap[item.subject]?.classDaysCount || 5;
-                            if (!record.dailyFeesPaid || record.dailyFeesPaid.length === 0) {
-                                record.dailyFeesPaid = Array(classDaysCount).fill(false);
-                            } else if (record.dailyFeesPaid.length < classDaysCount) {
-                                while (record.dailyFeesPaid.length < classDaysCount) {
-                                    record.dailyFeesPaid.push(false);
+            const updatedStudent = res.data.student || { ...selectedStudent };
+            if (!res.data.student) {
+                cart.forEach(item => {
+                    const enrollment = updatedStudent.enrollments.find(e => e.subject === item.subject);
+                    if (enrollment) {
+                        const record = enrollment.monthlyRecords.find(r => r.monthIndex === item.month);
+                        if (record) {
+                            if (item.weekIndex !== undefined) {
+                                const classDaysCount = subjectsMap[item.subject]?.classDaysCount || 5;
+                                if (!record.dailyFeesPaid || record.dailyFeesPaid.length === 0) {
+                                    record.dailyFeesPaid = Array(classDaysCount).fill(false);
+                                } else if (record.dailyFeesPaid.length < classDaysCount) {
+                                    while (record.dailyFeesPaid.length < classDaysCount) {
+                                        record.dailyFeesPaid.push(false);
+                                    }
                                 }
-                            }
-                            record.dailyFeesPaid[item.weekIndex] = true;
+                                record.dailyFeesPaid[item.weekIndex] = true;
 
-                            if (!record.attendance || record.attendance.length === 0) {
-                                record.attendance = Array(classDaysCount).fill('pending');
-                            } else if (record.attendance.length < classDaysCount) {
-                                while (record.attendance.length < classDaysCount) {
-                                    record.attendance.push('pending');
+                                if (!record.attendance || record.attendance.length === 0) {
+                                    record.attendance = Array(classDaysCount).fill('pending');
+                                } else if (record.attendance.length < classDaysCount) {
+                                    while (record.attendance.length < classDaysCount) {
+                                        record.attendance.push('pending');
+                                    }
                                 }
+                                record.attendance[item.weekIndex] = 'present';
+                            } else {
+                                record.feePaid = true;
                             }
-                            record.attendance[item.weekIndex] = 'present';
-                        } else {
-                            record.feePaid = true;
                         }
                     }
-                }
-            });
+                });
+            }
             setSelectedStudent(updatedStudent);
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 2500);
@@ -535,6 +537,65 @@ export default function POS() {
                                                     {monthsList[currentMonth - 1]} &amp; {monthsList[currentMonth]}
                                                 </Typography>
                                             </Box>
+
+                                            {/* Quick Multi-Subject Add Bar */}
+                                            {(() => {
+                                                const unpaidCurrentMonth = (selectedStudent.enrollments || []).filter(e => {
+                                                    if (e.isFreeCard) return false;
+                                                    const rec = (e.monthlyRecords || []).find(r => r.monthIndex === currentMonth);
+                                                    return !rec?.feePaid;
+                                                });
+                                                const notInCart = unpaidCurrentMonth.filter(e => !cart.some(c => c.subject === e.subject && c.month === currentMonth));
+
+                                                if (unpaidCurrentMonth.length === 0) return null;
+
+                                                return (
+                                                    <Box sx={{
+                                                        p: 2, mb: 3, borderRadius: '16px',
+                                                        background: isDark ? 'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(99,102,241,0.08) 100%)' : 'linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(99,102,241,0.05) 100%)',
+                                                        border: '1px solid rgba(16,185,129,0.3)',
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5
+                                                    }}>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                                            <Box sx={{
+                                                                width: 36, height: 36, borderRadius: '10px',
+                                                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white',
+                                                                display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                                            }}>
+                                                                <PointOfSale sx={{ fontSize: 20 }} />
+                                                            </Box>
+                                                            <Box>
+                                                                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                                                                    ⚡ Quick Pay for {monthsList[currentMonth]}
+                                                                </Typography>
+                                                                <Typography variant="caption" sx={{ color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)' }}>
+                                                                    {unpaidCurrentMonth.length} unpaid subjects ({unpaidCurrentMonth.map(s => s.subject).join(', ')})
+                                                                </Typography>
+                                                            </Box>
+                                                        </Box>
+                                                        <Box sx={{ display: 'flex', gap: 1 }}>
+                                                            <Button
+                                                                variant="contained"
+                                                                size="small"
+                                                                disabled={notInCart.length === 0}
+                                                                onClick={() => {
+                                                                    notInCart.forEach(e => {
+                                                                        handleAddToCart(e.subject, currentMonth);
+                                                                    });
+                                                                }}
+                                                                sx={{
+                                                                    borderRadius: '10px', textTransform: 'none', fontWeight: 800, fontSize: '0.78rem',
+                                                                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                                                    boxShadow: '0 4px 12px rgba(16,185,129,0.35)',
+                                                                    color: 'white', px: 2
+                                                                }}
+                                                            >
+                                                                {notInCart.length === 0 ? "All Added to Bill" : `Add All Unpaid to Bill (${notInCart.length})`}
+                                                            </Button>
+                                                        </Box>
+                                                    </Box>
+                                                );
+                                            })()}
 
                                             {/* Subject cards */}
                                             <Grid container spacing={2}>
