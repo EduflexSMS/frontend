@@ -164,7 +164,6 @@ export default function FeeRemindersDialog({ open, onClose }) {
         if (targets.length === 0) return;
 
         setSending(true);
-        setSendProgress(10);
         setSendSummary(null);
 
         const reminders = targets.map(s => ({
