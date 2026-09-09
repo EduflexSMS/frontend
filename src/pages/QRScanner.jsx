@@ -1,6 +1,30 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Box, Container, Paper, Typography, MenuItem, Select, FormControl, InputLabel, Button, Alert, Snackbar, Grid } from '@mui/material';
-import { QrCodeScanner, ArrowBack, Cameraswitch, WhatsApp } from '@mui/icons-material';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import {
+    Box,
+    Container,
+    Paper,
+    Typography,
+    MenuItem,
+    Select,
+    FormControl,
+    InputLabel,
+    Button,
+    Alert,
+    Snackbar,
+    Grid,
+    Chip,
+    Stack,
+    CircularProgress
+} from '@mui/material';
+import {
+    QrCodeScanner,
+    ArrowBack,
+    Cameraswitch,
+    WhatsApp,
+    Wifi,
+    WifiOff,
+    Sync
+} from '@mui/icons-material';
 import { Html5Qrcode } from 'html5-qrcode';
 import axios from 'axios';
 import API_BASE_URL from '../config';
@@ -22,7 +46,25 @@ const playSuccessSound = () => {
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
         osc.start();
         osc.stop(ctx.currentTime + 0.2);
-    } catch(e){}
+    } catch (e) {}
+};
+
+const playWarningSound = () => {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(450, ctx.currentTime);
+        osc.frequency.setValueAtTime(320, ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
+    } catch (e) {}
 };
 
 const playErrorSound = () => {
@@ -40,16 +82,18 @@ const playErrorSound = () => {
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
         osc.start();
         osc.stop(ctx.currentTime + 0.3);
-    } catch(e){}
+    } catch (e) {}
 };
 
 const speakText = (text) => {
     if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = 'en-US';
-        msg.rate = 1.1; // Slightly faster
-        window.speechSynthesis.speak(msg);
+        try {
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'en-US';
+            msg.rate = 1.15;
+            window.speechSynthesis.speak(msg);
+        } catch (e) {}
     }
 };
 
@@ -62,14 +106,38 @@ export default function QRScanner() {
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [facingMode, setFacingMode] = useState('environment');
     const [scannedStudent, setScannedStudent] = useState(null);
-    
-    // We use a ref to ensure we don't start multiple scanners
+
+    // Offline mode & Sync Queue
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
+    const [offlineQueue, setOfflineQueue] = useState(() => {
+        try {
+            return JSON.parse(localStorage.getItem('eduflex_offline_scans') || '[]');
+        } catch {
+            return [];
+        }
+    });
+    const [isSyncing, setIsSyncing] = useState(false);
+
     const scannerRef = useRef(null);
     const lastScanData = useRef('');
     const lastScanTime = useRef(0);
-    
     const navigate = useNavigate();
 
+    // Listen to online/offline network changes
+    useEffect(() => {
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => setIsOnline(false);
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
+
+    // Load initial grades & subjects
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -89,8 +157,7 @@ export default function QRScanner() {
 
                 setSubjects(filteredSubjects);
                 setGrades(gradesRes.data);
-                
-                // If there's only one subject option, pre-select it
+
                 if (filteredSubjects.length === 1) {
                     setSelectedSubject(filteredSubjects[0].name);
                 }
@@ -101,28 +168,110 @@ export default function QRScanner() {
         fetchData();
     }, [navigate]);
 
+    // Save offline queue to localStorage
+    const updateOfflineQueue = (newQueue) => {
+        setOfflineQueue(newQueue);
+        try {
+            localStorage.setItem('eduflex_offline_scans', JSON.stringify(newQueue));
+        } catch (e) {
+            console.error('Failed to persist offline scans', e);
+        }
+    };
+
+    // Auto-sync offline scans when back online
+    const flushOfflineQueue = useCallback(async () => {
+        if (!isOnline || isSyncing || offlineQueue.length === 0) return;
+
+        setIsSyncing(true);
+        let remaining = [...offlineQueue];
+        let syncedCount = 0;
+
+        for (const item of offlineQueue) {
+            try {
+                await axios.post(`${API_BASE_URL}/api/attendance/qr`, {
+                    indexNumber: item.indexNumber,
+                    subject: item.subject,
+                    grade: item.grade
+                });
+                remaining = remaining.filter(q => q.id !== item.id);
+                syncedCount++;
+            } catch (err) {
+                // If it fails with already marked or business error, we can safely remove it
+                if (err.response && err.response.status < 500) {
+                    remaining = remaining.filter(q => q.id !== item.id);
+                } else {
+                    // Server down or network failure, stop syncing
+                    break;
+                }
+            }
+        }
+
+        updateOfflineQueue(remaining);
+        setIsSyncing(false);
+
+        if (syncedCount > 0) {
+            setMessage({ type: 'success', text: `Successfully synced ${syncedCount} offline attendance records!` });
+            setOpenSnackbar(true);
+        }
+    }, [isOnline, isSyncing, offlineQueue]);
+
+    // Trigger auto-sync when online status changes to true
+    useEffect(() => {
+        if (isOnline && offlineQueue.length > 0) {
+            flushOfflineQueue();
+        }
+    }, [isOnline, offlineQueue.length, flushOfflineQueue]);
+
+    // Start scanner
     useEffect(() => {
         if (!selectedGrade || !selectedSubject) return;
 
         const startScanner = async () => {
             try {
-                // Initialize if not already initialized
                 if (!scannerRef.current) {
                     scannerRef.current = new Html5Qrcode("qr-reader");
                 }
 
                 const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-                
+
                 const onScanSuccess = async (decodedText) => {
                     const now = Date.now();
                     // Prevent duplicate scans within 3 seconds
                     if (decodedText === lastScanData.current && (now - lastScanTime.current) < 3000) {
                         return;
                     }
-                    
+
                     lastScanData.current = decodedText;
                     lastScanTime.current = now;
 
+                    // If currently offline, queue locally immediately
+                    if (!navigator.onLine) {
+                        const offlineItem = {
+                            id: `${decodedText}_${now}`,
+                            indexNumber: decodedText,
+                            subject: selectedSubject,
+                            grade: selectedGrade,
+                            scannedAt: new Date().toLocaleTimeString()
+                        };
+                        const nextQueue = [...offlineQueue, offlineItem];
+                        updateOfflineQueue(nextQueue);
+
+                        setScannedStudent({
+                            name: `Student (${decodedText})`,
+                            indexNumber: decodedText,
+                            subject: selectedSubject,
+                            grade: selectedGrade,
+                            status: 'offline_queued'
+                        });
+
+                        playSuccessSound();
+                        speakText("Saved offline.");
+                        setMessage({ type: 'info', text: `Saved offline (${decodedText}). Will sync automatically.` });
+                        setOpenSnackbar(true);
+                        return;
+                    }
+
+                    // Online attempt
                     try {
                         const response = await axios.post(`${API_BASE_URL}/api/attendance/qr`, {
                             indexNumber: decodedText,
@@ -130,7 +279,7 @@ export default function QRScanner() {
                             grade: selectedGrade
                         });
 
-                        const { student, indexNumber, mobile, week, status } = response.data;
+                        const { student, indexNumber, mobile, week, status, feePaid, isFreeCard } = response.data;
                         const firstName = student ? student.split(' ')[0] : 'Student';
 
                         setScannedStudent({
@@ -140,33 +289,58 @@ export default function QRScanner() {
                             subject: selectedSubject,
                             grade: selectedGrade,
                             week: week,
-                            status: status
+                            status: status,
+                            feePaid: feePaid,
+                            isFreeCard: isFreeCard
                         });
 
                         if (status === 'already_marked') {
                             setMessage({ type: 'info', text: `Already Marked: ${student}` });
                             playSuccessSound();
-                            speakText(`${firstName} is already marked.`);
+                            speakText(`${firstName} already marked.`);
                         } else {
-                            setMessage({ type: 'success', text: `Marked Present: ${student} (Week ${week})` });
-                            playSuccessSound();
-                            speakText(`${firstName} is marked present.`);
+                            if (isFreeCard) {
+                                setMessage({ type: 'success', text: `Marked Present: ${student} (Free Card)` });
+                                playSuccessSound();
+                                speakText(`${firstName} present. Free card.`);
+                            } else if (feePaid === false) {
+                                setMessage({ type: 'warning', text: `Marked Present: ${student} (⚠️ Fee Pending)` });
+                                playWarningSound();
+                                speakText(`${firstName} present. Fee pending.`);
+                            } else {
+                                setMessage({ type: 'success', text: `Marked Present: ${student} (Week ${week})` });
+                                playSuccessSound();
+                                speakText(`${firstName} present.`);
+                            }
                         }
                         setOpenSnackbar(true);
 
                     } catch (error) {
                         console.error("Scan Error", error);
-                        const errMsg = error.response?.data?.message || "Scan Failed";
-                        setMessage({ type: 'error', text: errMsg });
+                        // If network disconnected during request
+                        if (!error.response || error.code === 'ERR_NETWORK') {
+                            const offlineItem = {
+                                id: `${decodedText}_${now}`,
+                                indexNumber: decodedText,
+                                subject: selectedSubject,
+                                grade: selectedGrade,
+                                scannedAt: new Date().toLocaleTimeString()
+                            };
+                            updateOfflineQueue([...offlineQueue, offlineItem]);
+                            playSuccessSound();
+                            speakText("Queued offline.");
+                            setMessage({ type: 'info', text: `Network error. Saved offline (${decodedText}).` });
+                        } else {
+                            const errMsg = error.response?.data?.message || "Scan Failed";
+                            setMessage({ type: 'error', text: errMsg });
+                            playErrorSound();
+                            speakText("Error. Check student details.");
+                        }
                         setOpenSnackbar(true);
-                        playErrorSound();
-                        speakText("Error. Attendance not marked.");
                     }
                 };
 
-                const onScanFailure = (error) => {
-                    // Ignore frame failures
-                };
+                const onScanFailure = () => {};
 
                 try {
                     await scannerRef.current.start(
@@ -179,7 +353,6 @@ export default function QRScanner() {
                     console.error("Camera start failed:", err);
                     if (facingMode === 'environment') {
                         try {
-                            console.warn("Falling back to user camera...");
                             await scannerRef.current.start(
                                 { facingMode: "user" },
                                 config,
@@ -188,13 +361,12 @@ export default function QRScanner() {
                             );
                             setFacingMode("user");
                         } catch (fallbackErr) {
-                             console.error("All camera fallback failed:", fallbackErr);
-                             setMessage({ type: 'error', text: 'Camera access failed. Please grant camera permissions.' });
-                             setOpenSnackbar(true);
+                            setMessage({ type: 'error', text: 'Camera access failed. Please grant camera permissions.' });
+                            setOpenSnackbar(true);
                         }
                     } else {
-                         setMessage({ type: 'error', text: 'Failed to access camera. It might be in use or permissions denied.' });
-                         setOpenSnackbar(true);
+                        setMessage({ type: 'error', text: 'Failed to access camera.' });
+                        setOpenSnackbar(true);
                     }
                 }
             } catch (err) {
@@ -202,7 +374,6 @@ export default function QRScanner() {
             }
         };
 
-        // Delay starting slightly to ensure DOM element is mounted
         const timer = setTimeout(() => {
             startScanner();
         }, 300);
@@ -217,17 +388,48 @@ export default function QRScanner() {
                 });
             }
         };
-    }, [selectedGrade, selectedSubject, facingMode]);
-
-    const handleCloseSnackbar = () => {
-        setOpenSnackbar(false);
-    };
+    }, [selectedGrade, selectedSubject, facingMode, offlineQueue]);
 
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>
-            <Button startIcon={<ArrowBack />} onClick={() => navigate(-1)} sx={{ mb: 2 }}>
-                Back to Dashboard
-            </Button>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Button startIcon={<ArrowBack />} onClick={() => navigate(-1)}>
+                    Back to Dashboard
+                </Button>
+
+                {/* Online / Offline Status Badge */}
+                <Stack direction="row" spacing={1} alignItems="center">
+                    {isOnline ? (
+                        <Chip
+                            icon={<Wifi fontSize="small" />}
+                            label="Online"
+                            color="success"
+                            size="small"
+                            variant="outlined"
+                        />
+                    ) : (
+                        <Chip
+                            icon={<WifiOff fontSize="small" />}
+                            label="Offline Mode"
+                            color="warning"
+                            size="small"
+                        />
+                    )}
+
+                    {offlineQueue.length > 0 && (
+                        <Button
+                            size="small"
+                            variant="contained"
+                            color="warning"
+                            startIcon={isSyncing ? <CircularProgress size={14} color="inherit" /> : <Sync />}
+                            onClick={flushOfflineQueue}
+                            disabled={!isOnline || isSyncing}
+                        >
+                            Sync {offlineQueue.length} Scans
+                        </Button>
+                    )}
+                </Stack>
+            </Box>
 
             <Paper sx={{ p: 4, borderRadius: '24px', textAlign: 'center' }}>
                 <Typography variant="h4" gutterBottom fontWeight="bold">
@@ -235,7 +437,14 @@ export default function QRScanner() {
                     Attendance Scanner
                 </Typography>
 
-                <Grid container spacing={2} sx={{ mb: 4, mt: 2 }}>
+                {/* Offline alert banner */}
+                {offlineQueue.length > 0 && (
+                    <Alert severity="info" sx={{ mb: 2, textAlign: 'left' }}>
+                        <strong>{offlineQueue.length} scans saved offline.</strong> They will automatically sync to the database once connection is restored.
+                    </Alert>
+                )}
+
+                <Grid container spacing={2} sx={{ mb: 4, mt: 1 }}>
                     <Grid item xs={12} sm={6}>
                         <FormControl fullWidth>
                             <InputLabel>Select Grade</InputLabel>
@@ -270,13 +479,14 @@ export default function QRScanner() {
                     </Grid>
                 </Grid>
 
+                {/* Scanned Student Card */}
                 {scannedStudent && (
                     <Box sx={{
                         mb: 4, p: 2.5,
                         borderRadius: '16px',
                         bgcolor: 'background.paper',
                         border: '1px solid',
-                        borderColor: 'divider',
+                        borderColor: scannedStudent.feePaid === false ? 'warning.main' : 'divider',
                         textAlign: 'left',
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -285,10 +495,36 @@ export default function QRScanner() {
                         gap: 2
                     }}>
                         <Box>
-                            <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: 1 }}>Last Scanned Student</Typography>
-                            <Typography variant="h6" fontWeight="bold" sx={{ mt: 0.5 }}>{scannedStudent.name}</Typography>
-                            <Typography variant="body2" color="text.secondary">Index: {scannedStudent.indexNumber} | Status: <span style={{ color: scannedStudent.status === 'already_marked' ? '#ff9800' : '#4caf50', fontWeight: 'bold' }}>{scannedStudent.status === 'already_marked' ? 'Already Marked' : 'Present'}</span></Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: 1 }}>
+                                Last Scanned Student
+                            </Typography>
+                            <Typography variant="h6" fontWeight="bold" sx={{ mt: 0.5 }}>
+                                {scannedStudent.name}
+                            </Typography>
+                            <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+                                <Typography variant="body2" color="text.secondary">
+                                    Index: <strong>{scannedStudent.indexNumber}</strong>
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">|</Typography>
+                                {scannedStudent.status === 'already_marked' ? (
+                                    <Chip label="Already Marked" size="small" color="warning" />
+                                ) : scannedStudent.status === 'offline_queued' ? (
+                                    <Chip label="Queued Offline" size="small" color="info" />
+                                ) : (
+                                    <Chip label="Marked Present" size="small" color="success" />
+                                )}
+
+                                {/* Fee Status Badge */}
+                                {scannedStudent.isFreeCard ? (
+                                    <Chip label="Free Card" size="small" color="secondary" />
+                                ) : scannedStudent.feePaid === true ? (
+                                    <Chip label="Fees Paid" size="small" color="success" variant="outlined" />
+                                ) : scannedStudent.feePaid === false ? (
+                                    <Chip label="Fees Pending" size="small" color="error" variant="filled" />
+                                ) : null}
+                            </Stack>
                         </Box>
+
                         {scannedStudent.mobile && (
                             <Button
                                 variant="contained"
@@ -307,7 +543,7 @@ Student: *${scannedStudent.name}*
 Index: *${scannedStudent.indexNumber}*
 Subject: *${scannedStudent.subject}* (${scannedStudent.grade})
 
-Has attended the class today.
+Has attended class today.
 Thank you!`
                                 )}`}
                                 target="_blank"
@@ -316,8 +552,7 @@ Thank you!`
                                     borderRadius: '12px',
                                     textTransform: 'none',
                                     fontWeight: 'bold',
-                                    background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
-                                    boxShadow: '0 4px 12px rgba(37, 211, 102, 0.3)'
+                                    background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)'
                                 }}
                             >
                                 WhatsApp Parent
@@ -328,10 +563,10 @@ Thank you!`
 
                 {(selectedGrade && selectedSubject) && (
                     <Box sx={{ maxWidth: '500px', margin: '0 auto', textAlign: 'right' }}>
-                        <Button 
-                            variant="outlined" 
-                            color="primary" 
-                            startIcon={<Cameraswitch />} 
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            startIcon={<Cameraswitch />}
                             onClick={() => setFacingMode(prev => prev === 'environment' ? 'user' : 'environment')}
                             sx={{ mb: 2, borderRadius: '20px', textTransform: 'none' }}
                         >
@@ -345,37 +580,22 @@ Thank you!`
                             position: 'relative'
                         }}>
                             <div id="qr-reader" style={{ width: '100%', minHeight: '300px' }}></div>
-                            <Typography variant="caption" sx={{ 
-                                color: 'white', 
-                                display: 'block', 
-                                p: 1, 
-                                position: 'absolute', 
-                                bottom: 0, 
-                                width: '100%', 
-                                textAlign: 'center', 
-                                background: 'rgba(0,0,0,0.5)',
-                                zIndex: 10
-                            }}>
-                                Point camera at student QR code
-                            </Typography>
                         </Box>
                     </Box>
-                )}
-
-                {(!selectedGrade || !selectedSubject) && (
-                    <Alert severity="info" sx={{ mt: 2 }}>
-                        Please select both Grade and Subject to enable the camera.
-                    </Alert>
                 )}
             </Paper>
 
             <Snackbar
                 open={openSnackbar}
-                autoHideDuration={3000}
-                onClose={handleCloseSnackbar}
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                autoHideDuration={4000}
+                onClose={() => setOpenSnackbar(false)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
-                <Alert onClose={handleCloseSnackbar} severity={message.type || 'info'} sx={{ width: '100%', fontSize: '1.2rem' }}>
+                <Alert
+                    onClose={() => setOpenSnackbar(false)}
+                    severity={message.type || 'info'}
+                    sx={{ width: '100%', borderRadius: '12px' }}
+                >
                     {message.text}
                 </Alert>
             </Snackbar>

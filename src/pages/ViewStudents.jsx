@@ -3,6 +3,7 @@ import axios from 'axios';
 import API_BASE_URL from '../config';
 import EditStudentDialog from '../components/EditStudentDialog';
 import MultiSubjectFeeDialog from '../components/MultiSubjectFeeDialog';
+import FeeRemindersDialog from '../components/FeeRemindersDialog';
 import { generateFeeReport } from '../utils/generateFeeReport';
 import { generateClassCard, generateAllClassCardsPDF } from '../utils/generateClassCard';
 import { useTranslation } from 'react-i18next';
@@ -891,6 +892,7 @@ export default function ViewStudents() {
   const [loading, setLoading]       = useState(false);
   
   const [editingStudent, setEditingStudent] = useState(null);
+  const [feeRemindersOpen, setFeeRemindersOpen] = useState(false);
   const [feeModalState, setFeeModalState] = useState({
     open: false,
     student: null,
@@ -1089,6 +1091,27 @@ export default function ViewStudents() {
                   onChange={e => { setSearch(e.target.value); setPage(1); }}
                 />
               </div>
+              <button 
+                className="action-btn" 
+                onClick={() => setFeeRemindersOpen(true)}
+                style={{ 
+                  background: 'linear-gradient(135deg, #f59e0b, #d97706)', 
+                  color: '#fff', 
+                  border: 'none', 
+                  padding: '12px 20px', 
+                  borderRadius: 'var(--r-lg)', 
+                  height: '44px', 
+                  margin: 0,
+                  fontWeight: '700',
+                  boxShadow: '0 4px 15px rgba(245,158,11,0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                FEE REMINDERS
+              </button>
               {selectedGrade && (
                 <button 
                   className="action-btn" 
@@ -1167,6 +1190,13 @@ export default function ViewStudents() {
           preSelectedSubject={feeModalState.preSelectedSubject}
           onClose={handleCloseFeeModal}
           onPaymentComplete={handleFeePaymentComplete}
+        />
+      )}
+
+      {feeRemindersOpen && (
+        <FeeRemindersDialog
+          open={feeRemindersOpen}
+          onClose={() => setFeeRemindersOpen(false)}
         />
       )}
     </div>

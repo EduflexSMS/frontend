@@ -55,6 +55,7 @@ export default function Exams() {
   const [savingId, setSavingId] = useState(null);
   const [showReport, setShowReport] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [sendingSMS, setSendingSMS] = useState(false);
   const [sortBy, setSortBy] = useState('name'); // 'name', 'marks', 'id'
   const [sortDirection, setSortDirection] = useState('asc'); // 'asc', 'desc'
 
@@ -125,7 +126,12 @@ export default function Exams() {
       );
       const mapped = enrolled.map(student => {
         const existing = exam.results.find(r => (r.student?._id || r.student) === student._id);
-        return { ...student, marks: existing ? existing.marks : '', gradeResult: existing ? existing.grade : '' };
+        return {
+          ...student,
+          marks: existing ? existing.marks : '',
+          gradeResult: existing ? existing.grade : '',
+          rank: existing ? existing.rank : '—'
+        };
       });
       setExamStudents(mapped);
     } catch { toast.error('Failed to load exam details'); }
@@ -146,14 +152,41 @@ export default function Exams() {
         { studentId, marks: Number(marks) },
         { headers: { Authorization: `Bearer ${getToken()}` } }
       );
-      const updated = data.results.find(r => r.student._id === studentId);
-      setExamStudents(prev => prev.map(s =>
-        s._id === studentId ? { ...s, marks: updated.marks, gradeResult: updated.grade } : s
-      ));
+      setExamStudents(prev => prev.map(s => {
+        const updated = data.results.find(r => (r.student?._id || r.student) === s._id);
+        return updated ? { ...s, marks: updated.marks, gradeResult: updated.grade, rank: updated.rank || '—' } : s;
+      }));
       setSelectedExam(data);
       toast.success('Marks saved');
     } catch { toast.error('Failed to save marks'); }
     finally { setSavingId(null); }
+  };
+
+  const handleSendResultsSMS = async () => {
+    if (!selectedExam) return;
+    const graded = examStudents.filter(s => s.marks !== '' && s.marks !== undefined);
+    if (graded.length === 0) {
+      return toast.warn('No graded students to send results for!');
+    }
+    if (!window.confirm(`Send exam results SMS to parents of ${graded.length} graded students via Hutch SIM Gateway?`)) return;
+
+    setSendingSMS(true);
+    try {
+      const { data } = await axios.post(
+        `${API_BASE_URL}/api/exams/${selectedExam._id}/send-sms`,
+        { language: 'si' },
+        { headers: { Authorization: `Bearer ${getToken()}` } }
+      );
+      toast.success(`Dispatched ${data.sent} result SMS successfully!`);
+      if (data.failed > 0) {
+        toast.warn(`${data.failed} SMS failed to send.`);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.error || 'Failed to send SMS results');
+    } finally {
+      setSendingSMS(false);
+    }
   };
 
   const handleDeleteExam = async () => {
@@ -315,6 +348,11 @@ export default function Exams() {
         const idA = (a.indexNumber || '').toLowerCase();
         const idB = (b.indexNumber || '').toLowerCase();
         return sortDirection === 'asc' ? idA.localeCompare(idB) : idB.localeCompare(idA);
+      }
+      if (sortBy === 'rank') {
+        const numRankA = isNaN(Number(a.rank)) ? 9999 : Number(a.rank);
+        const numRankB = isNaN(Number(b.rank)) ? 9999 : Number(b.rank);
+        return sortDirection === 'asc' ? numRankA - numRankB : numRankB - numRankA;
       }
       return 0;
     });
@@ -489,6 +527,19 @@ export default function Exams() {
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                  onClick={handleSendResultsSMS}
+                  disabled={sendingSMS}
+                  style={{
+                    padding: '9px 18px', borderRadius: 10, border: 'none',
+                    background: '#f59e0b', color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    opacity: sendingSMS ? 0.7 : 1
+                  }}
+                >
+                  {sendingSMS ? '⏳ Sending SMS...' : '📱 SMS Results'}
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
                   onClick={() => setShowReport(true)}
                   style={{
                     padding: '9px 18px', borderRadius: 10, border: 'none',
@@ -563,6 +614,7 @@ export default function Exams() {
                 {[
                   { id: 'name', label: 'Name A-Z', dir: 'asc' },
                   { id: 'marks', label: 'Highest Marks', dir: 'desc' },
+                  { id: 'rank', label: 'Rank 1-N', dir: 'asc' },
                   { id: 'id', label: 'Student ID', dir: 'asc' }
                 ].map(opt => {
                   const isActive = sortBy === opt.id && sortDirection === opt.dir;
@@ -629,6 +681,16 @@ export default function Exams() {
                         }}
                       >
                         Grade
+                      </th>
+                      <th
+                        onClick={() => handleHeaderClick('rank')}
+                        style={{
+                          padding: '12px 16px', textAlign: 'center', fontSize: 11, fontWeight: 600,
+                          color: sortBy === 'rank' ? C.text : C.muted, textTransform: 'uppercase', letterSpacing: '0.06em',
+                          borderBottom: `1px solid ${C.border}`, cursor: 'pointer', userSelect: 'none'
+                        }}
+                      >
+                        Rank {renderSortIcon('rank')}
                       </th>
                       <th
                         style={{
@@ -698,6 +760,21 @@ export default function Exams() {
                               <span style={{ color: C.muted, fontSize: 13 }}>—</span>
                             )}
                           </td>
+                          <td style={{ padding: '13px 16px', textAlign: 'center' }}>
+                            {student.rank && student.rank !== 'AB' && student.rank !== '—' && student.rank !== 'N/A' ? (
+                              <span style={{
+                                display: 'inline-block', padding: '3px 10px', borderRadius: 12,
+                                fontSize: 12, fontWeight: 800,
+                                background: Number(student.rank) <= 3 ? 'rgba(251,191,36,0.2)' : 'rgba(255,255,255,0.06)',
+                                color: Number(student.rank) <= 3 ? '#fbbf24' : C.text,
+                                border: Number(student.rank) <= 3 ? '1px solid rgba(251,191,36,0.4)' : 'none'
+                              }}>
+                                #{student.rank}
+                              </span>
+                            ) : (
+                              <span style={{ color: C.muted, fontSize: 13 }}>—</span>
+                            )}
+                          </td>
                           <td style={{ padding: '13px 16px' }}>
                             <motion.button
                               whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
@@ -718,7 +795,7 @@ export default function Exams() {
                     })}
                     {examStudents.length === 0 && (
                       <tr>
-                        <td colSpan="5" style={{ padding: 40, textAlign: 'center', color: C.muted, fontSize: 14 }}>
+                        <td colSpan="6" style={{ padding: 40, textAlign: 'center', color: C.muted, fontSize: 14 }}>
                           No students enrolled in this subject for this grade.
                         </td>
                       </tr>

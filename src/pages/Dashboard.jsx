@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import ReportDialog from '../components/ReportDialog';
 import SubjectDetailsDialog from '../components/SubjectDetailsDialog';
 import AnalyticsChart from '../components/AnalyticsChart';
+import FeeRemindersDialog from '../components/FeeRemindersDialog';
 import API_BASE_URL from '../config';
 
 // ─────────────────────────────────────────────────────────────────────
@@ -269,6 +270,7 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [reportOpen, setReportOpen] = useState(false);
     const [detailsOpen, setDetailsOpen] = useState(false);
+    const [feeRemindersOpen, setFeeRemindersOpen] = useState(false);
     const [selectedSubject, setSelectedSubject] = useState(null);
     const [isDark, setIsDark] = useState(true);
     
@@ -309,6 +311,10 @@ export default function Dashboard() {
             alert('Failed to fix data');
             setLoading(false);
         }
+    };
+
+    const handleDownloadBackup = () => {
+        window.open(`${API_BASE_URL}/api/backup/export`, '_blank');
     };
 
     // ── compute overall collection rate ──
@@ -470,6 +476,32 @@ export default function Dashboard() {
                                 color: 'var(--kimi-color-surface)', fontWeight: 500, fontSize: 12,
                             }}
                         >📊 {t('generate_report')}</motion.button>
+
+                        {/* DB Backup */}
+                        <motion.button
+                            whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                            onClick={handleDownloadBackup}
+                            style={{
+                                border: '1px solid rgba(99, 102, 241, 0.3)', cursor: 'pointer',
+                                padding: '8px 14px', borderRadius: 8,
+                                background: 'rgba(99, 102, 241, 0.12)',
+                                color: '#818cf8', fontWeight: 600, fontSize: 12,
+                                display: 'flex', alignItems: 'center', gap: 6
+                            }}
+                        >💾 Backup DB</motion.button>
+
+                        {/* Fee Reminders */}
+                        <motion.button
+                            whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                            onClick={() => setFeeRemindersOpen(true)}
+                            style={{
+                                border: 'none', cursor: 'pointer',
+                                padding: '8px 16px', borderRadius: 8,
+                                background: '#f59e0b', color: '#fff',
+                                fontWeight: 600, fontSize: 12,
+                                display: 'flex', alignItems: 'center', gap: 6
+                            }}
+                        >📢 Fee Reminders</motion.button>
 
                         {/* QR Scan */}
                         <motion.button
@@ -705,6 +737,10 @@ export default function Dashboard() {
                 onClose={() => setDetailsOpen(false)}
                 onUpdate={fetchStats}
                 subjectName={selectedSubject}
+            />
+            <FeeRemindersDialog
+                open={feeRemindersOpen}
+                onClose={() => setFeeRemindersOpen(false)}
             />
 
             <style>{`

@@ -19,6 +19,7 @@ import PageTransition from './components/PageTransition';
 import QRScanner from './pages/QRScanner';
 import POS from './pages/POS';
 import Exams from './pages/Exams';
+import ParentPortal from './pages/ParentPortal';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -56,6 +57,11 @@ function AnimatedRoutes() {
       <Route path="/login" element={
         <PageTransition>
           <LoginPage />
+        </PageTransition>
+      } />
+      <Route path="/portal" element={
+        <PageTransition>
+          <ParentPortal />
         </PageTransition>
       } />
 

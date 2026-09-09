@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions, Button,
     Typography, Box, TextField, CircularProgress, Alert, MenuItem, Grid,
-    Paper, alpha, useTheme
+    Paper
 } from '@mui/material';
-import { MonetizationOn, DateRange, AccountBalanceWallet, CheckCircle, Warning, AutoFixHigh } from '@mui/icons-material';
+import { MonetizationOn, AccountBalanceWallet, CheckCircle, AutoFixHigh, PictureAsPdf, WhatsApp } from '@mui/icons-material';
 import axios from 'axios';
 import API_BASE_URL from '../config';
 import { motion, AnimatePresence } from 'framer-motion';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const TeacherPaymentDialog = ({ open, onClose, teacherId, teacherName }) => {
     const [loading, setLoading] = useState(false);
@@ -21,8 +23,6 @@ const TeacherPaymentDialog = ({ open, onClose, teacherId, teacherName }) => {
 
     // Form state
     const [paidAmount, setPaidAmount] = useState('');
-
-    const theme = useTheme();
 
     const months = [
         "January", "February", "March", "April", "May", "June",
@@ -88,6 +88,101 @@ const TeacherPaymentDialog = ({ open, onClose, teacherId, teacherName }) => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleDownloadPayslip = () => {
+        if (!stats) return;
+        const doc = new jsPDF();
+        const monthName = months[selectedMonth];
+        const teacherPayout = parseFloat(paidAmount || stats.suggestedPayment || 0);
+        const instShare = (stats.totalCollected || 0) - teacherPayout;
+
+        // Header Banner
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, 210, 42, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text('EDUFLEX INSTITUTE', 105, 18, { align: 'center' });
+
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        doc.text('TEACHER REMUNERATION & SALARY SLIP', 105, 27, { align: 'center' });
+        doc.setFontSize(9);
+        doc.text(`Period: ${monthName} ${selectedYear} | Issued Date: ${new Date().toLocaleDateString()}`, 105, 34, { align: 'center' });
+
+        // Teacher Info
+        doc.setTextColor(30, 41, 59);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Teacher Name: ${teacherName}`, 14, 52);
+        doc.text(`Assigned Subject: ${stats.subjectName}`, 14, 59);
+        doc.text(`Fee Rate / Student: Rs. ${stats.subjectFee}`, 14, 66);
+
+        doc.text(`Paid Students: ${stats.paidStudentCount}`, 130, 52);
+        doc.text(`Payment Status: ${stats.existingPayment ? 'PAID / SETTLED' : 'PENDING'}`, 130, 59);
+        doc.text(`Payment Date: ${stats.existingPayment ? new Date(stats.existingPayment.paidDate || Date.now()).toLocaleDateString() : 'Draft'}`, 130, 66);
+
+        // Financial Breakdown Table
+        doc.autoTable({
+            startY: 75,
+            head: [['Component', 'Calculation / Basis', 'Amount (LKR)']],
+            body: [
+                ['Gross Class Collections', `${stats.paidStudentCount} students × Rs. ${stats.subjectFee}`, `Rs. ${stats.totalCollected.toLocaleString()}`],
+                ['Institute Overhead / Share', `Institute share deduction`, `- Rs. ${Math.max(0, instShare).toLocaleString()}`],
+                ['Net Teacher Payout', `Net teacher payment (${monthName} ${selectedYear})`, `Rs. ${teacherPayout.toLocaleString()}`]
+            ],
+            headStyles: { fillColor: [99, 102, 241], textColor: [255, 255, 255], fontStyle: 'bold' },
+            bodyStyles: { fontSize: 10 },
+            theme: 'grid'
+        });
+
+        const finalY = doc.lastAutoTable.finalY + 18;
+        doc.setFontSize(13);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(16, 185, 129);
+        doc.text(`NET PAYOUT: Rs. ${teacherPayout.toLocaleString()}`, 14, finalY);
+
+        // Signatures
+        doc.setTextColor(100, 116, 139);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.line(14, finalY + 30, 70, finalY + 30);
+        doc.text('Authorized Signature (Admin)', 14, finalY + 35);
+
+        doc.line(130, finalY + 30, 186, finalY + 30);
+        doc.text('Teacher Signature / Acknowledgement', 130, finalY + 35);
+
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'italic');
+        doc.text('Eduflex Institute Management System · Official Remuneration Document', 105, 285, { align: 'center' });
+
+        doc.save(`Eduflex_Payslip_${teacherName.replace(/\s+/g, '_')}_${monthName}_${selectedYear}.pdf`);
+    };
+
+    const handleShareWhatsApp = () => {
+        if (!stats) return;
+        const monthName = months[selectedMonth];
+        const teacherPayout = parseFloat(paidAmount || stats.suggestedPayment || 0);
+        const instShare = (stats.totalCollected || 0) - teacherPayout;
+
+        const msg = `*EDUFLEX INSTITUTE - TEACHER SALARY BREAKDOWN*
+Teacher: *${teacherName}*
+Subject: *${stats.subjectName}*
+Month: *${monthName} ${selectedYear}*
+
+👥 Paid Students: *${stats.paidStudentCount}*
+💵 Fee Rate: *Rs. ${stats.subjectFee}*
+📈 Gross Collections: *Rs. ${stats.totalCollected.toLocaleString()}*
+🏫 Institute Share: *Rs. ${Math.max(0, instShare).toLocaleString()}*
+💰 *Net Teacher Payout: Rs. ${teacherPayout.toLocaleString()}*
+Status: *${stats.existingPayment ? '✅ PAID' : '⏳ PENDING'}*
+
+Thank you!
+Eduflex Management`;
+
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     };
 
     return (
@@ -250,17 +345,48 @@ const TeacherPaymentDialog = ({ open, onClose, teacherId, teacherName }) => {
                 )}
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 4, justifyContent: 'space-between' }}>
-                <Button
-                    onClick={handleFixData}
-                    startIcon={<AutoFixHigh />}
-                    sx={{
-                        color: 'rgba(255,255,255,0.3)',
-                        textTransform: 'none',
-                        '&:hover': { color: '#ff9800', bgcolor: 'rgba(255, 152, 0, 0.1)' }
-                    }}
-                >
-                    Fix Data
-                </Button>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                        onClick={handleFixData}
+                        startIcon={<AutoFixHigh />}
+                        size="small"
+                        sx={{
+                            color: 'rgba(255,255,255,0.3)',
+                            textTransform: 'none',
+                            '&:hover': { color: '#ff9800', bgcolor: 'rgba(255, 152, 0, 0.1)' }
+                        }}
+                    >
+                        Fix Data
+                    </Button>
+                    {stats && (
+                        <>
+                            <Button
+                                onClick={handleDownloadPayslip}
+                                startIcon={<PictureAsPdf />}
+                                size="small"
+                                sx={{
+                                    color: '#818cf8',
+                                    borderColor: 'rgba(99,102,241,0.3)',
+                                    textTransform: 'none'
+                                }}
+                            >
+                                Payslip (PDF)
+                            </Button>
+                            <Button
+                                onClick={handleShareWhatsApp}
+                                startIcon={<WhatsApp />}
+                                size="small"
+                                sx={{
+                                    color: '#4ade80',
+                                    borderColor: 'rgba(74,222,128,0.3)',
+                                    textTransform: 'none'
+                                }}
+                            >
+                                WhatsApp
+                            </Button>
+                        </>
+                    )}
+                </Box>
                 <Box sx={{ display: 'flex', gap: 2 }}>
                     <Button onClick={onClose} sx={{ color: 'text.secondary', borderRadius: '12px', textTransform: 'none' }}>Close</Button>
                     <Button
