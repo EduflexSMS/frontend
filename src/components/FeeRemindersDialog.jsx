@@ -32,8 +32,12 @@ import {
     Send,
     Close,
     WhatsApp,
+    Sms,
     NotificationsActive,
-    Refresh
+    Refresh,
+    NavigateNext,
+    CheckCircle,
+    RestartAlt
 } from '@mui/icons-material';
 import axios from 'axios';
 import API_BASE_URL from '../config';
@@ -53,6 +57,18 @@ const MONTH_OPTIONS = [
     { index: 11, name: 'December', si: 'දෙසැම්බර්' }
 ];
 
+export const openDefaultSMS = (rawMobile, message) => {
+    if (!rawMobile) return;
+    let mobile = rawMobile.replace(/[^\d+]/g, '').trim();
+    if (mobile.startsWith('+94')) mobile = '0' + mobile.slice(3);
+    else if (mobile.startsWith('94') && mobile.length === 11) mobile = '0' + mobile.slice(2);
+    else if (mobile.length === 9 && mobile.startsWith('7')) mobile = '0' + mobile;
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const separator = isIOS ? '&' : '?';
+    window.location.href = `sms:${mobile}${separator}body=${encodeURIComponent(message || '')}`;
+};
+
 export default function FeeRemindersDialog({ open, onClose }) {
     const currentMonthIndex = new Date().getMonth();
     const [selectedMonth, setSelectedMonth] = useState(currentMonthIndex);
@@ -64,6 +80,7 @@ export default function FeeRemindersDialog({ open, onClose }) {
     const [loading, setLoading] = useState(false);
     const [unpaidStudents, setUnpaidStudents] = useState([]);
     const [selectedStudentIds, setSelectedStudentIds] = useState(new Set());
+    const [sentStudentIds, setSentStudentIds] = useState(new Set());
 
     // Message template
     const [language, setLanguage] = useState('si');
@@ -112,6 +129,7 @@ export default function FeeRemindersDialog({ open, onClose }) {
             setUnpaidStudents(list);
             // Default select all
             setSelectedStudentIds(new Set(list.map(s => s._id)));
+            setSentStudentIds(new Set());
         } catch (err) {
             console.error('Failed to fetch unpaid students', err);
         } finally {
@@ -158,9 +176,27 @@ export default function FeeRemindersDialog({ open, onClose }) {
             .replace(/{totalDue}/g, student.totalDue.toLocaleString());
     };
 
-    // Send reminders via Hutch SIM SMS Gateway
-    const handleSendReminders = async () => {
-        const targets = unpaidStudents.filter(s => selectedStudentIds.has(s._id) && s.mobile);
+    // Open single student in native SMS messaging app (Hutch SIM)
+    const handleOpenSingleSMS = (student) => {
+        if (!student.mobile) return;
+        setSentStudentIds(prev => new Set(prev).add(student._id));
+        openDefaultSMS(student.mobile, generateMessage(student));
+    };
+
+    // Sequential next sender for native SMS app
+    const selectedStudentsList = unpaidStudents.filter(s => selectedStudentIds.has(s._id) && s.mobile);
+    const nextPendingStudent = selectedStudentsList.find(s => !sentStudentIds.has(s._id));
+    const sentCountInSelected = selectedStudentsList.filter(s => sentStudentIds.has(s._id)).length;
+
+    const handleOpenNextSMS = () => {
+        if (nextPendingStudent) {
+            handleOpenSingleSMS(nextPendingStudent);
+        }
+    };
+
+    // Automated batch send via backend Gateway
+    const handleSendRemindersViaGateway = async () => {
+        const targets = selectedStudentsList;
         if (targets.length === 0) return;
 
         setSending(true);
@@ -176,6 +212,8 @@ export default function FeeRemindersDialog({ open, onClose }) {
         try {
             const res = await axios.post(`${API_BASE_URL}/api/fees/send-reminders`, { reminders });
             setSendSummary(res.data);
+            // Mark all sent
+            setSentStudentIds(new Set(targets.map(s => s._id)));
         } catch (err) {
             console.error('Failed to send reminders', err);
             setSendSummary({
@@ -198,7 +236,7 @@ export default function FeeRemindersDialog({ open, onClose }) {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <NotificationsActive color="primary" />
                     <Typography variant="h6" fontWeight="bold">
-                        Automated Fee Reminders (SMS)
+                        Fee Reminders (SMS / Phone Messages)
                     </Typography>
                 </Box>
                 <IconButton onClick={onClose} size="small">
@@ -265,16 +303,26 @@ export default function FeeRemindersDialog({ open, onClose }) {
                         severity={sendSummary.failed === 0 ? 'success' : 'warning'}
                         sx={{ mb: 2 }}
                     >
-                        <strong>Dispatch Complete!</strong> Sent: {sendSummary.sent} / {sendSummary.total} SMS messages.
-                        {sendSummary.failed > 0 && ` (${sendSummary.failed} failed - check phone gateway)`}
+                        <strong>Gateway Complete!</strong> Sent: {sendSummary.sent} / {sendSummary.total} messages.
+                        {sendSummary.failed > 0 && ` (${sendSummary.failed} failed)`}
                     </Alert>
                 )}
 
                 {/* Count Header */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                    <Typography variant="body2" color="text.secondary">
-                        Found <strong>{unpaidStudents.length}</strong> students with pending fees (Selected: {selectedStudentIds.size})
-                    </Typography>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography variant="body2" color="text.secondary">
+                            Found <strong>{unpaidStudents.length}</strong> students with pending fees (Selected: {selectedStudentIds.size})
+                        </Typography>
+                        {sentCountInSelected > 0 && (
+                            <Chip
+                                label={`SMS Sent: ${sentCountInSelected}/${selectedStudentsList.length}`}
+                                size="small"
+                                color="success"
+                                variant="outlined"
+                            />
+                        )}
+                    </Stack>
                     <Button
                         size="small"
                         startIcon={<Refresh />}
@@ -286,7 +334,7 @@ export default function FeeRemindersDialog({ open, onClose }) {
                 </Box>
 
                 {/* Student Table */}
-                <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 240, mb: 2.5 }}>
+                <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 250, mb: 2.5 }}>
                     <Table size="small" stickyHeader>
                         <TableHead>
                             <TableRow>
@@ -302,7 +350,7 @@ export default function FeeRemindersDialog({ open, onClose }) {
                                 <TableCell><strong>Mobile</strong></TableCell>
                                 <TableCell><strong>Unpaid Subjects</strong></TableCell>
                                 <TableCell align="right"><strong>Total Due</strong></TableCell>
-                                <TableCell align="center"><strong>Direct</strong></TableCell>
+                                <TableCell align="center"><strong>Direct (Hutch SMS / WA)</strong></TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -317,6 +365,7 @@ export default function FeeRemindersDialog({ open, onClose }) {
                             ) : (
                                 unpaidStudents.map((s) => {
                                     const isSelected = selectedStudentIds.has(s._id);
+                                    const isSent = sentStudentIds.has(s._id);
                                     return (
                                         <TableRow
                                             key={s._id}
@@ -332,7 +381,10 @@ export default function FeeRemindersDialog({ open, onClose }) {
                                                 />
                                             </TableCell>
                                             <TableCell>
-                                                <Typography variant="body2" fontWeight="500">{s.name}</Typography>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                    {isSent && <CheckCircle color="success" sx={{ fontSize: 16 }} />}
+                                                    <Typography variant="body2" fontWeight="500">{s.name}</Typography>
+                                                </Box>
                                                 <Typography variant="caption" color="text.secondary">{s.indexNumber}</Typography>
                                             </TableCell>
                                             <TableCell>{s.grade}</TableCell>
@@ -356,19 +408,38 @@ export default function FeeRemindersDialog({ open, onClose }) {
                                             </TableCell>
                                             <TableCell align="center" onClick={(e) => e.stopPropagation()}>
                                                 {s.mobile && (
-                                                    <Tooltip title="Send via WhatsApp">
-                                                        <IconButton
-                                                            size="small"
-                                                            color="success"
-                                                            onClick={() => {
-                                                                const msg = encodeURIComponent(generateMessage(s));
-                                                                const cleanMobile = s.mobile.replace(/[^\d]/g, '').replace(/^0/, '94');
-                                                                window.open(`https://wa.me/${cleanMobile}?text=${msg}`, '_blank');
-                                                            }}
-                                                        >
-                                                            <WhatsApp fontSize="small" />
-                                                        </IconButton>
-                                                    </Tooltip>
+                                                    <Stack direction="row" spacing={0.5} justifyContent="center">
+                                                        {/* Native SMS App (Hutch SIM) Button */}
+                                                        <Tooltip title="Open in SMS Messages App (Hutch SIM)">
+                                                            <IconButton
+                                                                size="small"
+                                                                sx={{
+                                                                    color: isSent ? '#16a34a' : '#0284c7',
+                                                                    bgcolor: isSent ? 'rgba(22, 163, 74, 0.1)' : 'rgba(2, 132, 199, 0.1)',
+                                                                    '&:hover': { bgcolor: 'rgba(2, 132, 199, 0.2)' }
+                                                                }}
+                                                                onClick={() => handleOpenSingleSMS(s)}
+                                                            >
+                                                                <Sms fontSize="small" />
+                                                            </IconButton>
+                                                        </Tooltip>
+
+                                                        {/* WhatsApp Button */}
+                                                        <Tooltip title="Send via WhatsApp">
+                                                            <IconButton
+                                                                size="small"
+                                                                color="success"
+                                                                sx={{ bgcolor: 'rgba(37, 211, 102, 0.1)', '&:hover': { bgcolor: 'rgba(37, 211, 102, 0.2)' } }}
+                                                                onClick={() => {
+                                                                    const msg = encodeURIComponent(generateMessage(s));
+                                                                    const cleanMobile = s.mobile.replace(/[^\d]/g, '').replace(/^0/, '94');
+                                                                    window.open(`https://wa.me/${cleanMobile}?text=${msg}`, '_blank');
+                                                                }}
+                                                            >
+                                                                <WhatsApp fontSize="small" />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    </Stack>
                                                 )}
                                             </TableCell>
                                         </TableRow>
@@ -426,33 +497,82 @@ export default function FeeRemindersDialog({ open, onClose }) {
                     )}
 
                     {previewMessage && (
-                        <Box sx={{ mt: 1.5, p: 1.5, borderRadius: 1, bgcolor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-                            <Typography variant="caption" color="text.secondary" fontWeight="bold">
-                                Live Preview (for {firstSelected.name}):
-                            </Typography>
-                            <Typography variant="body2" sx={{ mt: 0.5, fontStyle: 'italic', color: '#166534' }}>
-                                "{previewMessage}"
-                            </Typography>
+                        <Box sx={{ mt: 1.5, p: 1.5, borderRadius: 1, bgcolor: '#f0fdf4', border: '1px solid #bbf7d0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 1 }}>
+                            <Box sx={{ flex: 1, minWidth: 220 }}>
+                                <Typography variant="caption" color="text.secondary" fontWeight="bold">
+                                    Live Preview (for {firstSelected.name}):
+                                </Typography>
+                                <Typography variant="body2" sx={{ mt: 0.5, fontStyle: 'italic', color: '#166534' }}>
+                                    "{previewMessage}"
+                                </Typography>
+                            </Box>
+                            {firstSelected?.mobile && (
+                                <Button
+                                    size="small"
+                                    variant="outlined"
+                                    color="primary"
+                                    startIcon={<Sms />}
+                                    onClick={() => handleOpenSingleSMS(firstSelected)}
+                                    sx={{ textTransform: 'none', fontWeight: 'bold' }}
+                                >
+                                    Open Preview in SMS App
+                                </Button>
+                            )}
                         </Box>
                     )}
                 </Paper>
             </DialogContent>
 
-            <DialogActions sx={{ px: 3, py: 2, justifyContent: 'space-between' }}>
+            <DialogActions sx={{ px: 3, py: 2, justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
                 <Button onClick={onClose} disabled={sending}>
                     Cancel
                 </Button>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<Send />}
-                    disabled={sending || selectedStudentIds.size === 0}
-                    onClick={handleSendReminders}
-                >
-                    {sending
-                        ? `Sending (${selectedStudentIds.size})...`
-                        : `Send SMS to Selected (${selectedStudentIds.size})`}
-                </Button>
+
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                    {/* Reset sent state */}
+                    {sentCountInSelected > 0 && (
+                        <Tooltip title="Reset sent status">
+                            <IconButton size="small" onClick={() => setSentStudentIds(new Set())}>
+                                <RestartAlt fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                    )}
+
+                    {/* Secondary: Auto-send via Gateway */}
+                    <Button
+                        variant="outlined"
+                        color="secondary"
+                        size="small"
+                        startIcon={<Send />}
+                        disabled={sending || selectedStudentsList.length === 0}
+                        onClick={handleSendRemindersViaGateway}
+                        sx={{ textTransform: 'none' }}
+                    >
+                        Auto Gateway
+                    </Button>
+
+                    {/* Primary Action: Open Native SMS App (Hutch SIM) */}
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<Sms />}
+                        endIcon={nextPendingStudent ? <NavigateNext /> : null}
+                        disabled={selectedStudentsList.length === 0}
+                        onClick={handleOpenNextSMS}
+                        sx={{
+                            background: nextPendingStudent
+                                ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)'
+                                : 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
+                            fontWeight: 'bold',
+                            textTransform: 'none',
+                            px: 2.5
+                        }}
+                    >
+                        {nextPendingStudent
+                            ? `Open SMS App (${sentCountInSelected + 1}/${selectedStudentsList.length} - ${nextPendingStudent.name.split(' ')[0]})`
+                            : `All Selected SMS Opened (${selectedStudentsList.length})`}
+                    </Button>
+                </Stack>
             </DialogActions>
         </Dialog>
     );
