@@ -981,6 +981,57 @@ function StudentRow({ student, onUpdate, onEdit, subjectColors, onOpenFeeModal }
                       );
                     })}
                   </div>
+
+                  {/* Mathematics Term Tutes (Terms 1, 2, 3) */}
+                  {(() => {
+                    const isMath = subj.name.toLowerCase().includes('math') || subj.name.includes('ගණිත');
+                    const gNum = parseInt((student.grade || '').replace(/\D/g, ''), 10);
+                    if (!isMath || gNum < 6 || gNum > 11) return null;
+
+                    const enroll = (student.enrollments || []).find(e => e.subject === subj.name);
+                    const tutes = enroll?.termTutes || [];
+
+                    return (
+                      <div style={{
+                        marginTop: 10,
+                        padding: '10px 14px',
+                        borderRadius: 'var(--r)',
+                        background: 'rgba(6, 182, 212, 0.06)',
+                        border: '1px solid rgba(6, 182, 212, 0.2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: 10
+                      }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#06b6d4', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                          📘 Term Tutes (Rs. 400):
+                        </span>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                          {[1, 2, 3].map(tNum => {
+                            const t = tutes.find(item => item.term === tNum);
+                            const isIssued = t?.issued || t?.paid;
+                            return (
+                              <span
+                                key={tNum}
+                                style={{
+                                  fontSize: '0.7rem',
+                                  fontWeight: 700,
+                                  padding: '3px 9px',
+                                  borderRadius: '99px',
+                                  background: isIssued ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                                  color: isIssued ? '#10b981' : '#f59e0b',
+                                  border: `1px solid ${isIssued ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`
+                                }}
+                              >
+                                {isIssued ? `✓ Term ${tNum} Issued` : `⏳ Term ${tNum} Pending`}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             })}

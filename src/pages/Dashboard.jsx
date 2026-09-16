@@ -648,6 +648,30 @@ export default function Dashboard() {
                         <span>{t('generate_report', 'Class Report')}</span>
                     </motion.button>
 
+                    {/* Term Tutes */}
+                    <motion.button
+                        whileHover={{ scale: 1.04, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => navigate('/tutes')}
+                        style={{
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '9px 18px',
+                            borderRadius: 12,
+                            background: `linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)`,
+                            color: '#fff',
+                            fontWeight: 700,
+                            fontSize: 13,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            boxShadow: '0 4px 16px rgba(6, 182, 212, 0.35)',
+                        }}
+                    >
+                        <span>📘</span>
+                        <span>Term Tutes</span>
+                    </motion.button>
+
                     {/* QR Attendance */}
                     <motion.button
                         whileHover={{ scale: 1.04, y: -2 }}

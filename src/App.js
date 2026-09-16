@@ -20,6 +20,7 @@ import QRScanner from './pages/QRScanner';
 import POS from './pages/POS';
 import Exams from './pages/Exams';
 import ParentPortal from './pages/ParentPortal';
+import TuteManagement from './pages/TuteManagement';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -78,6 +79,7 @@ function AnimatedRoutes() {
           <Route path="exams" element={<Exams />} />
           <Route path="daily-report" element={<DailyReport />} />
           <Route path="pos" element={<POS />} />
+          <Route path="tutes" element={<TuteManagement />} />
         </Route>
 
         {/* Role-Based Dashboards */}

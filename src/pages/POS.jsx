@@ -228,6 +228,21 @@ export default function POS() {
         }]);
     };
 
+    const handleAddTuteToCart = (subjectName, termNum) => {
+        const itemId = `tute-${subjectName}-${termNum}`;
+        if (cart.find(item => item.id === itemId)) return;
+        setCart(prev => [...prev, {
+            id: itemId,
+            itemType: 'tute',
+            subject: subjectName,
+            term: termNum,
+            termName: `Term ${termNum} Tute`,
+            month: -1,
+            monthName: `Term ${termNum} Tute`,
+            amount: 400
+        }]);
+    };
+
     const handleRemoveFromCart = (id) => {
         setCart(cart.filter(item => item.id !== id));
     };
@@ -850,6 +865,77 @@ export default function POS() {
                                                                         );
                                                                     })}
                                                                 </Box>
+
+                                                                {/* Mathematics Term Tutes (Grades 6 to 11) */}
+                                                                {(() => {
+                                                                    const isMath = enrollment.subject.toLowerCase().includes('math') || enrollment.subject.includes('ගණිත');
+                                                                    const gNum = parseInt((selectedStudent.grade || '').replace(/\D/g, ''), 10);
+                                                                    const isEligibleGrade = gNum >= 6 && gNum <= 11;
+                                                                    if (!isMath || !isEligibleGrade) return null;
+
+                                                                    return (
+                                                                        <Box sx={{
+                                                                            mt: 2.5, pt: 2,
+                                                                            borderTop: isDark ? '1px dashed rgba(255,255,255,0.1)' : '1px dashed rgba(0,0,0,0.1)'
+                                                                        }}>
+                                                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.2 }}>
+                                                                                <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.8px', color: '#06b6d4', display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                                                                                    <span>📘</span>
+                                                                                    <span>Term Tutes (Rs. 400 each)</span>
+                                                                                </Typography>
+                                                                            </Box>
+
+                                                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                                                                {[1, 2, 3].map(termNum => {
+                                                                                    const tute = (enrollment.termTutes || []).find(t => t.term === termNum);
+                                                                                    const isIssued = tute?.issued || tute?.paid;
+                                                                                    const isAdded = cart.some(c => c.id === `tute-${enrollment.subject}-${termNum}`);
+
+                                                                                    return (
+                                                                                        <Box key={termNum} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                                            <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem', color: isIssued ? '#10b981' : isDark ? '#f1f5f9' : '#0f172a' }}>
+                                                                                                Term {termNum} Tute
+                                                                                            </Typography>
+
+                                                                                            {isIssued ? (
+                                                                                                <Chip
+                                                                                                    icon={<CheckCircle sx={{ fontSize: '13px !important', color: '#10b981 !important' }} />}
+                                                                                                    label="Issued (Paid)"
+                                                                                                    size="small"
+                                                                                                    sx={{
+                                                                                                        background: 'rgba(16,185,129,0.1)', color: '#10b981',
+                                                                                                        border: '1px solid rgba(16,185,129,0.25)',
+                                                                                                        fontWeight: 700, fontSize: '0.7rem', height: 24
+                                                                                                    }}
+                                                                                                />
+                                                                                            ) : (
+                                                                                                <Button
+                                                                                                    variant="outlined"
+                                                                                                    size="small"
+                                                                                                    disabled={isAdded}
+                                                                                                    onClick={() => handleAddTuteToCart(enrollment.subject, termNum)}
+                                                                                                    sx={{
+                                                                                                        borderRadius: '8px',
+                                                                                                        textTransform: 'none',
+                                                                                                        px: 1.5, py: 0.3,
+                                                                                                        fontWeight: 700, fontSize: '0.72rem',
+                                                                                                        height: 26,
+                                                                                                        borderColor: isAdded ? '#10b981' : '#06b6d4',
+                                                                                                        color: isAdded ? '#10b981' : '#06b6d4',
+                                                                                                        background: isAdded ? 'rgba(16,185,129,0.1)' : 'transparent',
+                                                                                                        '&:hover': { background: 'rgba(6,182,212,0.1)' }
+                                                                                                    }}
+                                                                                                >
+                                                                                                    {isAdded ? "Added" : "+ Add Tute (Rs. 400)"}
+                                                                                                </Button>
+                                                                                            )}
+                                                                                        </Box>
+                                                                                    );
+                                                                                })}
+                                                                            </Box>
+                                                                        </Box>
+                                                                    );
+                                                                })()}
                                                             </Box>
                                                         </Grid>
                                                     );
