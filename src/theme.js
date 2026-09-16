@@ -1,5 +1,3 @@
-import { createTheme, responsiveFontSizes, alpha } from '@mui/material/styles';
-
 // ─── EDUFLEX 2026 FLUID NEO-GLASS THEME ──────────────────────────────────────
 // Butter-smooth 120fps physics, multi-layer glass depth & vibrant color system
 
