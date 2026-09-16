@@ -3,11 +3,11 @@ import {
     Box, Typography, Container, FormControl, InputLabel, Select, MenuItem, Button, Table, TableBody,
     TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Alert, Grid,
     Card, CardContent, useTheme, Chip, Avatar, InputAdornment, alpha, IconButton, Tooltip,
-    FormControlLabel, Checkbox
+    FormControlLabel, Checkbox, TextField
 } from '@mui/material';
 import axios from 'axios';
 import {
-    CalendarToday, Class, Book, Search, EventBusy, EventAvailable, CheckCircle, Cancel, Edit, WhatsApp
+    CalendarToday, Class, Book, Search, EventBusy, EventAvailable, CheckCircle, Cancel, Edit, WhatsApp, Close
 } from '@mui/icons-material';
 import API_BASE_URL from '../config';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -42,8 +42,19 @@ export default function DailyReport() {
     
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [dailySearch, setDailySearch] = useState('');
 
     const theme = useTheme();
+
+    const displayedData = React.useMemo(() => {
+        if (!reportData) return [];
+        if (!dailySearch.trim()) return reportData;
+        const q = dailySearch.toLowerCase().trim();
+        return reportData.filter(row =>
+            row.name?.toLowerCase().includes(q) ||
+            row.indexNumber?.toLowerCase().includes(q)
+        );
+    }, [reportData, dailySearch]);
 
     useEffect(() => {
         const fetchSubjects = async () => {
@@ -338,8 +349,56 @@ Thank you!`;
                         <Grid item xs={12} sm={6} md={4}><StatCard title={isDaily ? "Left to Pay (Today)" : "Left to Pay (This Month)"} value={summary.unpaidMonth} color={theme.palette.error.light} icon={<Cancel />} /></Grid>
                     </Grid>
 
-                    <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 4, bgcolor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}>
-                        <Table>
+                    {/* Search & Filter Header */}
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: 2,
+                        mb: 2.5,
+                        px: 0.5
+                    }}>
+                        <Typography variant="h6" fontWeight={700} color="text.primary">
+                            Students List
+                            <Chip
+                                label={`${displayedData.length}${dailySearch ? ` of ${reportData.length}` : ''}`}
+                                size="small"
+                                color="success"
+                                sx={{ ml: 1.5, fontWeight: 'bold', borderRadius: 1.5 }}
+                            />
+                        </Typography>
+                        <TextField
+                            size="small"
+                            placeholder="Search today's students..."
+                            value={dailySearch}
+                            onChange={(e) => setDailySearch(e.target.value)}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Search fontSize="small" sx={{ color: 'text.secondary' }} />
+                                    </InputAdornment>
+                                ),
+                                endAdornment: dailySearch ? (
+                                    <InputAdornment position="end">
+                                        <IconButton size="small" onClick={() => setDailySearch('')}>
+                                            <Close sx={{ fontSize: 16 }} />
+                                        </IconButton>
+                                    </InputAdornment>
+                                ) : null,
+                                sx: {
+                                    borderRadius: 2.5,
+                                    bgcolor: alpha(theme.palette.background.paper, 0.6),
+                                    fontSize: '15px',
+                                    '& input': { fontSize: '15px' }
+                                }
+                            }}
+                            sx={{ width: { xs: '100%', sm: 260 } }}
+                        />
+                    </Box>
+
+                    <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 4, bgcolor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}`, overflowX: 'auto' }}>
+                        <Table sx={{ minWidth: 650 }}>
                             <TableHead>
                                 <TableRow sx={{ background: alpha(theme.palette.primary.main, 0.05) }}>
                                     <TableCell sx={{ fontWeight: 700 }}>Student Name</TableCell>
@@ -352,10 +411,10 @@ Thank you!`;
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {reportData.length === 0 ? (
-                                    <TableRow><TableCell colSpan={7} align="center" sx={{ py: 6 }}><Typography color="text.secondary">No students enrolled</Typography></TableCell></TableRow>
+                                {displayedData.length === 0 ? (
+                                    <TableRow><TableCell colSpan={7} align="center" sx={{ py: 6 }}><Typography color="text.secondary">No matching students found</Typography></TableCell></TableRow>
                                 ) : (
-                                    reportData.map((row) => (
+                                    displayedData.map((row) => (
                                         <TableRow key={row.id} hover>
                                             <TableCell>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>

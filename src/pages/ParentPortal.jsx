@@ -20,7 +20,8 @@ import {
     Tab,
     LinearProgress,
     Alert,
-    Stack
+    Stack,
+    IconButton
 } from '@mui/material';
 import {
     Search,
@@ -32,7 +33,8 @@ import {
     CheckCircle,
     HourglassEmpty,
     EmojiEvents,
-    Language
+    Language,
+    Close
 } from '@mui/icons-material';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
@@ -188,10 +190,22 @@ export default function ParentPortal() {
                                     placeholder="e.g. STD1001 or 0771234567"
                                     value={identifier}
                                     onChange={(e) => setIdentifier(e.target.value)}
-                                    sx={{
-                                        bgcolor: '#0f172a',
-                                        borderRadius: 1.5,
-                                        input: { color: '#fff' }
+                                    InputProps={{
+                                        endAdornment: identifier ? (
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => setIdentifier('')}
+                                                sx={{ color: '#94a3b8' }}
+                                                edge="end"
+                                            >
+                                                <Close sx={{ fontSize: 16 }} />
+                                            </IconButton>
+                                        ) : null,
+                                        sx: {
+                                            bgcolor: '#0f172a',
+                                            borderRadius: 1.5,
+                                            '& input': { color: '#fff', fontSize: '16px' }
+                                        }
                                     }}
                                 />
                             </Grid>

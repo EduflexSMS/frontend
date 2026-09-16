@@ -58,6 +58,7 @@ export default function Exams() {
   const [sendingSMS, setSendingSMS] = useState(false);
   const [sortBy, setSortBy] = useState('name'); // 'name', 'marks', 'id'
   const [sortDirection, setSortDirection] = useState('asc'); // 'asc', 'desc'
+  const [studentSearch, setStudentSearch] = useState('');
 
   useEffect(() => { fetchSubjects(); }, []);
   useEffect(() => {
@@ -319,7 +320,15 @@ export default function Exams() {
   };
 
   const getSortedStudents = () => {
-    return [...examStudents].sort((a, b) => {
+    let list = [...examStudents];
+    if (studentSearch.trim()) {
+      const q = studentSearch.trim().toLowerCase();
+      list = list.filter(s =>
+        (s.name || '').toLowerCase().includes(q) ||
+        (s.indexNumber || '').toLowerCase().includes(q)
+      );
+    }
+    return list.sort((a, b) => {
       if (sortBy === 'name') {
         const nameA = (a.name || '').toLowerCase();
         const nameB = (b.name || '').toLowerCase();
@@ -594,8 +603,85 @@ export default function Exams() {
               </div>
             </div>
 
-            {/* Controls Row (Legend & Sorting) */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
+            {/* Controls Row (Search, Legend & Sorting) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                {/* Search Bar */}
+                <div style={{
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  flex: '1 1 240px',
+                  maxWidth: '380px',
+                  minWidth: '220px',
+                }}>
+                  <span style={{ position: 'absolute', left: 12, color: C.muted, fontSize: 14 }}>🔍</span>
+                  <input
+                    type="text"
+                    placeholder="Search student or index..."
+                    value={studentSearch}
+                    onChange={(e) => setStudentSearch(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 32px 8px 36px',
+                      borderRadius: 10,
+                      border: `1px solid ${C.border}`,
+                      background: C.surfaceAlt,
+                      color: C.text,
+                      fontSize: 16,
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  {studentSearch && (
+                    <button
+                      onClick={() => setStudentSearch('')}
+                      style={{
+                        position: 'absolute',
+                        right: 8,
+                        background: 'none',
+                        border: 'none',
+                        color: C.muted,
+                        cursor: 'pointer',
+                        fontSize: 14,
+                        padding: 4
+                      }}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {/* Sorting Chips */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: C.surfaceAlt, padding: '4px', borderRadius: 10, border: `1px solid ${C.border}`, overflowX: 'auto', maxWidth: '100%' }}>
+                  <span style={{ fontSize: 12, color: C.muted, padding: '0 8px', fontWeight: 600 }}>Sort:</span>
+                  {[
+                    { id: 'name', label: 'Name A-Z', dir: 'asc' },
+                    { id: 'marks', label: 'Highest Marks', dir: 'desc' },
+                    { id: 'rank', label: 'Rank 1-N', dir: 'asc' },
+                    { id: 'id', label: 'Student ID', dir: 'asc' }
+                  ].map(opt => {
+                    const isActive = sortBy === opt.id && sortDirection === opt.dir;
+                    return (
+                      <button
+                        key={opt.id + opt.dir}
+                        onClick={() => { setSortBy(opt.id); setSortDirection(opt.dir); }}
+                        style={{
+                          padding: '6px 12px', borderRadius: 8, border: 'none',
+                          background: isActive ? C.cyan : 'transparent',
+                          color: isActive ? '#000' : C.text,
+                          fontSize: 12, fontWeight: isActive ? 700 : 500,
+                          cursor: 'pointer', transition: 'all 0.2s',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Grade legend */}
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {GRADE_RANGES.map(g => (
@@ -606,34 +692,6 @@ export default function Exams() {
                     {g.grade}: {g.range}
                   </span>
                 ))}
-              </div>
-
-              {/* Sorting Chips */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: C.surfaceAlt, padding: '4px', borderRadius: 10, border: `1px solid ${C.border}` }}>
-                <span style={{ fontSize: 12, color: C.muted, padding: '0 8px', fontWeight: 600 }}>Sort:</span>
-                {[
-                  { id: 'name', label: 'Name A-Z', dir: 'asc' },
-                  { id: 'marks', label: 'Highest Marks', dir: 'desc' },
-                  { id: 'rank', label: 'Rank 1-N', dir: 'asc' },
-                  { id: 'id', label: 'Student ID', dir: 'asc' }
-                ].map(opt => {
-                  const isActive = sortBy === opt.id && sortDirection === opt.dir;
-                  return (
-                    <button
-                      key={opt.id + opt.dir}
-                      onClick={() => { setSortBy(opt.id); setSortDirection(opt.dir); }}
-                      style={{
-                        padding: '6px 12px', borderRadius: 8, border: 'none',
-                        background: isActive ? C.cyan : 'transparent',
-                        color: isActive ? '#000' : C.text,
-                        fontSize: 12, fontWeight: isActive ? 700 : 500,
-                        cursor: 'pointer', transition: 'all 0.2s',
-                      }}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
               </div>
             </div>
 
@@ -704,7 +762,14 @@ export default function Exams() {
                     </tr>
                   </thead>
                   <tbody>
-                    {getSortedStudents().map(student => {
+                    {getSortedStudents().length === 0 ? (
+                      <tr>
+                        <td colSpan={6} style={{ padding: '32px 16px', textAlign: 'center', color: C.muted, fontSize: 14 }}>
+                          {studentSearch ? `No students found matching "${studentSearch}"` : 'No students enrolled'}
+                        </td>
+                      </tr>
+                    ) : (
+                      getSortedStudents().map(student => {
                       const g = GRADE_COLORS[student.gradeResult];
                       return (
                         <tr key={student._id} style={{ borderBottom: `1px solid ${C.border}` }}>
@@ -792,14 +857,7 @@ export default function Exams() {
                           </td>
                         </tr>
                       );
-                    })}
-                    {examStudents.length === 0 && (
-                      <tr>
-                        <td colSpan="6" style={{ padding: 40, textAlign: 'center', color: C.muted, fontSize: 14 }}>
-                          No students enrolled in this subject for this grade.
-                        </td>
-                      </tr>
-                    )}
+                    }))}
                   </tbody>
                 </table>
               </div>

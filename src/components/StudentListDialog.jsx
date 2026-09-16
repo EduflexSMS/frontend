@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions, Button,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Typography, Box, Avatar, InputAdornment, TextField, Chip
+    Typography, Box, Avatar, InputAdornment, TextField, Chip, IconButton
 } from '@mui/material';
-import { Search, CheckCircle, Cancel, RadioButtonUnchecked } from '@mui/icons-material';
+import { Search, CheckCircle, Cancel, RadioButtonUnchecked, Close } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 // Given the requirement "Show Attendance", let's use a read-only or interactive version of StatusCell if possible.
 // For now, I'll implement a clean table view.
@@ -224,7 +224,14 @@ const StudentListDialog = ({ open, onClose, classData }) => {
                                 <Search color="action" />
                             </InputAdornment>
                         ),
-                        sx: { borderRadius: 3 }
+                        endAdornment: searchTerm ? (
+                            <InputAdornment position="end">
+                                <IconButton size="small" onClick={() => setSearchTerm('')} edge="end">
+                                    <Close sx={{ fontSize: 16 }} />
+                                </IconButton>
+                            </InputAdornment>
+                        ) : null,
+                        sx: { borderRadius: 3, '& input': { fontSize: '16px' } }
                     }}
                 />
             </DialogTitle>
@@ -243,8 +250,8 @@ const StudentListDialog = ({ open, onClose, classData }) => {
                             <Typography color="text.secondary">{t('no_students')}</Typography>
                         </Box>
                     ) : (
-                        <TableContainer sx={{ maxHeight: '60vh' }}>
-                            <Table stickyHeader size="small">
+                        <TableContainer sx={{ maxHeight: '60vh', overflowX: 'auto' }}>
+                            <Table stickyHeader size="small" sx={{ minWidth: 420 }}>
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>{t('student_name')}</TableCell>
@@ -297,14 +304,14 @@ const StudentListDialog = ({ open, onClose, classData }) => {
                     )}
                 </Box>
             </DialogContent>
-            <DialogActions>
-                <Button onClick={handleExportPNG} variant="outlined" color="secondary">
+            <DialogActions sx={{ p: { xs: 1.5, sm: 2 }, flexWrap: 'wrap', gap: 1 }}>
+                <Button onClick={handleExportPNG} variant="outlined" color="secondary" size="small">
                     {t('download_png')}
                 </Button>
-                <Button onClick={handleExportPDF} variant="outlined" color="primary">
+                <Button onClick={handleExportPDF} variant="outlined" color="primary" size="small">
                     {t('download_pdf')}
                 </Button>
-                <Button onClick={onClose} variant="contained" sx={{ borderRadius: 2 }}>
+                <Button onClick={onClose} variant="contained" size="small" sx={{ borderRadius: 2 }}>
                     {t('close')}
                 </Button>
             </DialogActions>

@@ -178,17 +178,18 @@ export default function POS() {
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(async () => {
-            if (searchTerm.length >= 3) {
+            const trimmed = searchTerm.trim();
+            if (trimmed.length >= 1) {
                 setIsSearching(true);
                 try {
-                    const res = await axios.get(`${API_BASE_URL}/api/students`, { params: { search: searchTerm, limit: 8 } });
-                    setSearchResults(res.data.students);
+                    const res = await axios.get(`${API_BASE_URL}/api/students`, { params: { search: trimmed, limit: 10 } });
+                    setSearchResults(res.data.students || []);
                 } catch (error) { console.error(error); }
                 finally { setIsSearching(false); }
             } else {
                 setSearchResults([]);
             }
-        }, 400);
+        }, 300);
         return () => clearTimeout(delayDebounceFn);
     }, [searchTerm]);
 
@@ -397,12 +398,12 @@ export default function POS() {
                             borderRadius: '24px',
                             background: surface,
                             border: `1px solid ${border}`,
-                            overflow: 'hidden',
+                            overflow: 'visible',
                             minHeight: '78vh',
                             boxShadow: isDark ? '0 16px 40px rgba(0,0,0,0.4)' : '0 10px 30px rgba(0,0,0,0.06)',
                         }}>
                             {/* Search area */}
-                            <Box sx={{ p: 3, pb: 0, position: 'relative', zIndex: 10 }}>
+                            <Box sx={{ p: { xs: 2, sm: 3 }, pb: 0, position: 'relative', zIndex: 100 }}>
                                 <TextField
                                     fullWidth
                                     variant="outlined"
@@ -413,7 +414,7 @@ export default function POS() {
                                     InputProps={{
                                         startAdornment: (
                                             <InputAdornment position="start">
-                                                <Search sx={{ color: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)', fontSize: 20 }} />
+                                                <Search sx={{ color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', fontSize: 20 }} />
                                             </InputAdornment>
                                         ),
                                         endAdornment: isSearching ? (
@@ -427,11 +428,20 @@ export default function POS() {
                                         ) : null,
                                         sx: {
                                             borderRadius: '14px',
-                                            background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.9)',
-                                            '& fieldset': { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' },
+                                            background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.95)',
+                                            '& fieldset': { borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)' },
                                             '&:hover fieldset': { borderColor: '#6366f1 !important' },
                                             '&.Mui-focused fieldset': { borderColor: '#6366f1 !important' },
-                                            fontSize: '0.95rem'
+                                            fontSize: '16px',
+                                            color: isDark ? '#f8fafc' : '#0f172a',
+                                            '& input': {
+                                                color: isDark ? '#f8fafc' : '#0f172a',
+                                                fontSize: '16px',
+                                                '&::placeholder': {
+                                                    color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)',
+                                                    opacity: 1
+                                                }
+                                            }
                                         }
                                     }}
                                 />
@@ -446,13 +456,15 @@ export default function POS() {
                                             exit={{ opacity: 0, y: -8, scale: 0.98 }}
                                             transition={{ duration: 0.15 }}
                                             sx={{
-                                                position: 'absolute', top: 'calc(100% - 4px)', left: 24, right: 24,
+                                                position: 'absolute', top: 'calc(100% + 4px)',
+                                                left: { xs: 16, sm: 24 }, right: { xs: 16, sm: 24 },
                                                 background: isDark ? '#141724' : '#ffffff',
-                                                border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+                                                border: `1px solid ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)'}`,
                                                 borderRadius: '16px',
-                                                overflow: 'hidden',
-                                                boxShadow: isDark ? '0 16px 36px rgba(0,0,0,0.5)' : '0 12px 32px rgba(0,0,0,0.1)',
-                                                zIndex: 50,
+                                                overflowY: 'auto',
+                                                maxHeight: { xs: '280px', sm: '380px' },
+                                                boxShadow: isDark ? '0 16px 36px rgba(0,0,0,0.7)' : '0 12px 32px rgba(0,0,0,0.15)',
+                                                zIndex: 999,
                                             }}
                                         >
                                             {searchResults.map((student, i) => (
@@ -480,6 +492,32 @@ export default function POS() {
                                                     <KeyboardArrowRight sx={{ fontSize: 18, opacity: 0.3 }} />
                                                 </Box>
                                             ))}
+                                        </Box>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* No results feedback */}
+                                <AnimatePresence>
+                                    {searchTerm.trim().length >= 1 && !isSearching && searchResults.length === 0 && (
+                                        <Box
+                                            component={motion.div}
+                                            initial={{ opacity: 0, y: -6 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -6 }}
+                                            sx={{
+                                                position: 'absolute', top: 'calc(100% + 4px)',
+                                                left: { xs: 16, sm: 24 }, right: { xs: 16, sm: 24 },
+                                                background: isDark ? '#141724' : '#ffffff',
+                                                border: `1px solid ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)'}`,
+                                                borderRadius: '16px',
+                                                p: 2.5, textAlign: 'center',
+                                                boxShadow: isDark ? '0 16px 36px rgba(0,0,0,0.7)' : '0 12px 32px rgba(0,0,0,0.15)',
+                                                zIndex: 999,
+                                            }}
+                                        >
+                                            <Typography variant="body2" sx={{ color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)', fontWeight: 500 }}>
+                                                No students found for &ldquo;<strong>{searchTerm}</strong>&rdquo;
+                                            </Typography>
                                         </Box>
                                     )}
                                 </AnimatePresence>
@@ -815,7 +853,7 @@ export default function POS() {
                     </Grid>
 
                     {/* ─── RIGHT PANE - Bill ─── */}
-                    <Grid item xs={12} md={5} lg={4}>
+                    <Grid item xs={12} md={5} lg={4} id="pos-cart-pane">
                         <Box sx={{
                             borderRadius: '24px',
                             background: surface,
@@ -1045,6 +1083,40 @@ export default function POS() {
                         </Box>
                     </Grid>
                 </Grid>
+
+                {/* Mobile floating checkout button */}
+                {cart.length > 0 && (
+                    <Box sx={{
+                        display: { xs: 'flex', md: 'none' },
+                        position: 'fixed',
+                        bottom: 70,
+                        left: 14,
+                        right: 14,
+                        zIndex: 140,
+                        background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                        borderRadius: '16px',
+                        py: 1.4,
+                        px: 2.2,
+                        boxShadow: '0 8px 24px rgba(99,102,241,0.5)',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        cursor: 'pointer'
+                    }}
+                    onClick={() => {
+                        document.getElementById('pos-cart-pane')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, color: '#fff' }}>
+                            <Receipt sx={{ fontSize: 20 }} />
+                            <Typography variant="body2" fontWeight={800}>
+                                {cart.length} item{cart.length > 1 ? 's' : ''} in cart
+                            </Typography>
+                        </Box>
+                        <Typography variant="subtitle2" fontWeight={900} sx={{ color: '#fff' }}>
+                            Rs. {totalAmount.toLocaleString()} &darr; View Bill
+                        </Typography>
+                    </Box>
+                )}
             </Container>
 
             {/* ─── SMS GATEWAY SETTINGS DIALOG ─── */}

@@ -110,20 +110,126 @@ const GlobalStyle = () => (
     .card-hint { font-size: 0.66rem; color: var(--text3); margin-top: 3px; }
 
     /* ── Search ── */
-    .search-wrap { position: relative; margin-bottom: 16px; }
-    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; }
-    .search-icon svg { width: 15px; height: 15px; }
-    .search-input {
-      width: 100%; padding: 12px 14px 12px 42px; border-radius: var(--r-lg);
-      background: var(--bg3); border: 1px solid var(--border2);
-      font-size: 0.875rem; font-family: var(--font); color: var(--text); outline: none;
-      transition: border-color 0.18s, background 0.18s;
+    .search-wrap-container {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      width: 100%;
     }
-    .search-input::placeholder { color: var(--text3); }
-    .search-input:focus { border-color: rgba(99,102,241,0.45); background: var(--bg4); }
+    .search-input-wrapper {
+      position: relative;
+      flex: 1;
+      min-width: 260px;
+    }
+    .search-actions-wrapper {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text3);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+    .search-icon svg { width: 16px; height: 16px; }
+    .search-clear-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.12);
+      border: none;
+      color: var(--text2);
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .search-clear-btn:hover {
+      background: rgba(255, 255, 255, 0.22);
+      color: #fff;
+    }
+    .search-input {
+      width: 100%;
+      padding: 12px 38px 12px 42px;
+      border-radius: var(--r-lg);
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      font-size: 16px;
+      font-family: var(--font);
+      color: var(--text);
+      -webkit-text-fill-color: var(--text);
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.18s, background 0.18s;
+      -webkit-appearance: none;
+    }
+    .search-input::placeholder {
+      color: var(--text3);
+      -webkit-text-fill-color: var(--text3);
+      opacity: 1;
+    }
+    .search-input:focus {
+      border-color: rgba(99,102,241,0.5);
+      background: var(--bg4);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+    .mobile-idx-badge {
+      display: none;
+      margin-left: 8px;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--cyan);
+      background: var(--cyan-dim);
+      border: 1px solid rgba(34,211,238,0.18);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    @media (max-width: 768px) {
+      .search-wrap-container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      .search-input-wrapper {
+        width: 100%;
+        min-width: unset;
+      }
+      .search-actions-wrapper {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+      }
+      .search-actions-wrapper .action-btn {
+        flex: 1;
+        justify-content: center;
+        font-size: 0.75rem !important;
+        padding: 10px 12px !important;
+        white-space: nowrap;
+      }
+    }
 
     /* ── Table wrapper ── */
-    .tbl-wrap { border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--border); background: var(--bg2); }
+    .tbl-wrap {
+      border-radius: var(--r-lg);
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      background: var(--bg2);
+      width: 100%;
+    }
     .tbl-head {
       display: grid; grid-template-columns: 44px 1fr 150px 90px 72px 36px;
       align-items: center; padding: 10px 18px;
@@ -133,6 +239,10 @@ const GlobalStyle = () => (
     @media (max-width: 620px) {
       .tbl-head { grid-template-columns: 38px 1fr 80px 58px 28px; }
       .col-idx { display: none; }
+      .mobile-idx-badge { display: inline-block; }
+    }
+    @media (max-width: 440px) {
+      .tbl-head { grid-template-columns: 32px 1fr 65px 50px 22px; padding: 8px 10px; }
     }
 
     /* ── Student rows ── */
@@ -146,7 +256,12 @@ const GlobalStyle = () => (
     }
     .stu-row:hover { background: rgba(255,255,255,0.03); }
     .stu-row.open { background: rgba(99,102,241,0.04); }
-    @media (max-width: 620px) { .stu-row { grid-template-columns: 38px 1fr 80px 58px 28px; } }
+    @media (max-width: 620px) {
+      .stu-row { grid-template-columns: 38px 1fr 80px 58px 28px; padding: 11px 12px; }
+    }
+    @media (max-width: 440px) {
+      .stu-row { grid-template-columns: 32px 1fr 65px 50px 22px; padding: 10px 8px; gap: 6px; }
+    }
 
     .avatar {
       width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
@@ -627,7 +742,10 @@ function StudentRow({ student, onUpdate, onEdit, subjectColors, onOpenFeeModal }
         <div className="avatar">{student.name?.charAt(0) || '?'}</div>
         <div className="stu-name-cell">
           <div className="stu-name">{student.name}</div>
-          <div className="stu-grade-lbl">{student.grade}</div>
+          <div className="stu-grade-lbl">
+            {student.grade}
+            {student.indexNumber && <span className="mobile-idx-badge">{student.indexNumber}</span>}
+          </div>
         </div>
         <div className={`stu-idx col-idx`}>{student.indexNumber}</div>
         <div className="stu-att" style={{ color: attColor(stats.pct) }}>{stats.pct}%</div>
@@ -969,7 +1087,18 @@ export default function ViewStudents() {
   const handleSubjectClick = s => { setSelectedSubject(s); setViewMode('students'); setPage(1); };
   const handleAllStudents  = () => { setSelectedGrade(null); setSelectedSubject(null); setViewMode('students'); setPage(1); };
 
+  const handleSearchChange = (val) => {
+    setSearch(val);
+    setPage(1);
+    if (val.trim() && viewMode !== 'students') {
+      setSelectedGrade(null);
+      setSelectedSubject(null);
+      setViewMode('students');
+    }
+  };
+
   const handleBack = () => {
+    setSearch('');
     if (viewMode === 'students') {
       if (!selectedGrade) { setViewMode('grades'); }
       else { setViewMode('subjects'); }
@@ -1009,7 +1138,28 @@ export default function ViewStudents() {
               <div className="ph-icon">👥</div>
               <h1 className="ph-title">Students</h1>
             </div>
-            <p className="ph-sub">Select a grade to browse students</p>
+            <p className="ph-sub">Select a grade or search across all students</p>
+
+            {/* Direct search from grades view */}
+            <div className="search-wrap-container" style={{ marginTop: '20px', marginBottom: '8px' }}>
+              <div className="search-input-wrapper">
+                <span className="search-icon">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8" strokeWidth="2" />
+                    <path d="M21 21l-4.35-4.35" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </span>
+                <input
+                  className="search-input"
+                  placeholder="Search any student by name or index number…"
+                  value={search}
+                  onChange={e => handleSearchChange(e.target.value)}
+                />
+                {search && (
+                  <button className="search-clear-btn" onClick={() => handleSearchChange('')}>✕</button>
+                )}
+              </div>
+            </div>
           </div>
         ) : (
           <div className="nav-row fade-up">
@@ -1076,8 +1226,8 @@ export default function ViewStudents() {
         {viewMode === 'students' && (
           <div className="fade-up">
             {/* Search */}
-            <div className="search-wrap" style={{ display: 'flex', gap: '10px' }}>
-              <div style={{ position: 'relative', flex: 1 }}>
+            <div className="search-wrap-container">
+              <div className="search-input-wrapper">
                 <span className="search-icon">
                   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8" strokeWidth="2" />
@@ -1088,53 +1238,58 @@ export default function ViewStudents() {
                   className="search-input"
                   placeholder="Search by name or index number…"
                   value={search}
-                  onChange={e => { setSearch(e.target.value); setPage(1); }}
+                  onChange={e => handleSearchChange(e.target.value)}
                 />
+                {search && (
+                  <button className="search-clear-btn" onClick={() => handleSearchChange('')}>✕</button>
+                )}
               </div>
-              <button 
-                className="action-btn" 
-                onClick={() => setFeeRemindersOpen(true)}
-                style={{ 
-                  background: 'linear-gradient(135deg, #f59e0b, #d97706)', 
-                  color: '#fff', 
-                  border: 'none', 
-                  padding: '12px 20px', 
-                  borderRadius: 'var(--r-lg)', 
-                  height: '44px', 
-                  margin: 0,
-                  fontWeight: '700',
-                  boxShadow: '0 4px 15px rgba(245,158,11,0.3)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}
-              >
-                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                FEE REMINDERS
-              </button>
-              {selectedGrade && (
+              <div className="search-actions-wrapper">
                 <button 
                   className="action-btn" 
-                  onClick={() => generateAllClassCardsPDF(students, `${selectedGrade}${selectedSubject ? `_${selectedSubject}` : ''}`)}
+                  onClick={() => setFeeRemindersOpen(true)}
                   style={{ 
-                    background: 'linear-gradient(135deg, #6366f1, #4f46e5)', 
+                    background: 'linear-gradient(135deg, #f59e0b, #d97706)', 
                     color: '#fff', 
                     border: 'none', 
-                    padding: '12px 24px', 
+                    padding: '12px 18px', 
                     borderRadius: 'var(--r-lg)', 
                     height: '44px', 
                     margin: 0,
-                    fontWeight: '800',
-                    boxShadow: '0 4px 15px rgba(99,102,241,0.4)',
+                    fontWeight: '700',
+                    boxShadow: '0 4px 15px rgba(245,158,11,0.3)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '10px'
+                    gap: '8px'
                   }}
                 >
-                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                  PRINT ALL ID CARDS
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                  <span>FEE REMINDERS</span>
                 </button>
-              )}
+                {selectedGrade && (
+                  <button 
+                    className="action-btn" 
+                    onClick={() => generateAllClassCardsPDF(students, `${selectedGrade}${selectedSubject ? `_${selectedSubject}` : ''}`)}
+                    style={{ 
+                      background: 'linear-gradient(135deg, #6366f1, #4f46e5)', 
+                      color: '#fff', 
+                      border: 'none', 
+                      padding: '12px 18px', 
+                      borderRadius: 'var(--r-lg)', 
+                      height: '44px', 
+                      margin: 0,
+                      fontWeight: '800',
+                      boxShadow: '0 4px 15px rgba(99,102,241,0.4)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    <span>PRINT ALL ID CARDS</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             {loading ? (

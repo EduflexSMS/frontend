@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import {
     Container, Grid, Box, Typography, Button, Card, Avatar, Chip, Tooltip,
     IconButton, alpha, useTheme, Dialog, DialogTitle, DialogContent, DialogActions,
-    TextField, MenuItem, Select, FormControl, InputLabel, CircularProgress, Alert, Snackbar
+    TextField, MenuItem, Select, FormControl, InputLabel, CircularProgress, Alert, Snackbar,
+    InputAdornment
 } from '@mui/material';
 import {
     Person, AutoAwesome, School, FileDownload, Share, CheckCircle, Edit, Delete,
-    AddCircleOutline, CloudUpload, ArrowBack, VpnKey, Visibility, VisibilityOff, ContentCopy, Lock
+    AddCircleOutline, CloudUpload, ArrowBack, VpnKey, Visibility, VisibilityOff, ContentCopy, Lock,
+    Search, Close
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import axios from 'axios';
@@ -34,6 +36,7 @@ export default function Teachers() {
     const [subjects, setSubjects] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Payment Dialog state
     const [paymentOpen, setPaymentOpen] = useState(false);
@@ -97,6 +100,15 @@ export default function Teachers() {
     const showToast = (message, severity = 'success') => {
         setToast({ open: true, message, severity });
     };
+
+    const filteredTeachers = teachers.filter(teacher => {
+        if (!searchQuery.trim()) return true;
+        const q = searchQuery.toLowerCase().trim();
+        const username = (teacher.username || '').toLowerCase();
+        const subject = (teacher.assignedSubject || '').toLowerCase();
+        const desc = (teacher.description || '').toLowerCase();
+        return username.includes(q) || subject.includes(q) || desc.includes(q);
+    });
 
     // Convert file to Base64
     const handlePhotoChange = (e) => {
@@ -443,9 +455,68 @@ export default function Teachers() {
                         </Button>
                     </Box>
                 ) : (
-                    /* ── Roster Grid ── */
-                    <Grid container spacing={3.5}>
-                        {teachers.map((teacher, i) => {
+                    <>
+                        {/* ── Search & Filter Bar ── */}
+                        <Box sx={{
+                            display: 'flex',
+                            flexDirection: { xs: 'column', sm: 'row' },
+                            justifyContent: 'space-between',
+                            alignItems: { xs: 'stretch', sm: 'center' },
+                            gap: 2,
+                            mb: 3.5
+                        }}>
+                            <TextField
+                                size="small"
+                                placeholder="Search teachers by name or subject..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <Search sx={{ color: 'text.secondary', fontSize: 20 }} />
+                                        </InputAdornment>
+                                    ),
+                                    endAdornment: searchQuery ? (
+                                        <InputAdornment position="end">
+                                            <IconButton size="small" onClick={() => setSearchQuery('')} edge="end">
+                                                <Close sx={{ fontSize: 16 }} />
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ) : null,
+                                    sx: {
+                                        borderRadius: 3,
+                                        bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#fff',
+                                        '& input': { fontSize: '16px' }
+                                    }
+                                }}
+                                sx={{ maxWidth: { xs: '100%', sm: 380 }, width: '100%' }}
+                            />
+                            <Typography variant="caption" color="text.secondary" sx={{ alignSelf: { xs: 'flex-start', sm: 'center' } }}>
+                                Showing {filteredTeachers.length} of {teachers.length} teachers
+                            </Typography>
+                        </Box>
+
+                        {filteredTeachers.length === 0 ? (
+                            <Box sx={{
+                                textAlign: 'center',
+                                py: 8,
+                                border: `1px dashed ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                                borderRadius: 4,
+                                bgcolor: isDark ? 'rgba(255,255,255,0.01)' : 'rgba(0,0,0,0.01)'
+                            }}>
+                                <Search sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
+                                <Typography variant="h6" fontWeight={700} color="text.secondary">No Teachers Found</Typography>
+                                <Typography variant="body2" color="text.disabled" sx={{ mt: 0.5, mb: 2 }}>
+                                    No teachers match your search "{searchQuery}".
+                                </Typography>
+                                <Button variant="outlined" size="small" onClick={() => setSearchQuery('')} sx={{ borderRadius: 2, textTransform: 'none' }}>
+                                    Clear Search
+                                </Button>
+                            </Box>
+                        ) : (
+                            /* ── Roster Grid ── */
+                            <Grid container spacing={3.5}>
+                                {filteredTeachers.map((teacher, i) => {
                             const pal = getPal(i);
                             const initials = (teacher.username || '??').slice(0, 2).toUpperCase();
                             const copied = copiedStates[teacher._id];
@@ -633,7 +704,9 @@ export default function Teachers() {
                                 </Grid>
                             );
                         })}
-                    </Grid>
+                            </Grid>
+                        )}
+                    </>
                 )}
             </Box>
 

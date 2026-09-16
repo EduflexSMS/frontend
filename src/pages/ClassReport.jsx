@@ -28,7 +28,9 @@ import {
     InputAdornment,
     alpha,
     FormControlLabel,
-    Checkbox
+    Checkbox,
+    TextField,
+    IconButton
 } from '@mui/material';
 import axios from 'axios';
 import {
@@ -40,7 +42,8 @@ import {
     Search,
     Download,
     Class,
-    CalendarToday
+    CalendarToday,
+    Close
 } from '@mui/icons-material';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -88,9 +91,21 @@ export default function ClassReport() {
     const [reportType, setReportType] = useState('single');
     const [language, setLanguage] = useState('en');
     const [excludeFreeCard, setExcludeFreeCard] = useState(false);
+    const [filterSearch, setFilterSearch] = useState('');
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+    const displayedData = React.useMemo(() => {
+        if (!reportData) return [];
+        if (!filterSearch.trim()) return reportData;
+        const q = filterSearch.toLowerCase().trim();
+        return reportData.filter(row =>
+            row.name?.toLowerCase().includes(q) ||
+            row.indexNumber?.toLowerCase().includes(q) ||
+            row.mobile?.includes(q)
+        );
+    }, [reportData, filterSearch]);
 
     const months = [
         "January", "February", "March", "April", "May", "June",
@@ -892,27 +907,62 @@ export default function ClassReport() {
                     animate="visible"
                     variants={containerVariants}
                 >
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, px: 1 }}>
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: 2,
+                        mb: 2.5,
+                        px: 1
+                    }}>
                         <Typography variant="h6" fontWeight={700} color="text.primary">
                             Search Results
                             <Chip
-                                label={reportData.length}
+                                label={`${displayedData.length}${filterSearch ? ` of ${reportData.length}` : ''}`}
                                 size="small"
                                 color="primary"
                                 sx={{ ml: 1.5, fontWeight: 'bold', borderRadius: 1.5 }}
                             />
                         </Typography>
+                        <TextField
+                            size="small"
+                            placeholder="Filter by name or index..."
+                            value={filterSearch}
+                            onChange={(e) => setFilterSearch(e.target.value)}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Search fontSize="small" sx={{ color: 'text.secondary' }} />
+                                    </InputAdornment>
+                                ),
+                                endAdornment: filterSearch ? (
+                                    <InputAdornment position="end">
+                                        <IconButton size="small" onClick={() => setFilterSearch('')}>
+                                            <Close sx={{ fontSize: 16 }} />
+                                        </IconButton>
+                                    </InputAdornment>
+                                ) : null,
+                                sx: {
+                                    borderRadius: 2.5,
+                                    bgcolor: alpha(theme.palette.background.paper, 0.6),
+                                    fontSize: '15px',
+                                    '& input': { fontSize: '15px' }
+                                }
+                            }}
+                            sx={{ width: { xs: '100%', sm: 260 } }}
+                        />
                     </Box>
 
                     {isMobile ? (
                         <Box>
-                            {reportData.length === 0 ? (
+                            {displayedData.length === 0 ? (
                                 <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 4, bgcolor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}>
                                     <Typography color="text.secondary">No students found matching your criteria.</Typography>
                                 </Paper>
                             ) : (
                                 <AnimatePresence>
-                                    {reportData.map((row) => (
+                                    {displayedData.map((row) => (
                                         <ReportCard key={row.id} row={row} />
                                     ))}
                                 </AnimatePresence>
@@ -942,7 +992,7 @@ export default function ClassReport() {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {reportData.length === 0 ? (
+                                    {displayedData.length === 0 ? (
                                         <TableRow>
                                             <TableCell colSpan={6} align="center" sx={{ py: 8 }}>
                                                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
@@ -952,7 +1002,7 @@ export default function ClassReport() {
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        reportData.map((row, index) => (
+                                        displayedData.map((row, index) => (
                                             <MotionTableRow
                                                 initial={{ opacity: 0, y: 15 }}
                                                 animate={{ opacity: 1, y: 0 }}

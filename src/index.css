@@ -451,10 +451,30 @@ tbody td {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .search-box input {
-  padding-left: 40px;
+  width: 100%;
+  padding: 10px 14px 10px 40px;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-box input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.search-box input::placeholder {
+  color: var(--muted);
+  opacity: 1;
 }
 
 .search-box .search-icon {
@@ -462,6 +482,8 @@ tbody td {
   left: 13px;
   color: var(--muted);
   pointer-events: none;
+  display: flex;
+  align-items: center;
 }
 
 /* ─── MODAL / OVERLAY ────────────────────────────────────────────────────────── */
@@ -606,6 +628,22 @@ tbody td {
 
 @media (min-width: 900px) {
   .hide-desktop { display: none !important; }
+}
+
+/* Prevent iOS auto-zoom on inputs and ensure legible text */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="search"],
+  input[type="number"],
+  input[type="date"],
+  input[type="tel"],
+  input[type="email"],
+  input[type="password"],
+  select,
+  textarea,
+  .MuiInputBase-input {
+    font-size: 16px !important;
+  }
 }
 
 /* ─── PRINT ──────────────────────────────────────────────────────────────────── */
