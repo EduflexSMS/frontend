@@ -272,11 +272,13 @@ export default function MultiSubjectFeeDialog({
             fullWidth
             PaperProps={{
                 sx: {
-                    borderRadius: '20px',
-                    background: isDark ? '#0f1322' : '#ffffff',
+                    borderRadius: '24px',
+                    background: isDark ? 'rgba(15, 23, 42, 0.88)' : 'rgba(255, 255, 255, 0.94)',
+                    backdropFilter: 'blur(28px)',
+                    WebkitBackdropFilter: 'blur(28px)',
                     color: isDark ? '#f8fafc' : '#0f172a',
-                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-                    boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : 'rgba(15,23,42,0.08)'}`,
+                    boxShadow: isDark ? '0 30px 80px rgba(0,0,0,0.7)' : '0 25px 60px rgba(99,102,241,0.15)',
                     overflow: 'hidden'
                 }
             }}

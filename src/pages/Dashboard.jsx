@@ -1,11 +1,11 @@
-
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { motion, useSpring, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useSpring, useTransform } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { ThemeContext } from '../contexts/ThemeContext';
 
-// ── Your original dialogs & components (unchanged) ─────────────────
+// ── Original dialogs & components (100% preserved) ─────────────────
 import ReportDialog from '../components/ReportDialog';
 import SubjectDetailsDialog from '../components/SubjectDetailsDialog';
 import AnalyticsChart from '../components/AnalyticsChart';
@@ -13,61 +13,89 @@ import FeeRemindersDialog from '../components/FeeRemindersDialog';
 import API_BASE_URL from '../config';
 
 // ─────────────────────────────────────────────────────────────────────
-// ANIMATION COMPONENTS
+// ANIMATION COMPONENTS (Butter-smooth 120fps Springs)
 // ─────────────────────────────────────────────────────────────────────
 
-const AnimatedCounter = ({ value, duration = 1.8 }) => {
-    const spring = useSpring(0, { stiffness: 50, damping: 20 });
+const AnimatedCounter = ({ value }) => {
+    const spring = useSpring(0, { stiffness: 60, damping: 22 });
     const display = useTransform(spring, (v) => Math.round(v).toLocaleString());
-    
+
     useEffect(() => {
         spring.set(value);
     }, [spring, value]);
-    
+
     return <motion.span>{display}</motion.span>;
 };
 
-const RadialRing = ({ pct, color, size = 48, stroke = 3.5, delay = 0 }) => {
+const RadialRing = ({ pct, color, size = 52, stroke = 4, delay = 0 }) => {
     const r = (size - stroke) / 2;
     const circ = 2 * Math.PI * r;
-    const spring = useSpring(0, { stiffness: 40, damping: 15 });
+    const spring = useSpring(0, { stiffness: 45, damping: 18 });
     const strokeDash = useTransform(spring, (v) => `${(v / 100) * circ} ${circ}`);
-    
+
     useEffect(() => {
-        const timer = setTimeout(() => spring.set(pct), delay * 1000 + 300);
+        const timer = setTimeout(() => spring.set(pct), delay * 1000 + 200);
         return () => clearTimeout(timer);
     }, [spring, pct, delay]);
-    
+
     return (
         <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
             <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx={size / 2} cy={size / 2} r={r} fill="none"
-                    stroke="var(--kimi-color-border, rgba(128,128,128,0.2))" strokeWidth={stroke} />
+                <circle
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={r}
+                    fill="none"
+                    stroke="currentColor"
+                    opacity={0.12}
+                    strokeWidth={stroke}
+                />
                 <motion.circle
-                    cx={size / 2} cy={size / 2} r={r}
-                    fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round"
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={r}
+                    fill="none"
+                    stroke={color}
+                    strokeWidth={stroke}
+                    strokeLinecap="round"
                     style={{ strokeDasharray: strokeDash }}
                 />
             </svg>
             <div style={{
-                position: 'absolute', inset: 0, display: 'flex',
-                alignItems: 'center', justifyContent: 'center',
-                fontSize: 11, fontWeight: 600, color
-            }}>{pct}%</div>
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 12,
+                fontWeight: 800,
+                color,
+                letterSpacing: '-0.5px'
+            }}>
+                {pct}%
+            </div>
         </div>
     );
 };
 
 const ProgressBar = ({ pct, color, delay = 0 }) => (
     <div style={{
-        height: 5, borderRadius: 99, overflow: 'hidden',
-        background: 'var(--kimi-color-surface-muted, rgba(128,128,128,0.12))'
+        height: 6,
+        borderRadius: 999,
+        overflow: 'hidden',
+        background: 'rgba(255, 255, 255, 0.08)',
+        position: 'relative',
     }}>
         <motion.div
             initial={{ width: 0 }}
-            animate={{ width: `${pct}%` }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: delay + 0.3 }}
-            style={{ height: '100%', borderRadius: 99, background: color }}
+            animate={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: delay + 0.2 }}
+            style={{
+                height: '100%',
+                borderRadius: 999,
+                background: color,
+                boxShadow: `0 0 10px ${color}88`,
+            }}
         />
     </div>
 );
@@ -81,154 +109,178 @@ const Sparkline = ({ data, color }) => {
         const y = h - ((v - min) / range) * h;
         return `${x},${y}`;
     }).join(' ');
-    
+
     return (
-        <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ opacity: 0.35, flexShrink: 0 }}>
-            <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5"
-                strokeLinecap="round" strokeLinejoin="round" />
+        <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ opacity: 0.6, flexShrink: 0 }}>
+            <polyline
+                points={pts}
+                fill="none"
+                stroke={color}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
         </svg>
     );
 };
 
 // ─────────────────────────────────────────────────────────────────────
-// THEME TOKENS
+// THEME & COLOR PALETTE
 // ─────────────────────────────────────────────────────────────────────
-const DARK = {
-    bg: 'transparent',
-    surface: 'var(--kimi-color-surface, rgba(10,14,30,0.45))',
-    surfaceRaised: 'var(--kimi-color-surface-raised, rgba(15,23,42,0.55))',
-    border: 'var(--kimi-color-border, rgba(255,255,255,0.1))',
-    text: 'var(--kimi-color-text-primary, #f8fafc)',
-    textSecondary: 'var(--kimi-color-text-secondary, #94a3b8)',
-    textTertiary: 'var(--kimi-color-text-tertiary, #64748b)',
+const PALETTE = {
+    indigo: '#6366f1',
+    violet: '#8b5cf6',
+    cyan: '#06b6d4',
+    emerald: '#10b981',
+    amber: '#f59e0b',
+    rose: '#f43f5e',
 };
 
-const LIGHT = {
-    bg: 'transparent',
-    surface: 'var(--kimi-color-surface, rgba(255,255,255,0.8))',
-    surfaceRaised: 'var(--kimi-color-surface-raised, rgba(255,255,255,0.9))',
-    border: 'var(--kimi-color-border, rgba(15,23,42,0.1))',
-    text: 'var(--kimi-color-text-primary, #0f172a)',
-    textSecondary: 'var(--kimi-color-text-secondary, #475569)',
-    textTertiary: 'var(--kimi-color-text-tertiary, #94a3b8)',
-};
-
-const C = {
-    blue: 'var(--kimi-chart-1, #3b82f6)',
-    green: 'var(--kimi-chart-3, #22c55e)',
-    red: 'var(--kimi-chart-2, #ef4444)',
-    purple: 'var(--kimi-chart-4, #a855f7)',
-    positive: 'var(--kimi-color-positive, #22c55e)',
-    warning: 'var(--kimi-color-warning, #f59e0b)',
-};
-
-// Sparkline data (visual only)
 const SPARKS = {
     students: [780, 850, 910, 970, 1020, 1080, 1150, 1248],
     subjects: [10, 11, 12, 13, 14, 15, 16, 17],
     teachers: [30, 33, 36, 38, 40, 42, 44, 46],
 };
 
-// ─────────────────────────────────────────────────────────────────────
-// STAGGERED MOTION VARIANTS
-// ─────────────────────────────────────────────────────────────────────
 const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
         opacity: 1,
-        transition: { staggerChildren: 0.08, delayChildren: 0.1 }
+        transition: { staggerChildren: 0.07, delayChildren: 0.05 }
     }
 };
 
 const itemVariants = {
-    hidden: { opacity: 0, y: 24, scale: 0.96 },
+    hidden: { opacity: 0, y: 20, scale: 0.97 },
     visible: {
-        opacity: 1, y: 0, scale: 1,
-        transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] }
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] }
     }
-};
-
-const cardHover = {
-    rest: { y: 0, scale: 1, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' },
-    hover: { 
-        y: -5, scale: 1.02, 
-        boxShadow: '0 16px 40px rgba(0,0,0,0.1)',
-        transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] }
-    },
-    tap: { scale: 0.98 }
 };
 
 // ─────────────────────────────────────────────────────────────────────
 // SUB-COMPONENTS
 // ─────────────────────────────────────────────────────────────────────
 
-const StatCard = ({ title, value, icon, accent, spark, onClick, theme, index }) => (
+const StatCard = ({ title, value, icon, accent, spark, onClick, isDark }) => (
     <motion.div
         variants={itemVariants}
-        initial="rest"
-        whileHover="hover"
-        whileTap="tap"
-        animate="rest"
+        whileHover={{
+            y: -6,
+            scale: 1.018,
+            boxShadow: isDark
+                ? `0 20px 40px -15px ${accent}33, 0 0 1px 1px ${accent}44`
+                : `0 20px 35px -10px ${accent}22, 0 0 0 1px ${accent}33`,
+            transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] }
+        }}
+        whileTap={{ scale: 0.98 }}
         onClick={onClick}
         style={{
-            background: theme.surfaceRaised,
-            border: `1px solid ${theme.border}`,
-            borderRadius: 12,
-            padding: '22px 20px 18px',
+            background: isDark
+                ? 'linear-gradient(135deg, rgba(15, 23, 42, 0.75) 0%, rgba(30, 41, 59, 0.6) 100%)'
+                : 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: isDark
+                ? '1px solid rgba(255, 255, 255, 0.08)'
+                : '1px solid rgba(15, 23, 42, 0.08)',
+            borderRadius: 18,
+            padding: '24px 22px 20px',
             cursor: onClick ? 'pointer' : 'default',
             position: 'relative',
             overflow: 'hidden',
         }}
     >
-        <motion.div 
-            variants={cardHover}
-            style={{ height: '100%' }}
-        >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                <div style={{
-                    width: 38, height: 38, borderRadius: 10,
-                    background: `color-mix(in srgb, ${accent} 12%, transparent)`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: accent, fontSize: 18
-                }}>{icon}</div>
-                {spark && <Sparkline data={spark} color={accent} />}
-            </div>
-            
+        {/* Subtle decorative radial glow in background */}
+        <div style={{
+            position: 'absolute',
+            top: -30,
+            right: -30,
+            width: 100,
+            height: 100,
+            borderRadius: '50%',
+            background: accent,
+            opacity: isDark ? 0.12 : 0.08,
+            filter: 'blur(28px)',
+            pointerEvents: 'none',
+        }} />
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div style={{
-                fontSize: 34, fontWeight: 500,
-                color: theme.text, lineHeight: 1.1,
-                marginBottom: 6, fontVariantNumeric: 'tabular-nums',
-                fontFeatureSettings: '"tnum" 1',
-                fontFamily: 'var(--kimi-font-sans, sans-serif)'
+                width: 44,
+                height: 44,
+                borderRadius: 13,
+                background: `color-mix(in srgb, ${accent} 15%, transparent)`,
+                border: `1px solid color-mix(in srgb, ${accent} 30%, transparent)`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: accent,
+                fontSize: 20,
+                boxShadow: `0 4px 14px ${accent}22`,
             }}>
-                {typeof value === 'number' ? <AnimatedCounter value={value} /> : value}
+                {icon}
             </div>
-            
-            <div style={{ fontSize: 13, color: theme.textSecondary, fontWeight: 400 }}>
-                {title}
-            </div>
-        </motion.div>
+            {spark && <Sparkline data={spark} color={accent} />}
+        </div>
+
+        <div style={{
+            fontSize: 34,
+            fontWeight: 800,
+            color: isDark ? '#f8fafc' : '#0f172a',
+            lineHeight: 1.1,
+            marginBottom: 6,
+            letterSpacing: '-0.8px',
+            fontVariantNumeric: 'tabular-nums',
+            fontFamily: "'Outfit', 'Inter', sans-serif"
+        }}>
+            {typeof value === 'number' ? <AnimatedCounter value={value} /> : value}
+        </div>
+
+        <div style={{
+            fontSize: 13,
+            color: isDark ? '#94a3b8' : '#64748b',
+            fontWeight: 600,
+            letterSpacing: '0.2px'
+        }}>
+            {title}
+        </div>
     </motion.div>
 );
 
-const SubjectCard = ({ sub, idx, theme, onClick }) => {
-    const pct = sub.studentCount > 0 
-        ? Math.round((sub.paidFees / sub.studentCount) * 100) 
+const SubjectCard = ({ sub, idx, isDark, onClick }) => {
+    const pct = sub.studentCount > 0
+        ? Math.round((sub.paidFees / sub.studentCount) * 100)
         : 0;
-    const good = pct > 80;
-    const accent = good ? C.positive : C.warning;
-    
+    const good = pct >= 80;
+    const accent = good ? PALETTE.emerald : PALETTE.amber;
+
     return (
         <motion.div
             variants={itemVariants}
-            whileHover={{ y: -4, scale: 1.015, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } }}
+            whileHover={{
+                y: -5,
+                scale: 1.015,
+                boxShadow: isDark
+                    ? '0 16px 36px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.2)'
+                    : '0 16px 30px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(99, 102, 241, 0.15)',
+                transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] }
+            }}
             whileTap={{ scale: 0.985 }}
             onClick={onClick}
             style={{
-                background: theme.surfaceRaised,
-                border: `1px solid ${theme.border}`,
-                borderRadius: 12,
-                padding: 20,
+                background: isDark
+                    ? 'linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(30, 41, 59, 0.55) 100%)'
+                    : 'linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(248, 250, 252, 0.75) 100%)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: isDark
+                    ? '1px solid rgba(255, 255, 255, 0.08)'
+                    : '1px solid rgba(15, 23, 42, 0.08)',
+                borderRadius: 16,
+                padding: '20px',
                 cursor: 'pointer',
                 position: 'relative',
                 overflow: 'hidden',
@@ -236,24 +288,34 @@ const SubjectCard = ({ sub, idx, theme, onClick }) => {
         >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
                 <div>
-                    <div style={{ fontWeight: 500, fontSize: 15, color: theme.text, marginBottom: 2 }}>
+                    <div style={{
+                        fontWeight: 700,
+                        fontSize: 16,
+                        color: isDark ? '#f8fafc' : '#0f172a',
+                        marginBottom: 4,
+                        letterSpacing: '-0.2px'
+                    }}>
                         {sub.subject}
                     </div>
-                    <div style={{ fontSize: 12, color: theme.textTertiary }}>
+                    <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b', fontWeight: 500 }}>
                         {sub.studentCount} students enrolled
                     </div>
                 </div>
-                <RadialRing pct={pct} color={accent} delay={idx * 0.07} />
+                <RadialRing pct={pct} color={accent} delay={idx * 0.05} />
             </div>
-            
-            <ProgressBar pct={pct} color={accent} delay={idx * 0.07} />
-            
-            <div style={{ 
-                display: 'flex', justifyContent: 'space-between', 
-                marginTop: 12, fontSize: 12, color: theme.textSecondary 
+
+            <ProgressBar pct={pct} color={accent} delay={idx * 0.05} />
+
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginTop: 14,
+                fontSize: 12.5,
+                fontWeight: 600,
+                color: isDark ? '#94a3b8' : '#64748b'
             }}>
-                <span>{sub.paidFees} paid</span>
-                <span style={{ color: accent, fontWeight: 500 }}>
+                <span style={{ color: PALETTE.emerald }}>{sub.paidFees} paid</span>
+                <span style={{ color: sub.studentCount - sub.paidFees > 0 ? PALETTE.amber : isDark ? '#64748b' : '#94a3b8' }}>
                     {sub.studentCount - sub.paidFees} pending
                 </span>
             </div>
@@ -262,23 +324,22 @@ const SubjectCard = ({ sub, idx, theme, onClick }) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────
-// MAIN DASHBOARD
+// MAIN DASHBOARD COMPONENT
 // ─────────────────────────────────────────────────────────────────────
 export default function Dashboard() {
-    // ── original state ──
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [reportOpen, setReportOpen] = useState(false);
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [feeRemindersOpen, setFeeRemindersOpen] = useState(false);
     const [selectedSubject, setSelectedSubject] = useState(null);
-    const [isDark, setIsDark] = useState(true);
-    
-    const theme = isDark ? DARK : LIGHT;
+
+    const { mode } = useContext(ThemeContext);
+    const isDark = mode === 'dark';
     const { t } = useTranslation();
     const navigate = useNavigate();
 
-    // ── original fetch ──
+    // ── Original fetch logic ──
     const fetchStats = async () => {
         try {
             setLoading(true);
@@ -292,9 +353,11 @@ export default function Dashboard() {
         }
     };
 
-    useEffect(() => { fetchStats(); }, []);
+    useEffect(() => {
+        fetchStats();
+    }, []);
 
-    // ── original handlers ──
+    // ── Handlers ──
     const handleSubjectClick = (subjectName) => {
         setSelectedSubject(subjectName);
         setDetailsOpen(true);
@@ -317,417 +380,506 @@ export default function Dashboard() {
         window.open(`${API_BASE_URL}/api/backup/export`, '_blank');
     };
 
-    // ── compute overall collection rate ──
+    // ── Dynamic time greeting ──
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
+    // ── Overall collection rate ──
     const collectionRate = stats && stats.subjectStats && stats.subjectStats.length > 0
         ? Math.round(
             (stats.subjectStats.reduce((a, s) => a + s.paidFees, 0) /
-             stats.subjectStats.reduce((a, s) => a + s.studentCount, 0)) * 100
-          )
+                stats.subjectStats.reduce((a, s) => a + s.studentCount, 0)) * 100
+        )
         : 0;
 
-    // ── loading state ──
-    if (loading) return (
-        <div style={{
-            minHeight: '100vh', display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center', gap: 20,
-            background: 'var(--kimi-color-surface, #0a0e1e)'
-        }}>
-            <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                style={{
-                    width: 44, height: 44, borderRadius: '50%',
-                    border: '3px solid var(--kimi-color-border)',
-                    borderTopColor: 'var(--kimi-chart-1, #3b82f6)',
-                }}
-            />
-            <span style={{
-                color: 'var(--kimi-color-text-tertiary)', fontSize: 13,
-                letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: 500
-            }}>Loading dashboard…</span>
-        </div>
-    );
-
-    // ── error state ──
-    if (!stats || typeof stats === 'string') return (
-        <div style={{
-            minHeight: '100vh', display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center', gap: 16,
-            background: 'var(--kimi-color-surface, #0a0e1e)'
-        }}>
-            <div style={{ fontSize: 32 }}>⚠️</div>
-            <div style={{ 
-                color: 'var(--kimi-color-text-primary)', 
-                fontWeight: 500, fontSize: 16 
-            }}>Error loading stats</div>
-            <motion.button
-                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                onClick={fetchStats}
-                style={{
-                    border: 'none', cursor: 'pointer', padding: '10px 22px',
-                    borderRadius: 10, background: 'var(--kimi-chart-1, #3b82f6)',
-                    color: '#fff', fontWeight: 500, fontSize: 13,
-                }}
-            >↺ Retry</motion.button>
-        </div>
-    );
-
-    // ── main render ──
-    return (
-        <div style={{
-            minHeight: '100vh',
-            background: theme.bg,
-            fontFamily: 'var(--kimi-font-sans, sans-serif)',
-            color: theme.text,
-            position: 'relative',
-            overflow: 'hidden',
-            transition: 'color 0.3s',
-        }}>
-            {/* Background dot pattern */}
+    // ── Loading state ──
+    if (loading) {
+        return (
             <div style={{
-                position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
-                backgroundImage: `radial-gradient(circle, ${theme.border} 1px, transparent 1px)`,
-                backgroundSize: '24px 24px',
-                opacity: 0.4,
-            }} />
-
-            {/* Page content */}
-            <div style={{ position: 'relative', zIndex: 1, maxWidth: 1200, margin: '0 auto', padding: '0 24px 60px' }}>
-                
-                {/* ═══ TOP NAV ═══ */}
+                minHeight: '60vh',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 18,
+            }}>
                 <motion.div
-                    initial={{ opacity: 0, y: -12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }}
                     style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '20px 0 24px',
-                        borderBottom: `1px solid ${theme.border}`,
-                        marginBottom: 32, flexWrap: 'wrap', gap: 14,
+                        width: 48,
+                        height: 48,
+                        borderRadius: '50%',
+                        border: `3px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                        borderTopColor: PALETTE.indigo,
+                    }}
+                />
+                <span style={{
+                    color: isDark ? '#94a3b8' : '#64748b',
+                    fontSize: 13,
+                    letterSpacing: '1.2px',
+                    textTransform: 'uppercase',
+                    fontWeight: 600,
+                }}>
+                    Loading Live Dashboard…
+                </span>
+            </div>
+        );
+    }
+
+    // ── Error state ──
+    if (!stats || typeof stats === 'string') {
+        return (
+            <div style={{
+                minHeight: '60vh',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 16,
+            }}>
+                <div style={{ fontSize: 36 }}>⚠️</div>
+                <div style={{
+                    color: isDark ? '#f8fafc' : '#0f172a',
+                    fontWeight: 700,
+                    fontSize: 18,
+                }}>
+                    Unable to load dashboard stats
+                </div>
+                <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={fetchStats}
+                    style={{
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '12px 24px',
+                        borderRadius: 12,
+                        background: `linear-gradient(135deg, ${PALETTE.indigo} 0%, ${PALETTE.violet} 100%)`,
+                        color: '#fff',
+                        fontWeight: 700,
+                        fontSize: 14,
+                        boxShadow: `0 8px 20px ${PALETTE.indigo}44`,
                     }}
                 >
-                    {/* Logo */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{
-                            width: 38, height: 38, borderRadius: 10,
-                            background: 'var(--kimi-color-text-primary)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 17, fontWeight: 600, color: 'var(--kimi-color-surface)',
-                        }}>E</div>
-                        <div>
-                            <div style={{ fontWeight: 500, fontSize: 16 }}>EduFlex</div>
-                            <div style={{ fontSize: 11, color: theme.textSecondary, marginTop: -1 }}>
-                                Institute dashboard
-                            </div>
-                        </div>
-                    </div>
+                    ↺ Retry Connection
+                </motion.button>
+            </div>
+        );
+    }
 
-                    {/* Right actions */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                        {/* Live indicator */}
-                        <div style={{
-                            display: 'flex', alignItems: 'center', gap: 6,
-                            fontSize: 12, color: C.positive, fontWeight: 500,
-                            background: `color-mix(in srgb, ${C.positive} 8%, transparent)`,
-                            padding: '5px 10px', borderRadius: 99,
-                        }}>
-                            <span style={{
-                                width: 7, height: 7, borderRadius: '50%',
-                                background: C.positive,
-                                animation: 'pulse 2s ease-in-out infinite',
-                                display: 'inline-block'
-                            }} />
-                            Live data
-                        </div>
-
-                        {/* Theme toggle */}
-                        <motion.button
-                            whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
-                            onClick={() => setIsDark(!isDark)}
-                            style={{
-                                width: 36, height: 36, borderRadius: 8,
-                                border: `1px solid ${theme.border}`,
-                                background: theme.surface, cursor: 'pointer',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: 15, color: theme.textSecondary,
-                            }}
-                        >{isDark ? '☀️' : '🌙'}</motion.button>
-
-                        {/* Fix Data */}
-                        <motion.button
-                            whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                            onClick={handleFixData}
-                            style={{
-                                border: `1px solid ${C.warning}33`, cursor: 'pointer',
-                                padding: '7px 14px', borderRadius: 8,
-                                background: `color-mix(in srgb, ${C.warning} 8%, transparent)`,
-                                color: C.warning, fontWeight: 500, fontSize: 12,
-                            }}
-                        >🔧 Fix data</motion.button>
-
-                        {/* Generate Report */}
-                        <motion.button
-                            whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                            onClick={() => setReportOpen(true)}
-                            style={{
-                                border: 'none', cursor: 'pointer',
-                                padding: '8px 16px', borderRadius: 8,
-                                background: 'var(--kimi-color-text-primary)',
-                                color: 'var(--kimi-color-surface)', fontWeight: 500, fontSize: 12,
-                            }}
-                        >📊 {t('generate_report')}</motion.button>
-
-                        {/* DB Backup */}
-                        <motion.button
-                            whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                            onClick={handleDownloadBackup}
-                            style={{
-                                border: '1px solid rgba(99, 102, 241, 0.3)', cursor: 'pointer',
-                                padding: '8px 14px', borderRadius: 8,
-                                background: 'rgba(99, 102, 241, 0.12)',
-                                color: '#818cf8', fontWeight: 600, fontSize: 12,
-                                display: 'flex', alignItems: 'center', gap: 6
-                            }}
-                        >💾 Backup DB</motion.button>
-
-                        {/* Fee Reminders */}
-                        <motion.button
-                            whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                            onClick={() => setFeeRemindersOpen(true)}
-                            style={{
-                                border: 'none', cursor: 'pointer',
-                                padding: '8px 16px', borderRadius: 8,
-                                background: '#f59e0b', color: '#fff',
-                                fontWeight: 600, fontSize: 12,
-                                display: 'flex', alignItems: 'center', gap: 6
-                            }}
-                        >📢 Fee Reminders</motion.button>
-
-                        {/* QR Scan */}
-                        <motion.button
-                            whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                            onClick={() => navigate('/qr-scanner')}
-                            style={{
-                                border: 'none', cursor: 'pointer',
-                                padding: '8px 16px', borderRadius: 8,
-                                background: C.blue, color: '#fff',
-                                fontWeight: 500, fontSize: 12,
-                            }}
-                        >📷 Scan</motion.button>
-                    </div>
-                </motion.div>
-
-                {/* ═══ HERO HEADER ═══ */}
-                <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                    style={{
-                        display: 'flex', alignItems: 'flex-end',
-                        justifyContent: 'space-between',
-                        flexWrap: 'wrap', gap: 16, marginBottom: 28
-                    }}
-                >
+    return (
+        <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative' }}>
+            
+            {/* ═══ HERO BANNER & QUICK ACTIONS ═══ */}
+            <motion.div
+                initial={{ opacity: 0, y: -16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                style={{
+                    background: isDark
+                        ? 'radial-gradient(120% 120% at 0% 0%, rgba(99, 102, 241, 0.18) 0%, rgba(139, 92, 246, 0.08) 50%, rgba(15, 23, 42, 0.7) 100%)'
+                        : 'radial-gradient(120% 120% at 0% 0%, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.06) 50%, rgba(255, 255, 255, 0.9) 100%)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(99, 102, 241, 0.15)',
+                    borderRadius: 22,
+                    padding: '28px 28px 24px',
+                    marginBottom: 30,
+                    position: 'relative',
+                    overflow: 'hidden',
+                    boxShadow: isDark
+                        ? '0 20px 40px -15px rgba(0, 0, 0, 0.5)'
+                        : '0 20px 35px -15px rgba(99, 102, 241, 0.12)',
+                }}
+            >
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: 20,
+                }}>
                     <div>
-                        <div style={{
-                            fontSize: 11, fontWeight: 600, letterSpacing: '2px',
-                            textTransform: 'uppercase', color: C.blue, marginBottom: 8,
-                        }}>● Live overview</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                            <span style={{
+                                padding: '4px 10px',
+                                borderRadius: 8,
+                                background: `color-mix(in srgb, ${PALETTE.indigo} 18%, transparent)`,
+                                color: PALETTE.indigo,
+                                fontSize: 11,
+                                fontWeight: 800,
+                                letterSpacing: '1px',
+                                textTransform: 'uppercase',
+                            }}>
+                                {greeting}
+                            </span>
+                            <span style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                fontSize: 11.5,
+                                color: PALETTE.emerald,
+                                fontWeight: 700,
+                            }}>
+                                <span style={{
+                                    width: 7, height: 7, borderRadius: '50%',
+                                    background: PALETTE.emerald,
+                                    boxShadow: `0 0 8px ${PALETTE.emerald}`,
+                                    display: 'inline-block'
+                                }} />
+                                Real-time Sync
+                            </span>
+                        </div>
+
                         <h1 style={{
                             margin: 0,
-                            fontSize: 'clamp(28px, 4vw, 44px)',
-                            fontWeight: 500, lineHeight: 1.1,
-                            fontFamily: 'var(--kimi-font-sans, sans-serif)',
-                            color: theme.text,
+                            fontSize: 'clamp(24px, 3.2vw, 36px)',
+                            fontWeight: 900,
+                            letterSpacing: '-0.8px',
+                            color: isDark ? '#f8fafc' : '#0f172a',
+                            lineHeight: 1.15,
                         }}>
-                            {t('dashboard_overview')}
+                            {t('dashboard_overview', 'Institute Command Center')}
                         </h1>
-                        <p style={{ margin: '6px 0 0', fontSize: 14, color: theme.textSecondary }}>
-                            {t('dashboard_subtitle')}
+                        <p style={{
+                            margin: '6px 0 0',
+                            fontSize: 13.5,
+                            color: isDark ? '#94a3b8' : '#64748b',
+                            fontWeight: 500,
+                        }}>
+                            {t('dashboard_subtitle', 'Monitor live attendance, subject performance & fee collection.')}
                         </p>
                     </div>
 
-                    {/* Overall collection rate */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.5, delay: 0.3 }}
+                    {/* Overall collection rate badge */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 16,
+                        background: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.7)',
+                        border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(0,0,0,0.06)',
+                        borderRadius: 16,
+                        padding: '12px 20px',
+                    }}>
+                        <div>
+                            <div style={{
+                                fontSize: 10.5,
+                                color: isDark ? '#94a3b8' : '#64748b',
+                                fontWeight: 700,
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.8px'
+                            }}>
+                                Overall Collection
+                            </div>
+                            <div style={{
+                                fontSize: 28,
+                                fontWeight: 900,
+                                color: collectionRate >= 80 ? PALETTE.emerald : PALETTE.amber,
+                                letterSpacing: '-0.5px',
+                                lineHeight: 1.1,
+                            }}>
+                                <AnimatedCounter value={collectionRate} />%
+                            </div>
+                        </div>
+                        <RadialRing
+                            pct={collectionRate}
+                            color={collectionRate >= 80 ? PALETTE.emerald : PALETTE.amber}
+                            size={48}
+                        />
+                    </div>
+                </div>
+
+                {/* ── Quick Action Dock ── */}
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    marginTop: 22,
+                    paddingTop: 18,
+                    borderTop: isDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(0, 0, 0, 0.06)',
+                    flexWrap: 'wrap',
+                }}>
+                    {/* Fee Reminders */}
+                    <motion.button
+                        whileHover={{ scale: 1.04, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setFeeRemindersOpen(true)}
                         style={{
-                            background: theme.surface,
-                            border: `1px solid ${theme.border}`,
-                            borderRadius: 12, padding: '16px 22px',
-                            textAlign: 'right',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '9px 18px',
+                            borderRadius: 12,
+                            background: `linear-gradient(135deg, ${PALETTE.amber} 0%, #f97316 100%)`,
+                            color: '#fff',
+                            fontWeight: 700,
+                            fontSize: 13,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            boxShadow: '0 4px 16px rgba(245, 158, 11, 0.35)',
                         }}
                     >
-                        <div style={{ fontSize: 11, color: theme.textSecondary, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 500 }}>
-                            Overall collection
-                        </div>
-                        <div style={{
-                            fontSize: 28, fontWeight: 500, lineHeight: 1,
-                            color: C.positive, fontVariantNumeric: 'tabular-nums',
-                        }}>
-                            <AnimatedCounter value={collectionRate} />%
-                        </div>
-                        <div style={{ fontSize: 10, color: theme.textTertiary, marginTop: 4 }}>
-                            from MongoDB live data
-                        </div>
-                    </motion.div>
-                </motion.div>
+                        <span>📢</span>
+                        <span>Fee Reminders</span>
+                    </motion.button>
 
-                {/* ═══ STAT CARDS ═══ */}
+                    {/* Generate Report */}
+                    <motion.button
+                        whileHover={{ scale: 1.04, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setReportOpen(true)}
+                        style={{
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '9px 18px',
+                            borderRadius: 12,
+                            background: `linear-gradient(135deg, ${PALETTE.indigo} 0%, ${PALETTE.violet} 100%)`,
+                            color: '#fff',
+                            fontWeight: 700,
+                            fontSize: 13,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            boxShadow: '0 4px 16px rgba(99, 102, 241, 0.35)',
+                        }}
+                    >
+                        <span>📊</span>
+                        <span>{t('generate_report', 'Class Report')}</span>
+                    </motion.button>
+
+                    {/* QR Attendance */}
+                    <motion.button
+                        whileHover={{ scale: 1.04, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => navigate('/qr-scanner')}
+                        style={{
+                            border: isDark ? '1px solid rgba(6, 182, 212, 0.3)' : '1px solid rgba(6, 182, 212, 0.25)',
+                            cursor: 'pointer',
+                            padding: '9px 16px',
+                            borderRadius: 12,
+                            background: isDark ? 'rgba(6, 182, 212, 0.12)' : 'rgba(6, 182, 212, 0.08)',
+                            color: PALETTE.cyan,
+                            fontWeight: 700,
+                            fontSize: 13,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                        }}
+                    >
+                        <span>📷</span>
+                        <span>QR Scan</span>
+                    </motion.button>
+
+                    {/* DB Backup */}
+                    <motion.button
+                        whileHover={{ scale: 1.04, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleDownloadBackup}
+                        style={{
+                            border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
+                            cursor: 'pointer',
+                            padding: '9px 16px',
+                            borderRadius: 12,
+                            background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+                            color: isDark ? '#cbd5e1' : '#475569',
+                            fontWeight: 600,
+                            fontSize: 13,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                        }}
+                    >
+                        <span>💾</span>
+                        <span>Backup DB</span>
+                    </motion.button>
+
+                    {/* Fix Data */}
+                    <motion.button
+                        whileHover={{ scale: 1.04, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleFixData}
+                        style={{
+                            border: '1px solid rgba(245, 158, 11, 0.25)',
+                            cursor: 'pointer',
+                            padding: '9px 14px',
+                            borderRadius: 12,
+                            background: 'rgba(245, 158, 11, 0.08)',
+                            color: PALETTE.amber,
+                            fontWeight: 600,
+                            fontSize: 12.5,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            marginLeft: 'auto',
+                        }}
+                    >
+                        <span>🔧</span>
+                        <span>Fix Data</span>
+                    </motion.button>
+                </div>
+            </motion.div>
+
+            {/* ═══ STAT CARDS ═══ */}
+            <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                    gap: 18,
+                    marginBottom: 30,
+                }}
+            >
+                <StatCard
+                    title={t('total_students', 'Total Students')}
+                    value={stats.totalStudents}
+                    icon="👥"
+                    accent={PALETTE.indigo}
+                    spark={SPARKS.students}
+                    isDark={isDark}
+                />
+                <StatCard
+                    title={t('total_subjects', 'Total Subjects')}
+                    value={stats.totalSubjects}
+                    icon="📚"
+                    accent={PALETTE.violet}
+                    spark={SPARKS.subjects}
+                    isDark={isDark}
+                />
+                <StatCard
+                    title="Active Teachers"
+                    value={stats.teacherCount || 0}
+                    icon="🎓"
+                    accent={PALETTE.cyan}
+                    spark={SPARKS.teachers}
+                    isDark={isDark}
+                    onClick={() => navigate('/teachers')}
+                />
+                <StatCard
+                    title="Collection Rate"
+                    value={`${collectionRate}%`}
+                    icon="📈"
+                    accent={PALETTE.emerald}
+                    isDark={isDark}
+                />
+            </motion.div>
+
+            {/* ═══ ANALYTICS CHART ═══ */}
+            <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                style={{
+                    background: isDark
+                        ? 'linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(30, 41, 59, 0.5) 100%)'
+                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(248, 250, 252, 0.75) 100%)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: isDark
+                        ? '1px solid rgba(255, 255, 255, 0.08)'
+                        : '1px solid rgba(15, 23, 42, 0.08)',
+                    borderRadius: 20,
+                    padding: 26,
+                    marginBottom: 30,
+                    boxShadow: isDark
+                        ? '0 16px 36px -12px rgba(0, 0, 0, 0.5)'
+                        : '0 16px 30px -12px rgba(0, 0, 0, 0.06)',
+                }}
+            >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
+                    <div>
+                        <div style={{
+                            fontWeight: 800,
+                            fontSize: 18,
+                            color: isDark ? '#f8fafc' : '#0f172a',
+                            letterSpacing: '-0.3px',
+                        }}>
+                            Attendance & Collection Analytics
+                        </div>
+                        <div style={{ fontSize: 12.5, color: isDark ? '#94a3b8' : '#64748b', marginTop: 3 }}>
+                            Comprehensive performance metrics across classes
+                        </div>
+                    </div>
+                    <div style={{
+                        fontSize: 11.5,
+                        fontWeight: 700,
+                        color: PALETTE.indigo,
+                        background: `color-mix(in srgb, ${PALETTE.indigo} 12%, transparent)`,
+                        padding: '6px 12px',
+                        borderRadius: 10,
+                    }}>
+                        Live MongoDB Stream
+                    </div>
+                </div>
+                <AnalyticsChart />
+            </motion.div>
+
+            {/* ═══ SUBJECT PERFORMANCE ═══ */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+            >
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'flex-end',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: 12,
+                    marginBottom: 20,
+                }}>
+                    <div>
+                        <h2 style={{
+                            margin: 0,
+                            fontWeight: 800,
+                            fontSize: 20,
+                            letterSpacing: '-0.4px',
+                            color: isDark ? '#f8fafc' : '#0f172a',
+                        }}>
+                            Subject Performance
+                        </h2>
+                        <p style={{ margin: '4px 0 0', fontSize: 13, color: isDark ? '#94a3b8' : '#64748b' }}>
+                            Fee collection progress per subject — click any card to inspect enrolled students
+                        </p>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 16 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: isDark ? '#cbd5e1' : '#475569', fontWeight: 600 }}>
+                            <div style={{ width: 10, height: 10, borderRadius: 3, background: PALETTE.emerald }} />
+                            Optimal (&ge;80%)
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: isDark ? '#cbd5e1' : '#475569', fontWeight: 600 }}>
+                            <div style={{ width: 10, height: 10, borderRadius: 3, background: PALETTE.amber }} />
+                            Pending Follow-up
+                        </div>
+                    </div>
+                </div>
+
                 <motion.div
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
                     style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                        gap: 16, marginBottom: 28
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                        gap: 16,
                     }}
                 >
-                    <StatCard
-                        title={t('total_students')}
-                        value={stats.totalStudents}
-                        icon="👥"
-                        accent={C.blue}
-                        spark={SPARKS.students}
-                        theme={theme}
-                        index={0}
-                    />
-                    <StatCard
-                        title={t('total_subjects')}
-                        value={stats.totalSubjects}
-                        icon="📚"
-                        accent={C.purple}
-                        spark={SPARKS.subjects}
-                        theme={theme}
-                        index={1}
-                    />
-                    <StatCard
-                        title="Teachers"
-                        value={stats.teacherCount || 0}
-                        icon="🎓"
-                        accent={C.green}
-                        spark={SPARKS.teachers}
-                        theme={theme}
-                        onClick={() => navigate('/teachers')}
-                        index={2}
-                    />
-                    <StatCard
-                        title="Collection rate"
-                        value={`${collectionRate}%`}
-                        icon="📈"
-                        accent={C.positive}
-                        theme={theme}
-                        index={3}
-                    />
+                    {(stats.subjectStats || []).map((sub, i) => (
+                        <SubjectCard
+                            key={sub.subject}
+                            sub={sub}
+                            idx={i}
+                            isDark={isDark}
+                            onClick={() => handleSubjectClick(sub.subject)}
+                        />
+                    ))}
                 </motion.div>
+            </motion.div>
 
-                {/* ═══ ANALYTICS CHART ═══ */}
-                <motion.div
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                    style={{
-                        background: theme.surfaceRaised,
-                        border: `1px solid ${theme.border}`,
-                        borderRadius: 12, padding: 24,
-                        marginBottom: 28,
-                    }}
-                >
-                    <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 4 }}>
-                        Analytics
-                    </div>
-                    <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 16 }}>
-                        Live data from your MongoDB
-                    </div>
-                    <AnalyticsChart />
-                </motion.div>
-
-                {/* ═══ SUBJECT PERFORMANCE ═══ */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5, delay: 0.45 }}
-                >
-                    <div style={{
-                        display: 'flex', alignItems: 'flex-end',
-                        justifyContent: 'space-between',
-                        flexWrap: 'wrap', gap: 12, marginBottom: 20
-                    }}>
-                        <div>
-                            <h2 style={{
-                                margin: 0, fontWeight: 500, fontSize: 18,
-                                color: theme.text
-                            }}>
-                                Subject performance
-                            </h2>
-                            <p style={{ margin: '4px 0 0', fontSize: 12, color: theme.textSecondary }}>
-                                Fee collection rates — live from MongoDB
-                            </p>
-                        </div>
-                        <div style={{ display: 'flex', gap: 14 }}>
-                            {[
-                                { color: C.positive, label: 'Good (>80%)' },
-                                { color: C.warning, label: 'Needs attention' },
-                            ].map(({ color, label }) => (
-                                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: theme.textSecondary }}>
-                                    <div style={{ width: 8, height: 8, borderRadius: 2, background: color }} />
-                                    {label}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <motion.div
-                        variants={containerVariants}
-                        initial="hidden"
-                        animate="visible"
-                        style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                            gap: 14
-                        }}
-                    >
-                        {(stats.subjectStats || []).map((sub, i) => (
-                            <SubjectCard
-                                key={sub.subject}
-                                sub={sub}
-                                idx={i}
-                                theme={theme}
-                                onClick={() => handleSubjectClick(sub.subject)}
-                            />
-                        ))}
-                    </motion.div>
-                </motion.div>
-
-                {/* ═══ FOOTER ═══ */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.8 }}
-                    style={{
-                        marginTop: 40,
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '16px 0',
-                        borderTop: `1px solid ${theme.border}`,
-                        fontSize: 11, color: theme.textTertiary, flexWrap: 'wrap', gap: 8,
-                    }}
-                >
-                    <span>EduFlex Institute • Real-time dashboard</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{
-                            width: 6, height: 6, borderRadius: '50%',
-                            background: C.positive, display: 'inline-block',
-                            animation: 'pulse 2s ease-in-out infinite'
-                        }} />
-                        MongoDB connected
-                    </span>
-                    <span>Live data · auto-refresh on mount</span>
-                </motion.div>
-            </div>
-
-            {/* ═══ ALL ORIGINAL DIALOGS — unchanged ═══ */}
+            {/* ═══ ALL ORIGINAL DIALOGS (100% UNCHANGED) ═══ */}
             <ReportDialog
                 open={reportOpen}
                 onClose={() => setReportOpen(false)}
@@ -742,11 +894,6 @@ export default function Dashboard() {
                 open={feeRemindersOpen}
                 onClose={() => setFeeRemindersOpen(false)}
             />
-
-            <style>{`
-                @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.35;transform:scale(0.8)} }
-            `}</style>
         </div>
     );
 }
-

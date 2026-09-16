@@ -160,10 +160,10 @@ export default function POS() {
         window.location.href = `sms:${mobile}${separator}body=${encodeURIComponent(message || '')}`;
     };
 
-    const surface = isDark ? '#111526' : '#ffffff';
-    const surfaceHover = isDark ? '#161c32' : '#f8fafc';
-    const border = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
-    const subtleBg = isDark ? '#0c1020' : '#f1f5f9';
+    const surface = isDark ? 'rgba(15, 23, 42, 0.72)' : 'rgba(255, 255, 255, 0.88)';
+    const surfaceHover = isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(248, 250, 252, 0.95)';
+    const border = isDark ? 'rgba(255, 255, 255, 0.09)' : 'rgba(15, 23, 42, 0.08)';
+    const subtleBg = isDark ? 'rgba(3, 7, 18, 0.55)' : 'rgba(241, 245, 249, 0.75)';
 
     useEffect(() => {
         const fetchSubjects = async () => {

@@ -8,43 +8,43 @@ import logo from '../assets/logo.jpg';
 // ─── DESIGN TOKENS ────────────────────────────────────────────────────────────
 const T = {
   dark: {
-    bg:         '#070913',
-    sidebar:    '#0c1022',
-    sidebarBorder: 'rgba(255, 255, 255, 0.08)',
-    card:       '#0f172a',
-    glass:      '#0c1022',
-    border:     'rgba(255, 255, 255, 0.08)',
+    bg:         '#030712',
+    sidebar:    'rgba(15, 23, 42, 0.75)',
+    sidebarBorder: 'rgba(255, 255, 255, 0.09)',
+    card:       'rgba(15, 23, 42, 0.72)',
+    glass:      'rgba(15, 23, 42, 0.78)',
+    border:     'rgba(255, 255, 255, 0.09)',
     text:       '#f8fafc',
     muted:      '#94a3b8',
-    sub:        '#64748b',
+    sub:        '#cbd5e1',
     activeText: '#ffffff',
-    surface:    '#111728',
-    inputBg:    '#151c30',
+    surface:    'rgba(30, 41, 59, 0.65)',
+    inputBg:    'rgba(3, 7, 18, 0.6)',
   },
   light: {
     bg:         '#f8fafc',
-    sidebar:    '#ffffff',
+    sidebar:    'rgba(255, 255, 255, 0.88)',
     sidebarBorder: 'rgba(15, 23, 42, 0.08)',
-    card:       '#ffffff',
-    glass:      '#ffffff',
+    card:       'rgba(255, 255, 255, 0.9)',
+    glass:      'rgba(255, 255, 255, 0.88)',
     border:     'rgba(15, 23, 42, 0.08)',
     text:       '#0f172a',
     muted:      '#64748b',
-    sub:        '#94a3b8',
+    sub:        '#475569',
     activeText: '#ffffff',
-    surface:    '#ffffff',
-    inputBg:    '#f1f5f9',
+    surface:    'rgba(241, 245, 249, 0.8)',
+    inputBg:    'rgba(241, 245, 249, 0.85)',
   },
 };
 
-
 const A = {
+  indigo:  '#6366f1',
+  violet:  '#8b5cf6',
+  cyan:    '#06b6d4',
+  emerald: '#10b981',
+  amber:   '#f59e0b',
+  rose:    '#f43f5e',
   coral:   '#ff5c7c',
-  indigo:  '#6c5fff',
-  cyan:    '#00cfff',
-  emerald: '#00d4a0',
-  amber:   '#ffb84d',
-  rose:    '#ff3d6b',
 };
 
 // ─── NAV ITEMS ────────────────────────────────────────────────────────────────
@@ -194,9 +194,7 @@ function MenuIcon({ size = 20, color = 'currentColor' }) {
   );
 }
 
-
-
-// ─── SIDEBAR NAV ITEM ─────────────────────────────────────────────────────────
+// ─── SIDEBAR NAV ITEM (FLUID GLIDING PILL) ───────────────────────────────────
 function SideNavItem({ item, active, onClick, theme, collapsed }) {
   const colors = T[theme];
   const IconComp = item.icon;
@@ -204,8 +202,8 @@ function SideNavItem({ item, active, onClick, theme, collapsed }) {
   return (
     <motion.button
       onClick={onClick}
-      whileHover={{ x: active ? 0 : 3 }}
-      whileTap={{ scale: 0.97 }}
+      whileHover={{ x: active ? 0 : 4 }}
+      whileTap={{ scale: 0.96 }}
       title={collapsed ? item.label : undefined}
       style={{
         width: '100%',
@@ -213,28 +211,40 @@ function SideNavItem({ item, active, onClick, theme, collapsed }) {
         alignItems: 'center',
         gap: collapsed ? 0 : 13,
         justifyContent: collapsed ? 'center' : 'flex-start',
-        padding: collapsed ? '12px' : '11px 14px',
-        borderRadius: 12,
+        padding: collapsed ? '12px' : '11px 16px',
+        borderRadius: 14,
         cursor: 'pointer',
-        marginBottom: 2,
+        marginBottom: 4,
         border: 'none',
         outline: 'none',
-        background: active
-          ? `linear-gradient(135deg, ${A.coral}, ${A.rose})`
-          : 'transparent',
-        boxShadow: active ? `0 4px 18px rgba(255,92,124,0.3)` : 'none',
-        transition: 'background 0.2s, box-shadow 0.2s',
+        background: 'transparent',
         position: 'relative',
+        transition: 'color 0.2s ease',
       }}
     >
-      {/* Hover bg */}
+      {/* Gliding Active Pill */}
+      {active && (
+        <motion.div
+          layoutId="sidebarActivePill"
+          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: 14,
+            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 55%, #7c3aed 100%)',
+            boxShadow: '0 6px 20px -2px rgba(99, 102, 241, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.3)',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            zIndex: 0,
+          }}
+        />
+      )}
+
+      {/* Hover background for non-active items */}
       {!active && (
         <div style={{
-          position: 'absolute', inset: 0, borderRadius: 12,
-          background: theme === 'dark'
-            ? 'rgba(255,255,255,0.04)'
-            : 'rgba(0,0,0,0.04)',
-          opacity: 0, transition: 'opacity 0.15s',
+          position: 'absolute', inset: 0, borderRadius: 14,
+          background: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+          opacity: 0, transition: 'opacity 0.18s ease',
           pointerEvents: 'none',
         }} className="nav-hover-bg" />
       )}
@@ -245,18 +255,20 @@ function SideNavItem({ item, active, onClick, theme, collapsed }) {
         flexShrink: 0,
         display: 'flex',
         alignItems: 'center',
+        zIndex: 1,
         transition: 'color 0.2s',
       }}>
-        <IconComp size={17} color={active ? '#fff' : colors.sub} />
+        <IconComp size={18} color={active ? '#fff' : colors.sub} />
       </span>
 
       {/* Label */}
       {!collapsed && (
         <span style={{
-          fontWeight: active ? 700 : 500,
+          fontWeight: active ? 700 : 600,
           fontSize: 13.5,
           color: active ? '#fff' : colors.sub,
-          letterSpacing: '-0.1px',
+          letterSpacing: '-0.2px',
+          zIndex: 1,
           transition: 'color 0.2s',
           whiteSpace: 'nowrap',
         }}>
@@ -264,21 +276,27 @@ function SideNavItem({ item, active, onClick, theme, collapsed }) {
         </span>
       )}
 
-      {/* Active dot */}
+      {/* Active micro-dot indicator */}
       {active && !collapsed && (
-        <span style={{
-          marginLeft: 'auto',
-          width: 5, height: 5,
-          borderRadius: '50%',
-          background: 'rgba(255,255,255,0.6)',
-          flexShrink: 0,
-        }} />
+        <motion.span
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          style={{
+            marginLeft: 'auto',
+            width: 6, height: 6,
+            borderRadius: '50%',
+            background: '#fff',
+            boxShadow: '0 0 8px #fff',
+            flexShrink: 0,
+            zIndex: 1,
+          }}
+        />
       )}
     </motion.button>
   );
 }
 
-// ─── BOTTOM NAV ITEM ──────────────────────────────────────────────────────────
+// ─── BOTTOM NAV ITEM (FLUID DOCK) ───────────────────────────────────────────
 function BottomNavItem({ item, active, onClick, theme }) {
   const colors = T[theme];
   const IconComp = item.icon;
@@ -286,14 +304,14 @@ function BottomNavItem({ item, active, onClick, theme }) {
   return (
     <motion.button
       onClick={onClick}
-      whileTap={{ scale: 0.87 }}
+      whileTap={{ scale: 0.88 }}
       style={{
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 5,
+        gap: 4,
         background: 'none',
         border: 'none',
         cursor: 'pointer',
@@ -307,12 +325,12 @@ function BottomNavItem({ item, active, onClick, theme }) {
           layoutId="activeTabBg"
           style={{
             position: 'absolute',
-            top: 6,
-            width: 40,
+            top: 5,
+            width: 44,
             height: 40,
             borderRadius: 14,
-            background: `linear-gradient(135deg, ${A.coral}, ${A.rose})`,
-            boxShadow: `0 6px 20px rgba(255,92,124,0.4)`,
+            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #7c3aed 100%)',
+            boxShadow: '0 6px 20px rgba(99, 102, 241, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.25)',
           }}
           transition={{ type: 'spring', stiffness: 400, damping: 32 }}
         />
@@ -325,10 +343,10 @@ function BottomNavItem({ item, active, onClick, theme }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        width: 40, height: 40,
+        width: 40, height: 38,
       }}>
         <IconComp
-          size={18}
+          size={19}
           color={active ? '#fff' : colors.muted}
         />
       </span>
@@ -338,7 +356,7 @@ function BottomNavItem({ item, active, onClick, theme }) {
         fontSize: 9.5,
         fontWeight: 700,
         letterSpacing: '0.4px',
-        color: active ? A.coral : colors.muted,
+        color: active ? '#6366f1' : colors.muted,
         textTransform: 'uppercase',
         lineHeight: 1,
         transition: 'color 0.2s',
@@ -403,7 +421,7 @@ export default function Layout() {
 
       {/* ── Brand ── */}
       <div style={{
-        padding: collapsed ? '26px 0' : '26px 20px 20px',
+        padding: collapsed ? '24px 0' : '24px 20px 20px',
         borderBottom: `1px solid ${colors.border}`,
         display: 'flex',
         alignItems: 'center',
@@ -412,12 +430,13 @@ export default function Layout() {
         overflow: 'hidden',
       }}>
         <div style={{
-          width: 38, height: 38,
-          borderRadius: 12,
+          width: 40, height: 40,
+          borderRadius: 14,
           overflow: 'hidden',
           flexShrink: 0,
-          border: `2px solid ${A.coral}`,
-          boxShadow: `0 0 18px rgba(255,92,124,0.3)`,
+          border: '2px solid rgba(99, 102, 241, 0.5)',
+          boxShadow: '0 0 20px rgba(99, 102, 241, 0.4)',
+          position: 'relative',
         }}>
           <img
             src={logo}
@@ -429,19 +448,21 @@ export default function Layout() {
           <div>
             <div style={{
               fontWeight: 900,
-              fontSize: 17,
-              color: colors.text,
+              fontSize: 18,
+              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 60%, #06b6d4 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
               letterSpacing: '-0.5px',
               lineHeight: 1.1,
-              fontFamily: "'Outfit', sans-serif",
+              fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
             }}>EDUFLEX</div>
             <div style={{
               fontSize: 9,
               fontWeight: 800,
               letterSpacing: '2.5px',
-              color: A.coral,
+              color: '#6366f1',
               textTransform: 'uppercase',
-            }}>Institute</div>
+            }}>Institute OS</div>
           </div>
         )}
       </div>
@@ -748,24 +769,30 @@ export default function Layout() {
           top: 0,
           zIndex: 100,
           background: colors.glass,
-          borderBottom: `1px solid ${scrolled ? colors.border : 'transparent'}`,
-          padding: '0 20px',
-          height: 62,
+          backdropFilter: 'blur(24px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+          borderBottom: `1px solid ${scrolled ? colors.border : 'rgba(255,255,255,0.04)'}`,
+          padding: '0 24px',
+          height: 66,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          transition: 'border-color 0.2s, box-shadow 0.2s',
-          boxShadow: scrolled ? `0 2px 20px rgba(0,0,0,0.07)` : 'none',
+          transition: 'border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+          boxShadow: scrolled
+            ? (theme === 'dark' ? '0 10px 30px -10px rgba(0,0,0,0.6)' : '0 10px 25px -10px rgba(0,0,0,0.08)')
+            : 'none',
         }}>
 
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          {/* Left Actions & Breadcrumb */}
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             {/* Back Button */}
             <motion.button
-              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.05, y: -1 }}
+              whileTap={{ scale: 0.92 }}
               onClick={() => navigate(-1)}
               style={{
-                width: 38, height: 38,
-                borderRadius: 11,
+                width: 40, height: 40,
+                borderRadius: 12,
                 border: `1px solid ${colors.border}`,
                 background: colors.surface,
                 display: 'flex',
@@ -774,10 +801,12 @@ export default function Layout() {
                 cursor: 'pointer',
                 outline: 'none',
                 flexShrink: 0,
+                color: colors.text,
+                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
               title="Go Back"
             >
-              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.text} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12"/>
                 <polyline points="12 19 5 12 12 5"/>
               </svg>
@@ -786,8 +815,124 @@ export default function Layout() {
             {/* Hamburger (mobile only) */}
             <motion.button
               className="mobile-menu-btn"
-              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.92 }}
               onClick={() => setSidebarOpen(true)}
+              style={{
+                width: 40, height: 40,
+                borderRadius: 12,
+                border: `1px solid ${colors.border}`,
+                background: colors.surface,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                outline: 'none',
+                flexShrink: 0,
+                color: colors.text,
+              }}
+            >
+              <MenuIcon size={18} color={colors.text} />
+            </motion.button>
+
+            {/* Title / Breadcrumb Pill */}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: '1px',
+                  textTransform: 'uppercase',
+                  color: A.indigo,
+                  opacity: 0.9,
+                }}>
+                  EduFlex
+                </span>
+                <span style={{ fontSize: 10, color: colors.muted }}>/</span>
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={pageTitle}
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 4 }}
+                    transition={{ duration: 0.2 }}
+                    style={{
+                      fontWeight: 800,
+                      fontSize: 16,
+                      color: colors.text,
+                      letterSpacing: '-0.3px',
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {pageTitle}
+                  </motion.span>
+                </AnimatePresence>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {/* Live System Online Pill (Desktop) */}
+            <div
+              style={{
+                display: 'none',
+                alignItems: 'center',
+                gap: 7,
+                padding: '6px 14px',
+                borderRadius: 20,
+                background: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.25)',
+                fontSize: 12,
+                fontWeight: 600,
+                color: '#10b981',
+                boxShadow: '0 0 16px rgba(16, 185, 129, 0.12)',
+              }}
+              className="system-status-pill"
+            >
+              <span style={{
+                width: 7, height: 7,
+                borderRadius: '50%',
+                background: '#10b981',
+                boxShadow: '0 0 8px #10b981',
+                display: 'inline-block',
+                animation: 'pulse 2s infinite ease-in-out',
+              }} />
+              <span>System Live</span>
+            </div>
+
+            {/* Quick Language Toggle */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.92 }}
+              onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'si' : 'en')}
+              title={`Switch to ${i18n.language === 'en' ? 'Sinhala' : 'English'}`}
+              style={{
+                height: 38,
+                padding: '0 12px',
+                borderRadius: 11,
+                border: `1px solid ${colors.border}`,
+                background: colors.surface,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                cursor: 'pointer',
+                color: colors.text,
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: '0.4px',
+              }}
+            >
+              <GlobeIcon size={14} color={A.indigo} />
+              <span>{i18n.language === 'si' ? 'සිං' : 'EN'}</span>
+            </motion.button>
+
+            {/* Direct Theme Toggle */}
+            <motion.button
+              whileHover={{ scale: 1.08, rotate: 15 }}
+              whileTap={{ scale: 0.9, rotate: -30 }}
+              onClick={toggleColorMode}
+              title={mode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               style={{
                 width: 38, height: 38,
                 borderRadius: 11,
@@ -798,65 +943,47 @@ export default function Layout() {
                 justifyContent: 'center',
                 cursor: 'pointer',
                 outline: 'none',
-                flexShrink: 0,
+                color: mode === 'dark' ? A.amber : A.indigo,
+                boxShadow: mode === 'dark' ? '0 0 12px rgba(245,158,11,0.2)' : 'none',
               }}
             >
-              <MenuIcon size={18} color={colors.text} />
+              {mode === 'dark' ? <SunIcon size={18} color={A.amber} /> : <MoonIcon size={18} color={A.indigo} />}
             </motion.button>
-          </div>
 
-          {/* Page title */}
-          <div style={{ textAlign: 'center', flex: 1 }}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={pageTitle}
-                initial={{ opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 6 }}
-                transition={{ duration: 0.18 }}
-              >
-                <div style={{
-                  fontWeight: 800,
-                  fontSize: 15,
-                  color: colors.text,
-                  letterSpacing: '-0.3px',
-                  lineHeight: 1.2,
-                }}>
-                  {pageTitle}
-                </div>
-                <div style={{
-                  fontSize: 10.5,
-                  color: colors.muted,
-                  fontWeight: 500,
-                  letterSpacing: '0.2px',
-                }}>
-                  Institute Management
-                </div>
-              </motion.div>
-            </AnimatePresence>
+            {/* User Avatar with Glowing Accent */}
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.94 }}
+              style={{
+                width: 40, height: 40,
+                borderRadius: 13,
+                padding: 2,
+                background: `linear-gradient(135deg, ${A.indigo} 0%, ${A.violet} 50%, ${A.cyan} 100%)`,
+                boxShadow: `0 4px 18px rgba(99, 102, 241, 0.4)`,
+                cursor: 'pointer',
+                flexShrink: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              title="Admin Profile"
+            >
+              <div style={{
+                width: '100%', height: '100%',
+                borderRadius: 11,
+                background: colors.bg,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 800,
+                fontSize: 14,
+                color: A.indigo,
+                letterSpacing: '-0.3px',
+              }}>
+                A
+              </div>
+            </motion.div>
           </div>
-
-          {/* Avatar */}
-          <motion.div
-            whileTap={{ scale: 0.92 }}
-            style={{
-              width: 38, height: 38,
-              borderRadius: '50%',
-              background: `linear-gradient(135deg, ${A.coral} 0%, ${A.indigo} 100%)`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 900,
-              fontSize: 14,
-              color: '#fff',
-              cursor: 'pointer',
-              boxShadow: `0 4px 14px rgba(255,92,124,0.4)`,
-              flexShrink: 0,
-              letterSpacing: '-0.5px',
-            }}
-          >
-            A
-          </motion.div>
         </div>
 
         {/* ── PAGE CONTENT ── */}
@@ -917,19 +1044,27 @@ export default function Layout() {
           .desktop-sidebar { display: block !important; position: sticky !important; }
           .mobile-menu-btn { display: none !important; }
           .bottom-nav { display: none !important; }
+          .system-status-pill { display: inline-flex !important; }
         }
         @media (max-width: 899px) {
           .desktop-sidebar { display: none !important; }
         }
         .nav-hover-bg:hover { opacity: 1 !important; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        ::-webkit-scrollbar { width: 3px; height: 3px; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-thumb {
-          background: rgba(255,92,124,0.25);
-          border-radius: 3px;
+          background: rgba(99, 102, 241, 0.35);
+          border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: rgba(99, 102, 241, 0.6);
         }
         ::-webkit-scrollbar-track { background: transparent; }
         button { outline: none; }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(0.85); }
+        }
       `}</style>
     </div>
   );
