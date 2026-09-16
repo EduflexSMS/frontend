@@ -15,6 +15,7 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import API_BASE_URL from '../config';
 import { generateBillPDF } from '../utils/generateBillPDF';
+import { isNotEnrolledInMonth } from '../components/MultiSubjectFeeDialog';
 
 const monthsList = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -580,6 +581,7 @@ export default function POS() {
                                             {(() => {
                                                 const unpaidCurrentMonth = (selectedStudent.enrollments || []).filter(e => {
                                                     if (e.isFreeCard) return false;
+                                                    if (isNotEnrolledInMonth(e, selectedStudent, currentMonth)) return false;
                                                     const rec = (e.monthlyRecords || []).find(r => r.monthIndex === currentMonth);
                                                     return !rec?.feePaid;
                                                 });
@@ -683,19 +685,34 @@ export default function POS() {
                                                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                                                                     {displayMonths.map(mIndex => {
                                                                         const record = enrollment.monthlyRecords.find(r => r.monthIndex === mIndex);
-                                                                        const isDaily = subjectInfo?.feeType === 'daily';
+                                                                        const notEnrolled = isNotEnrolledInMonth(enrollment, selectedStudent, mIndex);
+                                                                        const isDailyFee = subjectInfo?.feeType === 'daily';
+                                                                        const feePerSubject = subjectInfo?.fee || 0;
+                                                                        const actualDaysCount = Math.max(record?.dailyFeesPaid?.length || 0, subjectInfo?.classDaysCount || 5);
 
-                                                                        if (isDaily) {
+                                                                        if (isDailyFee) {
                                                                             return (
-                                                                                <Box key={mIndex} sx={{ display: 'flex', flexDirection: 'column', gap: 1, p: 1.5, borderRadius: '12px', bgcolor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
-                                                                                    <Typography variant="body2" sx={{ fontWeight: 700, color: col.text, fontSize: '0.85rem', mb: 0.5 }}>
-                                                                                        {monthsList[mIndex]}
-                                                                                        {mIndex === currentMonth && (
-                                                                                            <Box component="span" sx={{ ml: 1, px: 0.8, py: 0.2, borderRadius: '5px', background: 'rgba(99,102,241,0.15)', color: '#6366f1', fontSize: '0.65rem', fontWeight: 700 }}>current</Box>
+                                                                                <Box key={mIndex} sx={{
+                                                                                    p: 1.2, borderRadius: '12px',
+                                                                                    background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+                                                                                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`,
+                                                                                    opacity: notEnrolled ? 0.4 : 1
+                                                                                }}>
+                                                                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                                                                        <Typography variant="caption" sx={{ fontWeight: 700, color: notEnrolled ? (isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)') : (isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)') }}>
+                                                                                            {monthsList[mIndex]}
+                                                                                        </Typography>
+                                                                                        {notEnrolled ? (
+                                                                                            <Chip label="Not Enrolled" size="small" sx={{ height: 20, fontSize: '0.65rem', background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)' }} />
+                                                                                        ) : (
+                                                                                            <Typography variant="caption" sx={{ color: col.text, fontWeight: 700 }}>
+                                                                                                Rs. {feePerSubject}/day
+                                                                                            </Typography>
                                                                                         )}
-                                                                                    </Typography>
-                                                                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                                                                        {Array.from({ length: Math.max(record?.dailyFeesPaid?.length || 0, subjectInfo?.classDaysCount || 5) }).map((_, wIndex) => {
+                                                                                    </Box>
+                                                                                    {!notEnrolled && (
+                                                                                    <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
+                                                                                        {Array.from({ length: actualDaysCount }).map((_, wIndex) => {
                                                                                             const isWeekPaid = record?.dailyFeesPaid ? record.dailyFeesPaid[wIndex] : false;
                                                                                             const isWeekAdded = cart.some(c => c.id === `${enrollment.subject}-${mIndex}-${wIndex}`);
                                                                                             
@@ -746,6 +763,7 @@ export default function POS() {
                                                                                             );
                                                                                         })}
                                                                                     </Box>
+                                                                                    )}
                                                                                 </Box>
                                                                             );
                                                                         }
@@ -754,10 +772,10 @@ export default function POS() {
                                                                         const isAdded = cart.some(c => c.id === `${enrollment.subject}-${mIndex}`);
 
                                                                         return (
-                                                                            <Box key={mIndex} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                            <Box key={mIndex} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: notEnrolled ? 0.45 : 1 }}>
                                                                                 <Typography variant="body2" sx={{
                                                                                     fontWeight: 600,
-                                                                                    color: isPaid ? '#10b981' : isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.65)',
+                                                                                    color: isPaid ? '#10b981' : notEnrolled ? (isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)') : isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.65)',
                                                                                     fontSize: '0.82rem'
                                                                                 }}>
                                                                                     {monthsList[mIndex]}
@@ -770,7 +788,17 @@ export default function POS() {
                                                                                     )}
                                                                                 </Typography>
 
-                                                                                {isPaid ? (
+                                                                                {notEnrolled ? (
+                                                                                    <Chip
+                                                                                        label="Not Enrolled"
+                                                                                        size="small"
+                                                                                        sx={{
+                                                                                            background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                                                                                            color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)',
+                                                                                            fontWeight: 700, fontSize: '0.72rem', height: 26
+                                                                                        }}
+                                                                                    />
+                                                                                ) : isPaid ? (
                                                                                     <Chip
                                                                                         icon={<CheckCircle sx={{ fontSize: '14px !important', color: '#10b981 !important' }} />}
                                                                                         label="Paid"

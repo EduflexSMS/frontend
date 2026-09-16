@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import API_BASE_URL from '../config';
 import EditStudentDialog from '../components/EditStudentDialog';
-import MultiSubjectFeeDialog from '../components/MultiSubjectFeeDialog';
+import MultiSubjectFeeDialog, { isNotEnrolledInMonth } from '../components/MultiSubjectFeeDialog';
 import FeeRemindersDialog from '../components/FeeRemindersDialog';
 import { generateFeeReport } from '../utils/generateFeeReport';
 import { generateClassCard, generateAllClassCardsPDF } from '../utils/generateClassCard';
@@ -681,13 +681,16 @@ function StudentRow({ student, onUpdate, onEdit, subjectColors, onOpenFeeModal }
     const subjects = (student.enrollments || []).map(e => {
       let st = 0, sa = 0;
       (e.monthlyRecords || []).forEach(r => {
-        (r.attendance || []).forEach(s => {
-          if (isP(s) || isA(s)) st++;
-          if (isP(s)) sa++;
-        });
+        if (!isNotEnrolledInMonth(e, student, r.monthIndex)) {
+          (r.attendance || []).forEach(s => {
+            if (isP(s) || isA(s)) st++;
+            if (isP(s)) sa++;
+          });
+        }
       });
-      const feesTotal = e.monthlyRecords?.length || 0;
-      const feesPaid  = e.monthlyRecords?.filter(r => r.feePaid).length || 0;
+      const activeRecords = (e.monthlyRecords || []).filter(r => !isNotEnrolledInMonth(e, student, r.monthIndex));
+      const feesTotal = activeRecords.length || 0;
+      const feesPaid  = activeRecords.filter(r => r.feePaid).length || 0;
       return {
         name: e.subject,
         pct: st === 0 ? 0 : Math.round((sa / st) * 100),
@@ -717,6 +720,8 @@ function StudentRow({ student, onUpdate, onEdit, subjectColors, onOpenFeeModal }
     const pendingList = [];
 
     (student.enrollments || []).forEach(e => {
+      if (e.isFreeCard) return;
+      if (isNotEnrolledInMonth(e, student, nowMonth)) return;
       const rec = (e.monthlyRecords || []).find(r => r.monthIndex === nowMonth);
       const feeAmount = subjectColors?.[e.subject]?.fee || 0;
       const str = `- ${e.subject} (රු. ${feeAmount})`;
@@ -846,6 +851,8 @@ function StudentRow({ student, onUpdate, onEdit, subjectColors, onOpenFeeModal }
             {/* Monthly breakdown per subject */}
             {stats.subjects.map(subj => {
               const sm = getSubjMeta(subj.name);
+              const subjEnrollment = (student.enrollments || []).find(e => e.subject === subj.name);
+
               return (
                 <div key={subj.name} style={{ marginBottom: 22 }}>
                   <div className="sec-lbl">
@@ -857,13 +864,35 @@ function StudentRow({ student, onUpdate, onEdit, subjectColors, onOpenFeeModal }
                       const nowMonth   = new Date().getMonth();
                       const isCurrent  = mi === nowMonth;
                       const isFuture   = !rec && mi > nowMonth;
+                      const notEnrolled = isNotEnrolledInMonth(subjEnrollment, student, mi);
                       const att        = rec?.attendance || [];
                       const isDaily = subjectColors?.[subj.name]?.feeType === 'daily';
                       return (
-                        <div key={m} className={`mo-card${isCurrent ? ' now' : ''}`} style={{ opacity: isFuture ? 0.3 : 1 }}>
-                          <div className="mo-name">{m}</div>
+                        <div 
+                          key={m} 
+                          className={`mo-card${isCurrent ? ' now' : ''}${notEnrolled ? ' not-enrolled' : ''}`} 
+                          title={notEnrolled ? `${m}: Student was not yet enrolled in ${subj.name}` : undefined}
+                          style={{ 
+                            opacity: notEnrolled ? 0.35 : isFuture ? 0.3 : 1,
+                            filter: notEnrolled ? 'grayscale(0.9)' : 'none',
+                            borderStyle: notEnrolled ? 'dashed' : 'solid',
+                            background: notEnrolled ? 'rgba(255,255,255,0.015)' : undefined
+                          }}
+                        >
+                          <div className="mo-name" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span>{m}</span>
+                            {notEnrolled && (
+                              <span style={{ fontSize: '0.55rem', padding: '1px 4px', borderRadius: '4px', background: 'rgba(255,255,255,0.06)', color: 'var(--text3)' }}>
+                                Not Enrolled
+                              </span>
+                            )}
+                          </div>
                           <div className="mo-meta" style={{ flexDirection: isDaily ? 'column' : 'row', gap: isDaily ? '6px' : '0px', alignItems: 'flex-start' }}>
-                            {isDaily ? (
+                            {notEnrolled ? (
+                              <span style={{ fontSize: '0.68rem', color: 'var(--text3)', fontStyle: 'italic', padding: '2px 0' }}>
+                                Not enrolled
+                              </span>
+                            ) : isDaily ? (
                               <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap', marginTop: '2px' }}>
                                 {Array.from({ length: Math.max(rec?.dailyFeesPaid?.length || 0, subjectColors?.[subj.name]?.classDaysCount || 5) }).map((_, wIdx) => {
                                   const isWeekPaid = rec?.dailyFeesPaid ? rec.dailyFeesPaid[wIdx] : false;
@@ -899,7 +928,7 @@ function StudentRow({ student, onUpdate, onEdit, subjectColors, onOpenFeeModal }
                                 </svg>
                               </span>
                             )}
-                            {att.length > 0 && (
+                            {!notEnrolled && att.length > 0 && (
                               <span style={{ alignSelf: isDaily ? 'flex-end' : 'center', marginTop: isDaily ? '2px' : '0px' }}>
                                 {att.filter(a => a === 'present' || a === true || a === 'true').length}
                                 /{att.filter(a => a !== 'pending').length}
@@ -907,7 +936,9 @@ function StudentRow({ student, onUpdate, onEdit, subjectColors, onOpenFeeModal }
                             )}
                           </div>
                           <div className="att-dots">
-                            {att.length === 0
+                            {notEnrolled ? (
+                              <span className="no-data" style={{ opacity: 0.5 }}>—</span>
+                            ) : att.length === 0
                               ? <span className="no-data">No data</span>
                               : att.map((s, i) => {
                                   const isA = s === 'absent' || (typeof s === 'string' && s.toLowerCase() === 'absent');

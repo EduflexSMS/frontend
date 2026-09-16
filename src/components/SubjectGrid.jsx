@@ -1,7 +1,8 @@
 import React from 'react';
-import { Box, Typography, Paper, alpha, useTheme } from '@mui/material';
+import { Box, Typography, Paper, alpha, useTheme, Chip } from '@mui/material';
 import StatusCell from './StatusCell';
 import { motion } from 'framer-motion';
+import { isNotEnrolledInMonth } from './MultiSubjectFeeDialog';
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -75,6 +76,7 @@ const SubjectGrid = ({ student, studentId, studentGrade, enrollments, onUpdate, 
                             }
                         }}>
                             {enrollment.monthlyRecords.map((record, rIndex) => {
+                                const notEnrolled = isNotEnrolledInMonth(enrollment, student, record.monthIndex);
                                 const slots = Array.from({ length: Math.max(record.attendance?.length || 0, subjectData?.classDaysCount || 5) });
 
                                 return (
@@ -85,16 +87,18 @@ const SubjectGrid = ({ student, studentId, studentGrade, enrollments, onUpdate, 
                                         animate={{ opacity: 1, scale: 1 }}
                                         transition={{ delay: 0.2 + (rIndex * 0.05) }}
                                         sx={{
-                                            border: '1px solid',
-                                            borderColor: 'rgba(255,255,255,0.08)',
+                                            border: `1px ${notEnrolled ? 'dashed' : 'solid'}`,
+                                            borderColor: notEnrolled ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.08)',
                                             minWidth: 170,
                                             p: 2.5,
                                             textAlign: 'center',
-                                            bgcolor: 'rgba(255,255,255,0.015)',
+                                            bgcolor: notEnrolled ? 'rgba(255,255,255,0.008)' : 'rgba(255,255,255,0.015)',
                                             borderRadius: '20px',
                                             flexShrink: 0,
+                                            opacity: notEnrolled ? 0.4 : 1,
+                                            filter: notEnrolled ? 'grayscale(0.85)' : 'none',
                                             transition: 'all 0.3s ease',
-                                            '&:hover': {
+                                            '&:hover': notEnrolled ? {} : {
                                                 borderColor: alpha(color, 0.4),
                                                 transform: 'translateY(-4px)',
                                                 bgcolor: 'rgba(255,255,255,0.03)',
@@ -102,67 +106,112 @@ const SubjectGrid = ({ student, studentId, studentGrade, enrollments, onUpdate, 
                                             }
                                         }}
                                     >
-                                        <Typography variant="caption" display="block" sx={{
-                                            fontWeight: '800',
-                                            mb: 2,
-                                            textTransform: 'uppercase',
-                                            letterSpacing: 3,
-                                            color: 'text.secondary',
-                                            fontSize: '0.75rem'
-                                        }}>
-                                            {months[record.monthIndex]}
-                                        </Typography>
-
-                                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 2.5 }}>
-                                            <StatusCell
-                                                student={student}
-                                                fee={subjectData ? subjectData.fee : 0}
-                                                studentId={studentId}
-                                                subject={enrollment.subject}
-                                                monthIndex={record.monthIndex}
-                                                type="fee"
-                                                initialStatus={record.feePaid}
-                                                onUpdate={onUpdate}
-                                            />
-                                            <StatusCell
-                                                student={student}
-                                                fee={subjectData ? subjectData.fee : 0}
-                                                studentId={studentId}
-                                                subject={enrollment.subject}
-                                                monthIndex={record.monthIndex}
-                                                type="tute"
-                                                initialStatus={record.tutesGiven}
-                                                onUpdate={onUpdate}
-                                            />
+                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
+                                            <Typography variant="caption" display="block" sx={{
+                                                fontWeight: '800',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: 3,
+                                                color: notEnrolled ? 'text.disabled' : 'text.secondary',
+                                                fontSize: '0.75rem'
+                                            }}>
+                                                {months[record.monthIndex]}
+                                            </Typography>
+                                            {notEnrolled && (
+                                                <Chip
+                                                    label="N/E"
+                                                    size="small"
+                                                    sx={{
+                                                        fontSize: '0.6rem',
+                                                        height: 16,
+                                                        px: 0.2,
+                                                        bgcolor: 'rgba(255,255,255,0.05)',
+                                                        color: 'text.disabled',
+                                                        fontWeight: 700
+                                                    }}
+                                                />
+                                            )}
                                         </Box>
 
-                                        <Box sx={{
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            gap: 0.5,
-                                            bgcolor: 'rgba(0,0,0,0.2)',
-                                            p: 1.5,
-                                            borderRadius: '16px',
-                                            border: '1px solid rgba(255,255,255,0.02)'
-                                        }}>
-                                            {slots.map((_, idx) => {
-                                                return (
-                                                    <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                                        <StatusCell
-                                                            student={student}
-                                                            fee={subjectData ? subjectData.fee : 0}
-                                                            studentId={studentId}
-                                                            subject={enrollment.subject}
-                                                            monthIndex={record.monthIndex}
-                                                            weekIndex={idx}
-                                                            type="attendance"
-                                                            initialStatus={record.attendance[idx] || false}
-                                                            onUpdate={onUpdate}
-                                                        />
-                                                    </Box>
-                                                );
-                                            })}
-                                        </Box>
+                                        {notEnrolled && !record.feePaid ? (
+                                            <Box sx={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                py: 3.5,
+                                                gap: 0.8
+                                            }}>
+                                                <Chip
+                                                    label="Not Enrolled"
+                                                    size="small"
+                                                    variant="outlined"
+                                                    sx={{
+                                                        fontSize: '0.68rem',
+                                                        fontWeight: 700,
+                                                        color: 'text.disabled',
+                                                        borderColor: 'rgba(255,255,255,0.15)',
+                                                        background: 'rgba(255,255,255,0.03)',
+                                                        height: 22
+                                                    }}
+                                                />
+                                                <Typography variant="caption" sx={{ fontSize: '0.65rem', color: 'text.disabled', fontStyle: 'italic' }}>
+                                                    ලියාපදිංචි වී නැත
+                                                </Typography>
+                                            </Box>
+                                        ) : (
+                                            <>
+                                                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 2.5 }}>
+                                                    <StatusCell
+                                                        student={student}
+                                                        fee={subjectData ? subjectData.fee : 0}
+                                                        studentId={studentId}
+                                                        subject={enrollment.subject}
+                                                        monthIndex={record.monthIndex}
+                                                        type="fee"
+                                                        initialStatus={record.feePaid}
+                                                        onUpdate={onUpdate}
+                                                    />
+                                                    <StatusCell
+                                                        student={student}
+                                                        fee={subjectData ? subjectData.fee : 0}
+                                                        studentId={studentId}
+                                                        subject={enrollment.subject}
+                                                        monthIndex={record.monthIndex}
+                                                        type="tute"
+                                                        initialStatus={record.tutesGiven}
+                                                        onUpdate={onUpdate}
+                                                    />
+                                                </Box>
+
+                                                <Box sx={{
+                                                    display: 'flex',
+                                                    justifyContent: 'center',
+                                                    gap: 0.5,
+                                                    bgcolor: 'rgba(0,0,0,0.2)',
+                                                    p: 1.5,
+                                                    borderRadius: '16px',
+                                                    border: '1px solid rgba(255,255,255,0.02)'
+                                                }}>
+                                                    {slots.map((_, idx) => {
+                                                        return (
+                                                            <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                                                <StatusCell
+                                                                    student={student}
+                                                                    fee={subjectData ? subjectData.fee : 0}
+                                                                    studentId={studentId}
+                                                                    subject={enrollment.subject}
+                                                                    monthIndex={record.monthIndex}
+                                                                    weekIndex={idx}
+                                                                    type="attendance"
+                                                                    initialStatus={record.attendance[idx] || false}
+                                                                    onUpdate={onUpdate}
+                                                                />
+                                                            </Box>
+                                                        );
+                                                    })}
+                                                </Box>
+                                            </>
+                                        )}
                                     </Box>
                                 );
                             })}

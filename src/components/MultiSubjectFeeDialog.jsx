@@ -37,6 +37,16 @@ export const openDefaultSMS = (rawMobile, message) => {
     window.location.href = `sms:${mobile}${separator}body=${encodeURIComponent(message || '')}`;
 };
 
+export const isNotEnrolledInMonth = (enrollment, student, monthIndex, year = new Date().getFullYear()) => {
+    const rawDate = enrollment?.enrolledAt || student?.createdAt;
+    if (!rawDate) return false;
+    const enrollDate = new Date(rawDate);
+    if (isNaN(enrollDate.getTime())) return false;
+    const enrollYear = enrollDate.getFullYear();
+    const enrollMonth = enrollDate.getMonth();
+    return (enrollYear > year) || (enrollYear === year && monthIndex < enrollMonth);
+};
+
 export default function MultiSubjectFeeDialog({
     open,
     onClose,
@@ -65,14 +75,15 @@ export default function MultiSubjectFeeDialog({
             setError('');
             setReceiptData(null);
 
-            // Pre-select subjects
+            // Pre-select subjects (only if active & enrolled in month m)
             const newMap = {};
             (student.enrollments || []).forEach(e => {
                 const rec = (e.monthlyRecords || []).find(r => r.monthIndex === m);
                 const isPaid = rec?.feePaid;
                 const isFree = e.isFreeCard;
+                const notEnrolled = isNotEnrolledInMonth(e, student, m);
 
-                if (!isPaid && !isFree) {
+                if (!isPaid && !isFree && !notEnrolled) {
                     if (preSelectedSubject) {
                         newMap[e.subject] = e.subject === preSelectedSubject;
                     } else {
@@ -98,7 +109,8 @@ export default function MultiSubjectFeeDialog({
             const rec = (e.monthlyRecords || []).find(r => r.monthIndex === newMonth);
             const isPaid = rec?.feePaid;
             const isFree = e.isFreeCard;
-            if (!isPaid && !isFree) {
+            const notEnrolled = isNotEnrolledInMonth(e, student, newMonth);
+            if (!isPaid && !isFree && !notEnrolled) {
                 newMap[e.subject] = true;
             } else {
                 newMap[e.subject] = false;
@@ -115,7 +127,7 @@ export default function MultiSubjectFeeDialog({
         }));
     };
 
-    // Quick select all unpaid
+    // Quick select all unpaid (skipping pre-enrollment months)
     const handleSelectAllUnpaid = () => {
         if (!student) return;
         const newMap = {};
@@ -123,7 +135,8 @@ export default function MultiSubjectFeeDialog({
             const rec = (e.monthlyRecords || []).find(r => r.monthIndex === selectedMonth);
             const isPaid = rec?.feePaid;
             const isFree = e.isFreeCard;
-            if (!isPaid && !isFree) {
+            const notEnrolled = isNotEnrolledInMonth(e, student, selectedMonth);
+            if (!isPaid && !isFree && !notEnrolled) {
                 newMap[e.subject] = true;
             } else {
                 newMap[e.subject] = false;
@@ -138,7 +151,7 @@ export default function MultiSubjectFeeDialog({
         setSelectedSubjectMap(newMap);
     };
 
-    // Calculate totals and items to pay
+    // Calculate totals and items to pay (excluding pre-enrollment months)
     const { itemsToPay, totalAmount, unpaidCount } = useMemo(() => {
         if (!student) return { itemsToPay: [], totalAmount: 0, unpaidCount: 0 };
 
@@ -150,9 +163,10 @@ export default function MultiSubjectFeeDialog({
             const rec = (e.monthlyRecords || []).find(r => r.monthIndex === selectedMonth);
             const isPaid = rec?.feePaid;
             const isFree = e.isFreeCard;
+            const notEnrolled = isNotEnrolledInMonth(e, student, selectedMonth);
             const fee = subjectColors?.[e.subject]?.fee || 0;
 
-            if (!isPaid && !isFree) {
+            if (!isPaid && !isFree && !notEnrolled) {
                 unpaid++;
                 if (selectedSubjectMap[e.subject]) {
                     total += fee;
@@ -411,16 +425,22 @@ export default function MultiSubjectFeeDialog({
                                 {monthsListEn.map((mName, idx) => {
                                     const isSelected = selectedMonth === idx;
                                     const isCurrent = idx === currentMonthIndex;
+                                    const allNotEnrolled = (student.enrollments || []).length > 0 &&
+                                        (student.enrollments || []).every(e => isNotEnrolledInMonth(e, student, idx));
+
                                     return (
                                         <Button
                                             key={mName}
                                             size="small"
                                             onClick={() => handleMonthChange(idx)}
                                             variant={isSelected ? "contained" : "outlined"}
+                                            title={allNotEnrolled ? `${mName} (Student not yet enrolled)` : mName}
                                             sx={{
                                                 minWidth: 'auto', px: 1.5, py: 0.5, borderRadius: '10px',
                                                 textTransform: 'none', fontWeight: isSelected ? 800 : 500,
                                                 fontSize: '0.75rem', flexShrink: 0,
+                                                opacity: allNotEnrolled ? (isSelected ? 0.9 : 0.45) : 1,
+                                                borderStyle: allNotEnrolled && !isSelected ? 'dashed' : 'solid',
                                                 background: isSelected ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' : 'transparent',
                                                 borderColor: isSelected ? 'transparent' : isCurrent ? 'rgba(99,102,241,0.4)' : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                                                 color: isSelected ? 'white' : isCurrent ? '#6366f1' : 'inherit'
@@ -432,6 +452,14 @@ export default function MultiSubjectFeeDialog({
                                     );
                                 })}
                             </Box>
+                            {((student.enrollments || []).length > 0 &&
+                                (student.enrollments || []).every(e => isNotEnrolledInMonth(e, student, selectedMonth))) && (
+                                <Alert severity="info" sx={{ mt: 1, py: 0.2, px: 1.5, borderRadius: '10px', fontSize: '0.78rem', background: isDark ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.06)' }}>
+                                    {language === 'si'
+                                        ? "මෙම මාසය වන විට සිසුවා ආයතනයට සම්බන්ධ වී නොමැත (ලියාපදිංචියට පෙර මාසයකි)."
+                                        : "Student was not yet enrolled in any subject in this month (Pre-enrollment month)."}
+                                </Alert>
+                            )}
                         </Box>
 
                         <Divider sx={{ opacity: isDark ? 0.08 : 0.06 }} />
@@ -470,9 +498,10 @@ export default function MultiSubjectFeeDialog({
                                     const rec = (enrollment.monthlyRecords || []).find(r => r.monthIndex === selectedMonth);
                                     const isPaid = rec?.feePaid;
                                     const isFree = enrollment.isFreeCard;
+                                    const notEnrolled = isNotEnrolledInMonth(enrollment, student, selectedMonth);
                                     const fee = subjectColors?.[enrollment.subject]?.fee || 0;
                                     const isChecked = !!selectedSubjectMap[enrollment.subject];
-                                    const isDisabled = isPaid || isFree;
+                                    const isDisabled = isPaid || isFree || notEnrolled;
 
                                     return (
                                         <Paper
@@ -482,19 +511,23 @@ export default function MultiSubjectFeeDialog({
                                             sx={{
                                                 p: 1.4, px: 1.8, borderRadius: '14px',
                                                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                                cursor: isDisabled ? 'default' : 'pointer',
+                                                cursor: isDisabled ? 'not-allowed' : 'pointer',
                                                 background: isChecked
                                                     ? isDark ? 'rgba(16,185,129,0.12)' : 'rgba(16,185,129,0.08)'
+                                                    : notEnrolled
+                                                    ? isDark ? 'rgba(255,255,255,0.015)' : 'rgba(0,0,0,0.02)'
                                                     : isDisabled
                                                     ? isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'
                                                     : isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc',
-                                                border: `1.5px solid ${
+                                                border: `1.5px ${notEnrolled ? 'dashed' : 'solid'} ${
                                                     isChecked
                                                         ? '#10b981'
                                                         : isDisabled
-                                                        ? 'transparent'
+                                                        ? isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
                                                         : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
                                                 }`,
+                                                opacity: notEnrolled ? 0.45 : 1,
+                                                filter: notEnrolled ? 'grayscale(0.85)' : 'none',
                                                 transition: 'all 0.15s ease',
                                                 '&:hover': {
                                                     borderColor: !isDisabled && !isChecked ? (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') : undefined
@@ -535,6 +568,18 @@ export default function MultiSubjectFeeDialog({
                                                         label="Free Card"
                                                         size="small"
                                                         sx={{ background: 'rgba(168,85,247,0.12)', color: '#a855f7', fontWeight: 700, fontSize: '0.7rem' }}
+                                                    />
+                                                ) : notEnrolled ? (
+                                                    <Chip
+                                                        label={language === 'si' ? "ලියාපදිංචි වී නැත" : "Not Enrolled"}
+                                                        size="small"
+                                                        variant="outlined"
+                                                        sx={{
+                                                            borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)',
+                                                            color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)',
+                                                            fontWeight: 700,
+                                                            fontSize: '0.7rem'
+                                                        }}
                                                     />
                                                 ) : (
                                                     <Typography variant="body2" sx={{ fontWeight: 800, color: isChecked ? '#10b981' : isDark ? '#f8fafc' : '#0f172a' }}>
