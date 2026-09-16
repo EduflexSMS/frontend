@@ -240,7 +240,9 @@ export default function ClassReport() {
         reportData.forEach((student, idx) => {
             const attendanceCount = countAttendance(student.attendance);
             let feeStatusText = student.feePaid ? t('paid') : t('not_paid');
-            if (student.isFreeCard) {
+            if (student.notEnrolled) {
+                feeStatusText = currentLang === 'si' ? "ලියාපදිංචි වී නැත" : "Not Enrolled";
+            } else if (student.isFreeCard) {
                 feeStatusText = currentLang === 'si' ? "නොමිලේ (Free Card)" : "Free Card";
             }
             const studentData = [
@@ -280,6 +282,10 @@ export default function ClassReport() {
                 if (data.section === 'body' && data.column.index === 3) {
                     if (data.cell.raw === t('paid')) {
                         data.cell.styles.fillColor = [34, 197, 94]; // Green 500
+                        data.cell.styles.textColor = [255, 255, 255];
+                        data.cell.styles.fontStyle = 'bold';
+                    } else if (data.cell.raw === 'Not Enrolled' || data.cell.raw === 'ලියාපදිංචි වී නැත') {
+                        data.cell.styles.fillColor = [148, 163, 184]; // Slate 400
                         data.cell.styles.textColor = [255, 255, 255];
                         data.cell.styles.fontStyle = 'bold';
                     } else if (data.cell.raw === t('not_paid')) {
@@ -355,8 +361,9 @@ export default function ClassReport() {
                 // Summary Stats
                 const totalStudents = students.length;
                 const freeCount = students.filter(s => s.isFreeCard).length;
-                const paidCount = students.filter(s => s.feePaid && !s.isFreeCard).length;
-                const pendingCount = totalStudents - paidCount - freeCount;
+                const notEnrolledCount = students.filter(s => s.notEnrolled).length;
+                const paidCount = students.filter(s => s.feePaid && !s.isFreeCard && !s.notEnrolled).length;
+                const pendingCount = totalStudents - paidCount - freeCount - notEnrolledCount;
 
                 doc.setDrawColor(59, 130, 246); // Blue 500
                 doc.setFillColor(241, 245, 249); // Slate 100
@@ -404,7 +411,9 @@ export default function ClassReport() {
                 students.forEach((student, idx) => {
                     const attendanceCount = countAttendance(student.attendance);
                     let feeStatusText = student.feePaid ? t('paid') : t('not_paid');
-                    if (student.isFreeCard) {
+                    if (student.notEnrolled) {
+                        feeStatusText = currentLang === 'si' ? "ලියාපදිංචි වී නැත" : "Not Enrolled";
+                    } else if (student.isFreeCard) {
                         feeStatusText = currentLang === 'si' ? "නොමිලේ (Free Card)" : "Free Card";
                     }
                     const studentData = [
@@ -444,6 +453,10 @@ export default function ClassReport() {
                         if (data.section === 'body' && data.column.index === 4) {
                             if (data.cell.raw === t('paid')) {
                                 data.cell.styles.fillColor = [34, 197, 94]; // Green 500
+                                data.cell.styles.textColor = [255, 255, 255];
+                                data.cell.styles.fontStyle = 'bold';
+                            } else if (data.cell.raw === 'Not Enrolled' || data.cell.raw === 'ලියාපදිංචි වී නැත') {
+                                data.cell.styles.fillColor = [148, 163, 184]; // Slate 400
                                 data.cell.styles.textColor = [255, 255, 255];
                                 data.cell.styles.fontStyle = 'bold';
                             } else if (data.cell.raw === t('not_paid')) {
@@ -510,10 +523,10 @@ export default function ClassReport() {
                                     </Box>
                                 </Box>
                                 <Chip
-                                    label={row.isFreeCard ? "Free Card" : (row.feePaid ? "Paid" : "Unpaid")}
-                                    color={row.isFreeCard ? "secondary" : (row.feePaid ? "success" : "error")}
+                                    label={row.isFreeCard ? "Free Card" : (row.notEnrolled ? (language === 'si' ? "ලියාපදිංචි වී නැත" : "Not Enrolled") : (row.feePaid ? "Paid" : "Unpaid"))}
+                                    color={row.isFreeCard ? "secondary" : (row.notEnrolled ? "default" : (row.feePaid ? "success" : "error"))}
                                     size="small"
-                                    sx={{ borderRadius: 1.5, fontWeight: 700, px: 0.5, bgcolor: row.isFreeCard ? '#a855f7' : undefined }}
+                                    sx={{ borderRadius: 1.5, fontWeight: 700, px: 0.5, bgcolor: row.isFreeCard ? '#a855f7' : (row.notEnrolled ? alpha(theme.palette.text.secondary, 0.15) : undefined) }}
                                 />
                             </Box>
                         </Grid>
@@ -1054,11 +1067,11 @@ export default function ClassReport() {
                                                 </TableCell>
                                                 <TableCell align="center">
                                                     <Chip
-                                                        label={row.isFreeCard ? "Free Card" : (row.feePaid ? "Paid" : "Unpaid")}
-                                                        color={row.isFreeCard ? "secondary" : (row.feePaid ? "success" : "error")}
+                                                        label={row.isFreeCard ? "Free Card" : (row.notEnrolled ? (language === 'si' ? "ලියාපදිංචි වී නැත" : "Not Enrolled") : (row.feePaid ? "Paid" : "Unpaid"))}
+                                                        color={row.isFreeCard ? "secondary" : (row.notEnrolled ? "default" : (row.feePaid ? "success" : "error"))}
                                                         variant={row.isFreeCard || row.feePaid ? "filled" : "outlined"}
                                                         size="small"
-                                                        sx={{ minWidth: 80, fontWeight: 700, borderRadius: 1.5, bgcolor: row.isFreeCard ? '#a855f7' : undefined }}
+                                                        sx={{ minWidth: 80, fontWeight: 700, borderRadius: 1.5, bgcolor: row.isFreeCard ? '#a855f7' : (row.notEnrolled ? alpha(theme.palette.text.secondary, 0.15) : undefined) }}
                                                     />
                                                 </TableCell>
                                                 <TableCell align="center">

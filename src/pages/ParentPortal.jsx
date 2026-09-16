@@ -326,7 +326,14 @@ export default function ParentPortal() {
                                                                     )}
                                                                 </TableCell>
                                                                 <TableCell>
-                                                                    {rec.feePaid ? (
+                                                                    {rec.notEnrolled ? (
+                                                                        <Chip
+                                                                            label={lang === 'si' ? 'සම්බන්ධ වී නැත' : 'Not Enrolled'}
+                                                                            size="small"
+                                                                            variant="outlined"
+                                                                            sx={{ color: '#94a3b8', borderColor: '#475569', fontSize: 11 }}
+                                                                        />
+                                                                    ) : rec.feePaid ? (
                                                                         <Chip
                                                                             icon={<CheckCircle fontSize="small" />}
                                                                             label={lang === 'si' ? 'ගෙවා ඇත' : 'Paid'}
