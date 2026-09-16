@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useContext } from 'react';
+import React, { useState, useEffect, useCallback, useContext, useMemo } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeContext } from '../contexts/ThemeContext';
@@ -6,78 +6,263 @@ import API_BASE_URL from '../config';
 
 const GRADES = ['All Grades', 'Grade 06', 'Grade 07', 'Grade 08', 'Grade 09', 'Grade 10', 'Grade 11'];
 
+// Helper to extract numeric grade (e.g., 'Grade 06' -> 6)
+const getGradeNumber = (gStr) => {
+    if (!gStr) return null;
+    const match = String(gStr).match(/\d+/);
+    return match ? parseInt(match[0], 10) : null;
+};
+
+// Check if a student is enrolled in Mathematics
+const isMathSubject = (subj) => {
+    if (!subj) return false;
+    return /math|ගණිත|ganitha/i.test(subj);
+};
+
 export default function TuteManagement() {
     const { mode } = useContext(ThemeContext);
     const isDark = mode === 'dark';
 
     const [selectedGrade, setSelectedGrade] = useState('All Grades');
     const [searchTerm, setSearchTerm] = useState('');
-    const [students, setStudents] = useState([]);
-    const [stats, setStats] = useState({
-        totalIssuedTerm1: 0,
-        totalIssuedTerm2: 0,
-        totalIssuedTerm3: 0,
-        totalRevenue: 0
-    });
+    const [allMathStudents, setAllMathStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState({});
     const [alertData, setAlertData] = useState(null);
 
-    // Fetch students from backend
+    // Fetch all Grade 6-11 Mathematics students directly from live database
     const fetchStudents = useCallback(async () => {
         try {
             setLoading(true);
-            const gradeParam = selectedGrade === 'All Grades' ? 'all' : selectedGrade;
-            const res = await axios.get(`${API_BASE_URL}/api/tutes/students`, {
-                params: { grade: gradeParam, search: searchTerm }
+
+            // Fetch from primary /api/students endpoint which contains all 258 enrolled students
+            const res = await axios.get(`${API_BASE_URL}/api/students`, {
+                params: { limit: 500 }
             });
-            if (res.data && res.data.success) {
-                setStudents(res.data.students || []);
-                setStats(res.data.stats || {
-                    totalIssuedTerm1: 0,
-                    totalIssuedTerm2: 0,
-                    totalIssuedTerm3: 0,
-                    totalRevenue: 0
+
+            const rawList = res.data?.students || (Array.isArray(res.data) ? res.data : []);
+
+            // Filter for Grades 6-11 with Mathematics subject
+            const mathStudents = rawList
+                .filter(stu => {
+                    const gNum = getGradeNumber(stu.grade);
+                    if (gNum === null || gNum < 6 || gNum > 11) return false;
+                    return (stu.enrollments || []).some(enr => isMathSubject(enr.subject));
+                })
+                .map(stu => {
+                    const mathEnr = (stu.enrollments || []).find(enr => isMathSubject(enr.subject)) || {};
+                    const existingTerms = mathEnr.termTutes || [];
+
+                    const terms = [1, 2, 3].map(tNum => {
+                        const found = existingTerms.find(t => t.term === tNum);
+                        if (found) {
+                            return {
+                                term: found.term,
+                                termName: found.termName || `Term ${found.term}`,
+                                fee: found.fee || 400,
+                                paid: !!found.paid,
+                                issued: !!found.issued || !!found.paid,
+                                issuedDate: found.issuedDate || null,
+                                transactionId: found.transactionId || null
+                            };
+                        }
+                        return {
+                            term: tNum,
+                            termName: `Term ${tNum}`,
+                            fee: 400,
+                            paid: false,
+                            issued: false,
+                            issuedDate: null,
+                            transactionId: null
+                        };
+                    });
+
+                    return {
+                        _id: stu._id,
+                        name: stu.name,
+                        grade: stu.grade,
+                        mobile: stu.mobile,
+                        indexNumber: stu.indexNumber,
+                        mathSubject: mathEnr.subject || 'Mathematics',
+                        rawEnrollments: stu.enrollments || [],
+                        terms
+                    };
                 });
-            }
+
+            setAllMathStudents(mathStudents);
         } catch (err) {
-            console.error('Error fetching tutes students:', err);
+            console.error('Error fetching Mathematics students for tutes:', err);
         } finally {
             setLoading(false);
         }
-    }, [selectedGrade, searchTerm]);
+    }, []);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            fetchStudents();
-        }, 200);
-        return () => clearTimeout(timer);
+        fetchStudents();
     }, [fetchStudents]);
 
-    // Handle issuing a tute
+    // Compute grade counts for quick badges
+    const gradeCounts = useMemo(() => {
+        const counts = { 'All Grades': allMathStudents.length };
+        GRADES.slice(1).forEach(g => {
+            const gNum = getGradeNumber(g);
+            counts[g] = allMathStudents.filter(s => getGradeNumber(s.grade) === gNum).length;
+        });
+        return counts;
+    }, [allMathStudents]);
+
+    // Filtered students by selected grade and search term
+    const displayedStudents = useMemo(() => {
+        return allMathStudents.filter(student => {
+            // Grade match
+            if (selectedGrade !== 'All Grades') {
+                const selNum = getGradeNumber(selectedGrade);
+                const stuNum = getGradeNumber(student.grade);
+                if (selNum !== stuNum) return false;
+            }
+
+            // Search match
+            if (searchTerm.trim()) {
+                const term = searchTerm.trim().toLowerCase();
+                const nameMatch = (student.name || '').toLowerCase().includes(term);
+                const indexMatch = (student.indexNumber || '').toLowerCase().includes(term);
+                const mobileMatch = (student.mobile || '').replace(/\D/g, '').includes(term.replace(/\D/g, ''));
+                if (!nameMatch && !indexMatch && !mobileMatch) return false;
+            }
+
+            return true;
+        });
+    }, [allMathStudents, selectedGrade, searchTerm]);
+
+    // Overall stats computed from current view
+    const stats = useMemo(() => {
+        let t1 = 0, t2 = 0, t3 = 0, totalRev = 0;
+        allMathStudents.forEach(stu => {
+            stu.terms.forEach(t => {
+                if (t.issued || t.paid) {
+                    if (t.term === 1) t1++;
+                    if (t.term === 2) t2++;
+                    if (t.term === 3) t3++;
+                    totalRev += (t.fee || 400);
+                }
+            });
+        });
+        return {
+            totalIssuedTerm1: t1,
+            totalIssuedTerm2: t2,
+            totalIssuedTerm3: t3,
+            totalRevenue: totalRev
+        };
+    }, [allMathStudents]);
+
+    // Format Sinhala SMS & WhatsApp message
+    const getMessages = (student, termNum) => {
+        const termSi = termNum === 1 ? '1 වන වාරය (Term 1)' : termNum === 2 ? '2 වන වාරය (Term 2)' : '3 වන වාරය (Term 3)';
+        const dateStr = new Date().toLocaleDateString();
+
+        const smsText = `Eduflex ටියුට් ලදුපත:\nසිසුවා: ${student.name} (${student.indexNumber})\nවිෂය: ${student.mathSubject} (${termSi} Tute)\nමුදල: රු. 400\nදිනය: ${dateStr}\nස්තූතියි! Eduflex Institute`;
+
+        const waText = `✅ *වාර ටියුට් ලදුපත - Eduflex Institute*\n---------------------------------\n*සිසුවා:* ${student.name}\n*Index:* ${student.indexNumber}\n*ශ්‍රේණිය:* ${student.grade}\n*විෂය:* ${student.mathSubject}\n*වාරය:* ${termSi} Tute\n*ගෙවූ මුදල:* රු. 400.00\n*දිනය:* ${dateStr}\n\nස්තූතියි!\nEduflex Institute\nදුරකථන: +94789232752`;
+
+        return { smsText, waText };
+    };
+
+    // Issue Tute: Rs. 400, persist to database, dispatch Hutch SIM SMS
     const handleIssueTute = async (student, termNum) => {
         const actionKey = `${student._id}-${termNum}`;
         setActionLoading(prev => ({ ...prev, [actionKey]: true }));
+
         try {
-            const res = await axios.post(`${API_BASE_URL}/api/tutes/issue`, {
-                studentId: student._id,
-                term: termNum,
-                subject: student.mathSubject || 'Mathematics',
-                fee: 400,
-                language: 'si'
+            // Build updated enrollments array
+            const updatedEnrollments = (student.rawEnrollments || []).map(enr => {
+                if (isMathSubject(enr.subject)) {
+                    const currentTutes = Array.isArray(enr.termTutes) ? [...enr.termTutes] : [];
+                    const existingIdx = currentTutes.findIndex(t => t.term === termNum);
+                    const newEntry = {
+                        term: termNum,
+                        termName: `Term ${termNum}`,
+                        fee: 400,
+                        paid: true,
+                        issued: true,
+                        issuedDate: new Date(),
+                        year: new Date().getFullYear()
+                    };
+
+                    if (existingIdx >= 0) {
+                        currentTutes[existingIdx] = { ...currentTutes[existingIdx], ...newEntry };
+                    } else {
+                        currentTutes.push(newEntry);
+                    }
+                    return { ...enr, termTutes: currentTutes };
+                }
+                return enr;
             });
 
-            if (res.data.success) {
-                setAlertData({
-                    type: 'success',
-                    title: `Term ${termNum} Tute Issued!`,
-                    message: `Rs. 400 collected for ${student.name}.`,
-                    smsStatus: res.data.smsResult?.status || 'sent',
-                    waMessage: res.data.waMessage,
-                    mobile: student.mobile
+            // 1. Save updated enrollments directly into MongoDB via PUT /api/students/:id
+            await axios.put(`${API_BASE_URL}/api/students/${student._id}`, {
+                enrollments: updatedEnrollments
+            });
+
+            // 2. Also try specialized endpoints if available
+            try {
+                await axios.post(`${API_BASE_URL}/api/tutes/issue`, {
+                    studentId: student._id,
+                    term: termNum,
+                    subject: student.mathSubject,
+                    fee: 400,
+                    language: 'si'
                 });
-                fetchStudents();
+            } catch (ignore) {
+                // Specialized tutes route might not be deployed yet on Vercel
             }
+
+            // 3. Dispatch Hutch SIM SMS receipt via Android Phone SMS Gateway
+            const { smsText, waText } = getMessages(student, termNum);
+            let smsStatus = 'queued';
+
+            if (student.mobile) {
+                try {
+                    const smsRes = await axios.post(`${API_BASE_URL}/api/sms/send`, {
+                        mobile: student.mobile,
+                        message: smsText
+                    });
+                    smsStatus = smsRes.data?.result?.status || 'sent';
+                } catch (smsErr) {
+                    console.warn('SMS dispatch error:', smsErr);
+                    smsStatus = 'sms gateway offline';
+                }
+            }
+
+            // 4. Update local state immediately for instant feedback
+            setAllMathStudents(prev => prev.map(s => {
+                if (s._id === student._id) {
+                    const updatedTerms = s.terms.map(t => {
+                        if (t.term === termNum) {
+                            return {
+                                ...t,
+                                paid: true,
+                                issued: true,
+                                fee: 400,
+                                issuedDate: new Date()
+                            };
+                        }
+                        return t;
+                    });
+                    return { ...s, terms: updatedTerms, rawEnrollments: updatedEnrollments };
+                }
+                return s;
+            }));
+
+            // 5. Show beautiful alert with WhatsApp sharing option
+            setAlertData({
+                type: 'success',
+                title: `Term ${termNum} Tute Issued!`,
+                message: `Rs. 400 marked for ${student.name}.`,
+                smsStatus,
+                waMessage: waText,
+                mobile: student.mobile
+            });
+
         } catch (err) {
             console.error('Failed to issue tute:', err);
             setAlertData({
@@ -90,38 +275,69 @@ export default function TuteManagement() {
         }
     };
 
-    // Toggle status (unmark if clicked by error)
+    // Toggle back to pending
     const handleToggleTute = async (student, termNum) => {
         const actionKey = `${student._id}-${termNum}`;
         if (!window.confirm(`Are you sure you want to revert Term ${termNum} Tute for ${student.name} back to Pending?`)) {
             return;
         }
+
         setActionLoading(prev => ({ ...prev, [actionKey]: true }));
         try {
-            await axios.post(`${API_BASE_URL}/api/tutes/toggle`, {
-                studentId: student._id,
-                term: termNum,
-                subject: student.mathSubject
+            const updatedEnrollments = (student.rawEnrollments || []).map(enr => {
+                if (isMathSubject(enr.subject)) {
+                    const currentTutes = Array.isArray(enr.termTutes) ? [...enr.termTutes] : [];
+                    const existingIdx = currentTutes.findIndex(t => t.term === termNum);
+                    if (existingIdx >= 0) {
+                        currentTutes[existingIdx] = {
+                            ...currentTutes[existingIdx],
+                            paid: false,
+                            issued: false,
+                            issuedDate: null
+                        };
+                    }
+                    return { ...enr, termTutes: currentTutes };
+                }
+                return enr;
             });
-            fetchStudents();
+
+            await axios.put(`${API_BASE_URL}/api/students/${student._id}`, {
+                enrollments: updatedEnrollments
+            });
+
+            // Update local state immediately
+            setAllMathStudents(prev => prev.map(s => {
+                if (s._id === student._id) {
+                    const updatedTerms = s.terms.map(t => {
+                        if (t.term === termNum) {
+                            return { ...t, paid: false, issued: false, issuedDate: null };
+                        }
+                        return t;
+                    });
+                    return { ...s, terms: updatedTerms, rawEnrollments: updatedEnrollments };
+                }
+                return s;
+            }));
+
         } catch (err) {
             console.error('Failed to toggle tute:', err);
+            alert('Failed to update status: ' + (err.response?.data?.message || err.message));
         } finally {
             setActionLoading(prev => ({ ...prev, [actionKey]: false }));
         }
     };
 
-    // Resend SMS
+    // Resend Hutch SMS
     const handleResendSMS = async (student, termNum) => {
         const actionKey = `sms-${student._id}-${termNum}`;
         setActionLoading(prev => ({ ...prev, [actionKey]: true }));
         try {
-            await axios.post(`${API_BASE_URL}/api/tutes/resend-sms`, {
-                studentId: student._id,
-                term: termNum,
-                subject: student.mathSubject
+            const { smsText } = getMessages(student, termNum);
+            await axios.post(`${API_BASE_URL}/api/sms/send`, {
+                mobile: student.mobile,
+                message: smsText
             });
-            alert(`SMS sent to ${student.mobile}!`);
+            alert(`Hutch SMS sent to ${student.mobile}!`);
         } catch (err) {
             alert('Failed to send SMS: ' + (err.response?.data?.message || err.message));
         } finally {
@@ -138,7 +354,7 @@ export default function TuteManagement() {
     };
 
     return (
-        <div style={{ maxWidth: 1240, margin: '0 auto', position: 'relative' }}>
+        <div style={{ maxWidth: 1240, margin: '0 auto', position: 'relative', paddingBottom: 60 }}>
 
             {/* ═══ HERO BANNER ═══ */}
             <motion.div
@@ -147,14 +363,14 @@ export default function TuteManagement() {
                 transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                 style={{
                     background: isDark
-                        ? 'radial-gradient(120% 120% at 0% 0%, rgba(99, 102, 241, 0.18) 0%, rgba(6, 182, 212, 0.08) 50%, rgba(15, 23, 42, 0.7) 100%)'
-                        : 'radial-gradient(120% 120% at 0% 0%, rgba(99, 102, 241, 0.12) 0%, rgba(6, 182, 212, 0.06) 50%, rgba(255, 255, 255, 0.9) 100%)',
+                        ? 'radial-gradient(120% 120% at 0% 0%, rgba(99, 102, 241, 0.22) 0%, rgba(6, 182, 212, 0.1) 50%, rgba(15, 23, 42, 0.75) 100%)'
+                        : 'radial-gradient(120% 120% at 0% 0%, rgba(99, 102, 241, 0.12) 0%, rgba(6, 182, 212, 0.06) 50%, rgba(255, 255, 255, 0.95) 100%)',
                     backdropFilter: 'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',
-                    border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(99, 102, 241, 0.15)',
+                    border: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(99, 102, 241, 0.18)',
                     borderRadius: 22,
                     padding: '26px 28px',
-                    marginBottom: 26,
+                    marginBottom: 24,
                     boxShadow: isDark ? '0 20px 40px -15px rgba(0,0,0,0.5)' : '0 20px 35px -15px rgba(99,102,241,0.12)',
                     display: 'flex',
                     alignItems: 'center',
@@ -164,7 +380,7 @@ export default function TuteManagement() {
                 }}
             >
                 <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
                         <span style={{
                             padding: '4px 10px',
                             borderRadius: 8,
@@ -213,12 +429,12 @@ export default function TuteManagement() {
                     </p>
                 </div>
 
-                {/* Quick Revenue Badge */}
+                {/* Total Collection Badge */}
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 16,
-                    background: isDark ? 'rgba(15, 23, 42, 0.65)' : 'rgba(255, 255, 255, 0.75)',
+                    background: isDark ? 'rgba(15, 23, 42, 0.65)' : 'rgba(255, 255, 255, 0.8)',
                     border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(0,0,0,0.06)',
                     borderRadius: 16,
                     padding: '12px 22px'
@@ -260,7 +476,12 @@ export default function TuteManagement() {
                     backdropFilter: 'blur(16px)'
                 }}>
                     <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b', fontWeight: 600 }}>Total Math Students</div>
-                    <div style={{ fontSize: 28, fontWeight: 800, color: '#6366f1', marginTop: 4 }}>{students.length}</div>
+                    <div style={{ fontSize: 28, fontWeight: 800, color: '#6366f1', marginTop: 4 }}>
+                        {selectedGrade === 'All Grades' ? allMathStudents.length : displayedStudents.length}
+                        <span style={{ fontSize: 13, fontWeight: 500, color: isDark ? '#94a3b8' : '#64748b', marginLeft: 6 }}>
+                            ({selectedGrade === 'All Grades' ? 'Grades 6–11' : selectedGrade})
+                        </span>
+                    </div>
                 </div>
                 <div style={{
                     background: isDark ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255, 255, 255, 0.85)',
@@ -303,10 +524,11 @@ export default function TuteManagement() {
                 gap: 14,
                 marginBottom: 20
             }}>
-                {/* Grade Pills */}
+                {/* Grade Pills with Student Counts */}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {GRADES.map(g => {
                         const active = selectedGrade === g;
+                        const count = gradeCounts[g] || 0;
                         return (
                             <motion.button
                                 key={g}
@@ -314,19 +536,32 @@ export default function TuteManagement() {
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setSelectedGrade(g)}
                                 style={{
-                                    padding: '8px 16px',
+                                    padding: '8px 14px',
                                     borderRadius: 12,
                                     border: active ? '1px solid #6366f1' : isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)',
-                                    background: active ? '#6366f1' : isDark ? 'rgba(15, 23, 42, 0.65)' : 'rgba(255,255,255,0.8)',
+                                    background: active ? '#6366f1' : isDark ? 'rgba(15, 23, 42, 0.65)' : 'rgba(255,255,255,0.85)',
                                     color: active ? '#fff' : isDark ? '#cbd5e1' : '#475569',
                                     fontWeight: 700,
                                     fontSize: 13,
                                     cursor: 'pointer',
                                     transition: 'all 0.2s',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 6,
                                     boxShadow: active ? '0 4px 14px rgba(99,102,241,0.35)' : 'none'
                                 }}
                             >
-                                {g}
+                                <span>{g}</span>
+                                <span style={{
+                                    padding: '1px 6px',
+                                    borderRadius: 8,
+                                    fontSize: 11,
+                                    fontWeight: 800,
+                                    background: active ? 'rgba(255,255,255,0.25)' : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                                    color: active ? '#fff' : isDark ? '#94a3b8' : '#64748b'
+                                }}>
+                                    {count}
+                                </span>
                             </motion.button>
                         );
                     })}
@@ -362,7 +597,7 @@ export default function TuteManagement() {
                 </div>
             </div>
 
-            {/* ═══ ALERT POPUP / MODAL ═══ */}
+            {/* ═══ ALERT POPUP ═══ */}
             <AnimatePresence>
                 {alertData && (
                     <motion.div
@@ -438,10 +673,10 @@ export default function TuteManagement() {
             {/* ═══ STUDENTS LIST / CARDS ═══ */}
             {loading ? (
                 <div style={{ textAlign: 'center', padding: '60px 0', color: isDark ? '#94a3b8' : '#64748b' }}>
-                    <div style={{ fontSize: 24, marginBottom: 10 }}>⏳</div>
-                    <div>Loading Mathematics Students...</div>
+                    <div style={{ fontSize: 28, marginBottom: 12 }}>⏳</div>
+                    <div style={{ fontWeight: 700, fontSize: 15 }}>Loading Mathematics Students...</div>
                 </div>
-            ) : students.length === 0 ? (
+            ) : displayedStudents.length === 0 ? (
                 <div style={{
                     textAlign: 'center',
                     padding: '60px 20px',
@@ -451,18 +686,18 @@ export default function TuteManagement() {
                 }}>
                     <div style={{ fontSize: 32, marginBottom: 12 }}>📚</div>
                     <div style={{ fontSize: 16, fontWeight: 700, color: isDark ? '#f8fafc' : '#0f172a' }}>
-                        No Mathematics students found
+                        No Mathematics students found {selectedGrade !== 'All Grades' ? `in ${selectedGrade}` : ''}
                     </div>
                     <div style={{ fontSize: 13, color: isDark ? '#94a3b8' : '#64748b', marginTop: 4 }}>
-                        Make sure students are enrolled in Mathematics in Grades 06 to 11.
+                        {searchTerm ? 'Try adjusting your search criteria.' : 'Make sure students are enrolled in Mathematics in Grades 06 to 11.'}
                     </div>
                 </div>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                    {students.map((student) => (
+                    {displayedStudents.map((student) => (
                         <motion.div
                             key={student._id}
-                            initial={{ opacity: 0, y: 10 }}
+                            initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
                             style={{
                                 background: isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.9)',
@@ -491,9 +726,10 @@ export default function TuteManagement() {
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     fontWeight: 800,
-                                    fontSize: 16
+                                    fontSize: 16,
+                                    flexShrink: 0
                                 }}>
-                                    {student.name.charAt(0)}
+                                    {student.name ? student.name.charAt(0).toUpperCase() : 'S'}
                                 </div>
                                 <div>
                                     <div style={{
@@ -509,7 +745,8 @@ export default function TuteManagement() {
                                         gap: 8,
                                         marginTop: 3,
                                         fontSize: 12,
-                                        color: isDark ? '#94a3b8' : '#64748b'
+                                        color: isDark ? '#94a3b8' : '#64748b',
+                                        flexWrap: 'wrap'
                                     }}>
                                         <span style={{
                                             fontFamily: 'monospace',
@@ -522,9 +759,11 @@ export default function TuteManagement() {
                                             {student.indexNumber}
                                         </span>
                                         <span>•</span>
-                                        <span>{student.grade}</span>
+                                        <span style={{ fontWeight: 600 }}>{student.grade}</span>
                                         <span>•</span>
                                         <span>{student.mobile || 'No Mobile'}</span>
+                                        <span>•</span>
+                                        <span style={{ color: '#6366f1', fontWeight: 600 }}>{student.mathSubject}</span>
                                     </div>
                                 </div>
                             </div>
@@ -588,7 +827,7 @@ export default function TuteManagement() {
                                                         <span>Issued (Rs. {termData.fee || 400})</span>
                                                     </div>
 
-                                                    <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                                                    <div style={{ display: 'flex', gap: 6, marginTop: 6, justifyContent: 'center' }}>
                                                         {/* Re-send SMS button */}
                                                         <motion.button
                                                             whileHover={{ scale: 1.08 }}
