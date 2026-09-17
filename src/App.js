@@ -93,6 +93,11 @@ function AnimatedRoutes() {
             <TeacherDashboard />
           </PageTransition>
         } />
+        <Route path="/teacher/exams" element={
+          <PageTransition>
+            <Exams isTeacherView={true} />
+          </PageTransition>
+        } />
         <Route path="/qr-scanner" element={
           <PageTransition>
             <QRScanner />

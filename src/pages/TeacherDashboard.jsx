@@ -754,7 +754,7 @@ export default function TeacherDashboard() {
                         <Button
                             variant="contained"
                             size="small"
-                            onClick={() => navigate('/exams')}
+                            onClick={() => navigate('/teacher/exams')}
                             sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}
                         >
                             Open Exams Center
@@ -806,7 +806,7 @@ export default function TeacherDashboard() {
                                                 <Button
                                                     size="small"
                                                     variant="outlined"
-                                                    onClick={() => navigate('/exams')}
+                                                    onClick={() => navigate('/teacher/exams', { state: { examId: ex.id, grade: ex.grade } })}
                                                     sx={{ borderRadius: '8px', textTransform: 'none', fontSize: '12px', fontWeight: 600 }}
                                                 >
                                                     Enter Marks

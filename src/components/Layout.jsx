@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+import { useNavigate, useLocation, Outlet, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../contexts/ThemeContext';
@@ -388,6 +388,28 @@ export default function Layout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [adminSettingsOpen, setAdminSettingsOpen] = useState(false);
+
+  const userInfo = (() => {
+    try {
+      const raw = sessionStorage.getItem('userInfo') || localStorage.getItem('userInfo');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  })();
+
+  // Guard: If teacher user hits any Layout/Admin route, redirect appropriately
+  if (userInfo?.role === 'teacher') {
+    if (location.pathname === '/exams' || location.pathname.startsWith('/exams')) {
+      return <Navigate to="/teacher/exams" replace />;
+    }
+    return <Navigate to="/teacher-dashboard" replace />;
+  }
+
+  // Guard: If student user hits any Layout/Admin route, redirect to student dashboard
+  if (userInfo?.role === 'student') {
+    return <Navigate to="/student-dashboard" replace />;
+  }
 
   const theme = mode === 'dark' ? 'dark' : 'light';
   const colors = T[theme];

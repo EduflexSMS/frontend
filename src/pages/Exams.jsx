@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -25,7 +26,23 @@ const GRADE_RANGES = [
   { grade: 'F', range: '0–39', label: 'Failure', color: '#fc4b6c' },
 ];
 
-export default function Exams() {
+export default function Exams({ isTeacherView = false }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const getUserInfo = () => {
+    try {
+      const raw = sessionStorage.getItem('userInfo') || localStorage.getItem('userInfo');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const userInfo = getUserInfo();
+  const isTeacher = isTeacherView || userInfo?.role === 'teacher';
+  const teacherSubject = userInfo?.assignedSubject || '';
+
   const { mode } = useContext(ThemeContext);
   const isDark = mode === 'dark';
 
@@ -66,9 +83,15 @@ export default function Exams() {
   }, [selectedGrade, selectedSubject]);
 
   const getToken = () => {
-    const info = localStorage.getItem('userInfo');
-    return info ? JSON.parse(info).token : '';
+    const info = getUserInfo();
+    return info ? info.token : '';
   };
+
+  useEffect(() => {
+    if (location.state?.grade) {
+      setSelectedGrade(location.state.grade);
+    }
+  }, [location.state]);
 
   const fetchSubjects = async () => {
     try {
@@ -76,6 +99,12 @@ export default function Exams() {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
       setSubjects(data);
+      if (isTeacher && teacherSubject) {
+        const found = data.find(s => s.name?.toLowerCase() === teacherSubject.toLowerCase());
+        if (found) {
+          setSelectedSubject(found._id);
+        }
+      }
     } catch (err) {
       console.error('fetchSubjects error:', err?.response?.status, err?.response?.data, err?.message);
       toast.error('Failed to load subjects');
@@ -90,6 +119,14 @@ export default function Exams() {
         { headers: { Authorization: `Bearer ${getToken()}` } }
       );
       setExams(data);
+
+      // If examId was passed from TeacherDashboard, automatically select and open it
+      if (location.state?.examId && Array.isArray(data)) {
+        const target = data.find(e => (e._id || e.id) === location.state.examId);
+        if (target) {
+          handleSelectExam(target);
+        }
+      }
     } catch (err) {
       console.error('fetchExams error:', err?.response?.status, err?.response?.data, err?.message);
       toast.error('Failed to load exams');
@@ -381,14 +418,72 @@ export default function Exams() {
     <div style={{ padding: '28px 24px', minHeight: '100vh', background: C.bg, color: C.text, fontFamily: "'Outfit', 'Inter', sans-serif" }}>
       <ToastContainer theme={isDark ? 'dark' : 'light'} position="top-right" />
 
+      {/* ── Teacher Top Navigation (Only shown when teacher opens exam center) ── */}
+      {isTeacher && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '14px 20px',
+          borderRadius: 16,
+          background: isDark ? 'rgba(99, 102, 241, 0.12)' : 'rgba(99, 102, 241, 0.08)',
+          border: '1px solid rgba(99, 102, 241, 0.25)',
+          marginBottom: 24,
+          flexWrap: 'wrap',
+          gap: 12
+        }}>
+          <motion.button
+            whileHover={{ scale: 1.04, x: -3 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={() => navigate('/teacher-dashboard')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '9px 18px',
+              borderRadius: 12,
+              border: 'none',
+              background: '#6366f1',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: 13,
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(99,102,241,0.3)'
+            }}
+          >
+            <span>←</span>
+            <span>Back to Teacher Dashboard</span>
+          </motion.button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: 13, color: C.muted }}>Faculty Portal:</span>
+            <span style={{ fontWeight: 800, color: C.text }}>{userInfo?.name || userInfo?.username || 'Teacher'}</span>
+            <span style={{
+              padding: '4px 12px',
+              borderRadius: 8,
+              background: 'rgba(99, 102, 241, 0.2)',
+              color: '#6366f1',
+              fontSize: 12,
+              fontWeight: 800
+            }}>
+              {teacherSubject ? `${teacherSubject} Teacher` : 'Subject Teacher'}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* ── Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, gap: 16, flexWrap: 'wrap' }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, letterSpacing: '-0.3px' }}>Manage exams</h2>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, letterSpacing: '-0.3px' }}>
+            {isTeacher && teacherSubject ? `${teacherSubject} Exams & Results` : 'Manage exams'}
+          </h2>
           <p style={{ margin: '4px 0 0', fontSize: 13, color: C.muted }}>
             {selectedGrade && selectedSubject
-              ? `Showing exams for ${selectedGrade} — ${subjects.find(s => s._id === selectedSubject)?.name || ''}`
-              : 'Select a grade and subject to get started'}
+              ? `Showing exams for ${selectedGrade} — ${subjects.find(s => s._id === selectedSubject)?.name || teacherSubject}`
+              : isTeacher && teacherSubject
+                ? `Select a grade to view or schedule ${teacherSubject} exams`
+                : 'Select a grade and subject to get started'}
           </p>
         </div>
       </div>
@@ -403,7 +498,16 @@ export default function Exams() {
           })}
         </select>
 
-        <select value={selectedSubject} onChange={e => { setSelectedSubject(e.target.value); setSelectedExam(null); }} style={selectStyle}>
+        <select
+          value={selectedSubject}
+          onChange={e => { setSelectedSubject(e.target.value); setSelectedExam(null); }}
+          disabled={isTeacher && Boolean(teacherSubject)}
+          style={{
+            ...selectStyle,
+            opacity: isTeacher && Boolean(teacherSubject) ? 0.8 : 1,
+            cursor: isTeacher && Boolean(teacherSubject) ? 'not-allowed' : 'pointer'
+          }}
+        >
           <option value="">Select subject</option>
           {subjects.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
         </select>
