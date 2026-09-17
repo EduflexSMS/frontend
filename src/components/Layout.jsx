@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../contexts/ThemeContext';
 import logo from '../assets/logo.jpg';
+import AdminSettingsDialog from './AdminSettingsDialog';
 
 // ─── DESIGN TOKENS ────────────────────────────────────────────────────────────
 const T = {
@@ -195,6 +196,15 @@ function MenuIcon({ size = 20, color = 'currentColor' }) {
   );
 }
 
+function LockIcon({ size = 18, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0110 0v4"/>
+    </svg>
+  );
+}
+
 // ─── SIDEBAR NAV ITEM (FLUID GLIDING PILL) ───────────────────────────────────
 function SideNavItem({ item, active, onClick, theme, collapsed }) {
   const colors = T[theme];
@@ -377,6 +387,7 @@ export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [adminSettingsOpen, setAdminSettingsOpen] = useState(false);
 
   const theme = mode === 'dark' ? 'dark' : 'light';
   const colors = T[theme];
@@ -604,6 +615,34 @@ export default function Layout() {
           {!collapsed && (
             <span style={{ fontWeight: 500, fontSize: 13.5, color: colors.sub }}>
               {mode === 'dark' ? 'Light Mode' : 'Dark Mode'}
+            </span>
+          )}
+        </motion.button>
+
+        {/* Admin Credentials */}
+        <motion.button
+          whileHover={{ x: collapsed ? 0 : 3 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => setAdminSettingsOpen(true)}
+          title={collapsed ? 'Admin Credentials' : undefined}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: collapsed ? 0 : 13,
+            justifyContent: collapsed ? 'center' : 'flex-start',
+            padding: collapsed ? '12px' : '11px 14px',
+            borderRadius: 12,
+            cursor: 'pointer',
+            background: 'transparent',
+            border: 'none',
+            outline: 'none',
+          }}
+        >
+          <LockIcon size={17} color={colors.sub} />
+          {!collapsed && (
+            <span style={{ fontWeight: 500, fontSize: 13.5, color: colors.sub }}>
+              {i18n.language === 'si' ? 'ගිණුම් සැකසුම්' : 'Admin Credentials'}
             </span>
           )}
         </motion.button>
@@ -953,8 +992,9 @@ export default function Layout() {
 
             {/* User Avatar with Glowing Accent */}
             <motion.div
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.94 }}
+              onClick={() => setAdminSettingsOpen(true)}
               style={{
                 width: 40, height: 40,
                 borderRadius: 13,
@@ -967,7 +1007,7 @@ export default function Layout() {
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
-              title="Admin Profile"
+              title="Admin Profile & Credentials Settings"
             >
               <div style={{
                 width: '100%', height: '100%',
@@ -1067,6 +1107,12 @@ export default function Layout() {
           50% { opacity: 0.4; transform: scale(0.85); }
         }
       `}</style>
+
+      {/* ── ADMIN CREDENTIALS SETTINGS DIALOG ── */}
+      <AdminSettingsDialog
+        open={adminSettingsOpen}
+        onClose={() => setAdminSettingsOpen(false)}
+      />
     </div>
   );
 }
