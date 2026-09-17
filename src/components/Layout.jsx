@@ -388,6 +388,16 @@ export default function Layout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [adminSettingsOpen, setAdminSettingsOpen] = useState(false);
+  const theme = mode === 'dark' ? 'dark' : 'light';
+  const colors = T[theme];
+
+  useEffect(() => {
+    const el = document.querySelector('.main-scroll-area');
+    if (!el) return;
+    const onScroll = () => setScrolled(el.scrollTop > 10);
+    el.addEventListener('scroll', onScroll);
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
 
   const userInfo = (() => {
     try {
@@ -410,17 +420,6 @@ export default function Layout() {
   if (userInfo?.role === 'student') {
     return <Navigate to="/student-dashboard" replace />;
   }
-
-  const theme = mode === 'dark' ? 'dark' : 'light';
-  const colors = T[theme];
-
-  useEffect(() => {
-    const el = document.querySelector('.main-scroll-area');
-    if (!el) return;
-    const onScroll = () => setScrolled(el.scrollTop > 10);
-    el.addEventListener('scroll', onScroll);
-    return () => el.removeEventListener('scroll', onScroll);
-  }, []);
 
   const isActive = (path) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
