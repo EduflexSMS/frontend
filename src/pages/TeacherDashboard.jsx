@@ -8,12 +8,13 @@ import {
 import {
     Class, ArrowForwardIos, QrCodeScanner, AccountBalanceWallet,
     RequestQuote, TrendingUp, Group, Logout,
-    Assessment, CalendarMonth
+    Assessment, CalendarMonth, Bolt
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import API_BASE_URL from '../config';
 import StudentListDialog from '../components/StudentListDialog';
+import QuickAttendanceDialog from '../components/QuickAttendanceDialog';
 
 const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -216,9 +217,10 @@ export default function TeacherDashboard() {
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState(0);
 
-    // Modal state for student list
+    // Modal state for student list & quick attendance
     const [selectedClass, setSelectedClass] = useState(null);
     const [studentListOpen, setStudentListOpen] = useState(false);
+    const [quickAttendanceOpen, setQuickAttendanceOpen] = useState(false);
 
     const fetchPortal = useCallback(async (monthIdx) => {
         try {
@@ -350,6 +352,25 @@ export default function TeacherDashboard() {
 
                         <Button
                             variant="contained"
+                            startIcon={<Bolt />}
+                            onClick={() => setQuickAttendanceOpen(true)}
+                            sx={{
+                                borderRadius: '12px',
+                                bgcolor: '#6366f1',
+                                color: '#fff',
+                                fontWeight: 700,
+                                px: 2.2,
+                                py: 1,
+                                textTransform: 'none',
+                                boxShadow: '0 4px 14px rgba(99,102,241,0.35)',
+                                '&:hover': { bgcolor: '#4f46e5' }
+                            }}
+                        >
+                            Quick Attendance
+                        </Button>
+
+                        <Button
+                            variant="contained"
                             startIcon={<QrCodeScanner />}
                             onClick={() => navigate('/qr-scanner')}
                             sx={{
@@ -357,13 +378,14 @@ export default function TeacherDashboard() {
                                 bgcolor: '#f59e0b',
                                 color: '#fff',
                                 fontWeight: 700,
-                                px: 2.5,
+                                px: 2.2,
                                 py: 1,
                                 textTransform: 'none',
+                                boxShadow: '0 4px 14px rgba(245,158,11,0.35)',
                                 '&:hover': { bgcolor: '#d97706' }
                             }}
                         >
-                            Scan Attendance
+                            Scan QR
                         </Button>
 
                         <IconButton
@@ -826,6 +848,15 @@ export default function TeacherDashboard() {
                 open={studentListOpen}
                 onClose={() => setStudentListOpen(false)}
                 classData={selectedClass}
+            />
+
+            {/* ── Quick Attendance Dialog ── */}
+            <QuickAttendanceDialog
+                open={quickAttendanceOpen}
+                onClose={() => setQuickAttendanceOpen(false)}
+                teacherSubject={teacher.subject}
+                classes={classes}
+                onAttendanceMarked={() => fetchPortal(selectedMonth)}
             />
         </Container>
     );
