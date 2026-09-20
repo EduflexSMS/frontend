@@ -456,11 +456,16 @@ export default function ParentPortal() {
                                                         <TableCell sx={{ color: '#f8fafc', fontWeight: 'bold' }}>{ex.title}</TableCell>
                                                         <TableCell sx={{ color: '#f8fafc' }}>{ex.subject}</TableCell>
                                                         <TableCell sx={{ color: '#94a3b8' }}>{new Date(ex.date).toLocaleDateString()}</TableCell>
-                                                        <TableCell align="center">
-                                                            <Typography variant="body2" fontWeight="bold" sx={{ color: ex.marks === 'AB' ? '#ef4444' : '#4ade80' }}>
-                                                                {ex.marks}
-                                                            </Typography>
-                                                        </TableCell>
+                                                         <TableCell align="center">
+                                                             <Typography variant="body2" fontWeight="bold" sx={{ color: ex.marks === 'AB' ? '#ef4444' : '#4ade80' }}>
+                                                                 {ex.marks}
+                                                                 {ex.marks !== 'AB' && (
+                                                                     <span style={{ fontSize: 11, opacity: 0.65, fontWeight: 500, marginLeft: 2 }}>
+                                                                         /{ex.totalMarks || 100}
+                                                                     </span>
+                                                                 )}
+                                                             </Typography>
+                                                         </TableCell>
                                                         <TableCell align="center">
                                                             <Chip label={ex.gradeBadge} size="small" sx={{ bgcolor: '#334155', color: '#fff', fontWeight: 'bold' }} />
                                                         </TableCell>

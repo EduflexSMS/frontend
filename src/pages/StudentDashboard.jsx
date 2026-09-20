@@ -1115,8 +1115,21 @@ export default function StudentDashboard() {
                                                             {exam.date ? new Date(exam.date).toLocaleDateString('en-GB') : '-'}
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Typography variant="body2" fontWeight={800} sx={{ color: Number(exam.marks) >= 75 ? '#10b981' : Number(exam.marks) >= 50 ? '#f59e0b' : '#f43f5e' }}>
+                                                            <Typography variant="body2" fontWeight={800} sx={{
+                                                                color: exam.marks === 'AB'
+                                                                    ? '#f43f5e'
+                                                                    : ((Number(exam.marks) / (exam.totalMarks || 100)) * 100) >= 75
+                                                                        ? '#10b981'
+                                                                        : ((Number(exam.marks) / (exam.totalMarks || 100)) * 100) >= 40
+                                                                            ? '#f59e0b'
+                                                                            : '#f43f5e'
+                                                            }}>
                                                                 {exam.marks}
+                                                                {exam.marks !== 'AB' && (
+                                                                    <span style={{ fontSize: 11, opacity: 0.65, fontWeight: 600, marginLeft: 2 }}>
+                                                                        /{exam.totalMarks || 100}
+                                                                    </span>
+                                                                )}
                                                             </Typography>
                                                         </TableCell>
                                                         <TableCell>
