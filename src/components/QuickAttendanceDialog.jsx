@@ -13,7 +13,9 @@ import {
     Avatar,
     InputAdornment,
     Alert,
-    CircularProgress
+    CircularProgress,
+    useTheme,
+    alpha
 } from '@mui/material';
 import {
     Search,
@@ -65,6 +67,9 @@ export default function QuickAttendanceDialog({
     classes = [],
     onAttendanceMarked
 }) {
+    const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
+
     const [selectedGrade, setSelectedGrade] = useState('');
     const [quickIndexInput, setQuickIndexInput] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
@@ -72,6 +77,24 @@ export default function QuickAttendanceDialog({
     const [lastMarked, setLastMarked] = useState(null);
     const [alertMsg, setAlertMsg] = useState(null);
     const indexInputRef = useRef(null);
+
+    // Color tokens based on theme
+    const colors = useMemo(() => ({
+        bgDialog: isDark ? 'rgba(15, 23, 42, 0.96)' : 'rgba(255, 255, 255, 0.98)',
+        textPrimary: isDark ? '#f8fafc' : '#0f172a',
+        textSecondary: isDark ? '#94a3b8' : '#475569',
+        textMuted: isDark ? '#64748b' : '#64748b',
+        border: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(15, 23, 42, 0.08)',
+        borderStrong: isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(15, 23, 42, 0.14)',
+        inputBg: isDark ? 'rgba(0, 0, 0, 0.3)' : '#ffffff',
+        rowBg: isDark ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+        rowHoverBg: isDark ? 'rgba(255, 255, 255, 0.06)' : '#f1f5f9',
+        chipUnselectedBg: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.05)',
+        indexBoxBg: isDark
+            ? 'linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(245,158,11,0.06) 100%)'
+            : 'linear-gradient(135deg, rgba(99,102,241,0.07) 0%, rgba(245,158,11,0.05) 100%)',
+        indexBoxBorder: isDark ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.2)'
+    }), [isDark]);
 
     // Default to first class if available
     useEffect(() => {
@@ -173,14 +196,16 @@ export default function QuickAttendanceDialog({
             maxWidth="md"
             fullWidth
             PaperProps={{
-                style: {
-                    borderRadius: 24,
-                    background: 'var(--bg2, #1e293b)',
-                    color: 'var(--text, #f8fafc)',
-                    border: '1px solid var(--border2, rgba(255,255,255,0.12))',
+                sx: {
+                    borderRadius: '24px',
+                    bgcolor: colors.bgDialog,
+                    color: colors.textPrimary,
+                    border: `1px solid ${colors.borderStrong}`,
                     backdropFilter: 'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',
-                    boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.6)'
+                    boxShadow: isDark
+                        ? '0 25px 60px -12px rgba(0, 0, 0, 0.7)'
+                        : '0 25px 50px -12px rgba(15, 23, 42, 0.15)'
                 }
             }}
         >
@@ -190,30 +215,30 @@ export default function QuickAttendanceDialog({
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     pb: 1.5,
-                    borderBottom: '1px solid var(--border, rgba(255,255,255,0.08))'
+                    borderBottom: `1px solid ${colors.border}`
                 }}
             >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Box
                         sx={{
-                            width: 42,
-                            height: 42,
+                            width: 44,
+                            height: 44,
                             borderRadius: '14px',
                             bgcolor: 'rgba(245, 158, 11, 0.15)',
-                            border: '1px solid rgba(245, 158, 11, 0.3)',
+                            border: '1px solid rgba(245, 158, 11, 0.35)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: '#f59e0b'
                         }}
                     >
-                        <Bolt sx={{ fontSize: 26 }} />
+                        <Bolt sx={{ fontSize: 28 }} />
                     </Box>
                     <Box>
-                        <Typography variant="h6" sx={{ fontWeight: 800, fontSize: '1.2rem', color: 'inherit' }}>
+                        <Typography variant="h6" sx={{ fontWeight: 800, fontSize: '1.25rem', color: colors.textPrimary }}>
                             Quick Attendance Marking
                         </Typography>
-                        <Typography variant="caption" sx={{ color: 'var(--text3, #94a3b8)' }}>
+                        <Typography variant="caption" sx={{ color: colors.textSecondary, fontWeight: 600 }}>
                             {teacherSubject ? `${teacherSubject} Class` : 'Manual Attendance Entry'} • For students without cards
                         </Typography>
                     </Box>
@@ -223,19 +248,31 @@ export default function QuickAttendanceDialog({
                     onClick={onClose}
                     size="small"
                     sx={{
-                        color: 'var(--text2, #94a3b8)',
-                        '&:hover': { color: 'var(--text, #fff)', bgcolor: 'rgba(255,255,255,0.08)' }
+                        color: colors.textSecondary,
+                        border: `1px solid ${colors.border}`,
+                        borderRadius: '10px',
+                        '&:hover': { color: colors.textPrimary, bgcolor: colors.rowHoverBg }
                     }}
                 >
-                    <Close />
+                    <Close sx={{ fontSize: 20 }} />
                 </IconButton>
             </DialogTitle>
 
             <DialogContent sx={{ pt: 2.5, pb: 2, display: 'flex', flexDirection: 'column', gap: 2.2 }}>
-                {/* ── Class / Grade Selector Pills ── */}
+                {/* ── Class / Grade Selector Chips ── */}
                 {classes.length > 0 && (
                     <Box>
-                        <Typography variant="caption" sx={{ color: 'var(--text3, #94a3b8)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
+                        <Typography
+                            variant="caption"
+                            sx={{
+                                color: colors.textSecondary,
+                                fontWeight: 800,
+                                textTransform: 'uppercase',
+                                letterSpacing: 0.6,
+                                display: 'block',
+                                mb: 1.2
+                            }}
+                        >
                             Select Class / Grade:
                         </Typography>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -248,22 +285,24 @@ export default function QuickAttendanceDialog({
                                     <Chip
                                         key={c.id || gName}
                                         label={`${gName} (${count})`}
-                                        icon={<School sx={{ fontSize: 16 }} />}
+                                        icon={<School sx={{ fontSize: 16, color: isSelected ? '#fff !important' : `${colors.textSecondary} !important` }} />}
                                         clickable
                                         onClick={() => {
                                             setSelectedGrade(gName);
                                             setAlertMsg(null);
                                         }}
                                         sx={{
-                                            fontWeight: isSelected ? 800 : 500,
-                                            fontSize: '0.82rem',
-                                            py: 2,
-                                            px: 0.5,
-                                            bgcolor: isSelected ? 'var(--accent, #6366f1)' : 'rgba(255,255,255,0.05)',
-                                            color: isSelected ? '#fff' : 'var(--text2, #94a3b8)',
-                                            border: isSelected ? '1px solid var(--accent, #6366f1)' : '1px solid var(--border2, rgba(255,255,255,0.1))',
+                                            fontWeight: isSelected ? 800 : 600,
+                                            fontSize: '0.84rem',
+                                            py: 2.2,
+                                            px: 0.8,
+                                            bgcolor: isSelected ? 'primary.main' : colors.chipUnselectedBg,
+                                            color: isSelected ? '#ffffff' : colors.textPrimary,
+                                            border: isSelected ? '1px solid transparent' : `1px solid ${colors.border}`,
+                                            boxShadow: isSelected ? '0 4px 14px rgba(99, 102, 241, 0.35)' : 'none',
+                                            transition: 'all 0.18s ease',
                                             '&:hover': {
-                                                bgcolor: isSelected ? 'var(--accent, #6366f1)' : 'rgba(255,255,255,0.1)'
+                                                bgcolor: isSelected ? 'primary.dark' : colors.rowHoverBg
                                             }
                                         }}
                                     />
@@ -276,13 +315,26 @@ export default function QuickAttendanceDialog({
                 {/* ── Direct Index Number Quick Entry Bar ── */}
                 <Box
                     sx={{
-                        p: 2,
-                        borderRadius: 3,
-                        background: 'linear-gradient(135deg, rgba(99,102,241,0.08), rgba(245,158,11,0.05))',
-                        border: '1px solid rgba(99,102,241,0.2)'
+                        p: 2.2,
+                        borderRadius: '18px',
+                        background: colors.indexBoxBg,
+                        border: `1.5px solid ${colors.indexBoxBorder}`
                     }}
                 >
-                    <Typography variant="caption" sx={{ color: 'var(--text2, #94a3b8)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
+                    <Typography
+                        variant="caption"
+                        sx={{
+                            color: '#f59e0b',
+                            fontWeight: 800,
+                            textTransform: 'uppercase',
+                            letterSpacing: 0.6,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                            mb: 1
+                        }}
+                    >
+                        <Bolt sx={{ fontSize: 16 }} />
                         Instant Index Number Entry (Press Enter):
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1.2 }}>
@@ -291,23 +343,23 @@ export default function QuickAttendanceDialog({
                             value={quickIndexInput}
                             onChange={(e) => setQuickIndexInput(e.target.value)}
                             onKeyDown={handleQuickInputKeyDown}
-                            placeholder="Type student index e.g. 2026-0001..."
+                            placeholder="Type student index e.g. 2026-0001 (or scan barcode)..."
                             size="small"
                             fullWidth
                             autoComplete="off"
                             sx={{
                                 '& .MuiInputBase-root': {
-                                    color: 'inherit',
+                                    color: colors.textPrimary,
                                     fontSize: '0.95rem',
-                                    fontWeight: 600,
+                                    fontWeight: 700,
                                     borderRadius: '12px',
-                                    bgcolor: 'rgba(0,0,0,0.2)'
+                                    bgcolor: colors.inputBg
                                 },
                                 '& .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: 'rgba(99,102,241,0.3)'
+                                    borderColor: colors.borderStrong
                                 },
                                 '&:hover .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: 'var(--accent, #6366f1)'
+                                    borderColor: '#f59e0b'
                                 }
                             }}
                         />
@@ -343,9 +395,9 @@ export default function QuickAttendanceDialog({
                         severity={alertMsg.type}
                         onClose={() => setAlertMsg(null)}
                         sx={{
-                            borderRadius: '12px',
-                            fontWeight: 600,
-                            fontSize: '0.85rem'
+                            borderRadius: '14px',
+                            fontWeight: 700,
+                            fontSize: '0.88rem'
                         }}
                     >
                         {alertMsg.text}
@@ -356,10 +408,10 @@ export default function QuickAttendanceDialog({
                 {lastMarked && (
                     <Box
                         sx={{
-                            p: 1.8,
-                            borderRadius: 2.5,
-                            bgcolor: 'rgba(16, 185, 129, 0.08)',
-                            border: '1px solid rgba(16, 185, 129, 0.25)',
+                            p: 2,
+                            borderRadius: '16px',
+                            bgcolor: isDark ? 'rgba(16, 185, 129, 0.12)' : 'rgba(16, 185, 129, 0.08)',
+                            border: '1.5px solid rgba(16, 185, 129, 0.35)',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
@@ -368,22 +420,22 @@ export default function QuickAttendanceDialog({
                         }}
                     >
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                            <Avatar sx={{ bgcolor: '#10b981', width: 38, height: 38, fontWeight: 'bold' }}>
+                            <Avatar sx={{ bgcolor: '#10b981', color: '#fff', width: 42, height: 42, fontWeight: 'bold', fontSize: '1.1rem' }}>
                                 {lastMarked.name?.charAt(0) || 'S'}
                             </Avatar>
                             <Box>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#fff' }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: colors.textPrimary, lineHeight: 1.2 }}>
                                     {lastMarked.name}
                                 </Typography>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.3 }}>
-                                    <Typography variant="caption" sx={{ color: 'var(--text3, #94a3b8)', fontWeight: 600 }}>
-                                        Index: {lastMarked.indexNumber}
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.4 }}>
+                                    <Typography variant="caption" sx={{ color: colors.textSecondary, fontWeight: 700 }}>
+                                        Index: <strong>{lastMarked.indexNumber}</strong>
                                     </Typography>
                                     <Chip
                                         label={lastMarked.isFreeCard ? 'Free Card' : (lastMarked.feePaid ? 'Fee Paid' : 'Fee Pending')}
                                         size="small"
                                         color={lastMarked.isFreeCard ? 'secondary' : (lastMarked.feePaid ? 'success' : 'warning')}
-                                        sx={{ height: 20, fontSize: '0.7rem', fontWeight: 700 }}
+                                        sx={{ height: 22, fontSize: '0.72rem', fontWeight: 700 }}
                                     />
                                 </Box>
                             </Box>
@@ -409,7 +461,9 @@ export default function QuickAttendanceDialog({
                                     borderRadius: '10px',
                                     textTransform: 'none',
                                     fontWeight: 700,
-                                    fontSize: '0.78rem',
+                                    fontSize: '0.8rem',
+                                    px: 2,
+                                    py: 0.7,
                                     background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)'
                                 }}
                             >
@@ -419,10 +473,10 @@ export default function QuickAttendanceDialog({
                     </Box>
                 )}
 
-                {/* ── Student List & Search ── */}
+                {/* ── Student List & Search Header ── */}
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="caption" sx={{ color: 'var(--text2, #94a3b8)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                        <Typography variant="caption" sx={{ color: colors.textSecondary, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.6 }}>
                             Class Roster ({filteredStudents.length} Students)
                         </Typography>
                         <TextField
@@ -433,23 +487,26 @@ export default function QuickAttendanceDialog({
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <Search sx={{ fontSize: 18, color: 'var(--text3, #94a3b8)' }} />
+                                        <Search sx={{ fontSize: 18, color: colors.textSecondary }} />
                                     </InputAdornment>
                                 )
                             }}
                             sx={{
-                                width: 220,
+                                width: { xs: '100%', sm: 240 },
                                 '& .MuiInputBase-root': {
-                                    color: 'inherit',
-                                    fontSize: '0.8rem',
+                                    color: colors.textPrimary,
+                                    fontSize: '0.85rem',
                                     borderRadius: '10px',
-                                    bgcolor: 'rgba(255,255,255,0.04)'
+                                    bgcolor: colors.inputBg
+                                },
+                                '& .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: colors.border
                                 }
                             }}
                         />
                     </Box>
 
-                    {/* Student cards list */}
+                    {/* Student cards roster list */}
                     <Box
                         sx={{
                             maxHeight: '340px',
@@ -461,9 +518,11 @@ export default function QuickAttendanceDialog({
                         }}
                     >
                         {filteredStudents.length === 0 ? (
-                            <Box sx={{ p: 4, textAlign: 'center', color: 'var(--text3, #64748b)' }}>
-                                <Person sx={{ fontSize: 36, opacity: 0.5, mb: 0.5 }} />
-                                <Typography variant="body2">No students found matching "{searchQuery}"</Typography>
+                            <Box sx={{ p: 4, textAlign: 'center', color: colors.textSecondary }}>
+                                <Person sx={{ fontSize: 40, opacity: 0.4, mb: 0.5 }} />
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                    No students found matching "{searchQuery}"
+                                </Typography>
                             </Box>
                         ) : (
                             filteredStudents.map(student => {
@@ -473,30 +532,53 @@ export default function QuickAttendanceDialog({
                                     <Box
                                         key={student.id || student.indexNumber}
                                         sx={{
-                                            p: 1.2,
-                                            px: 1.8,
-                                            borderRadius: 2,
-                                            bgcolor: isMarkedToday ? 'rgba(16, 185, 129, 0.1)' : 'var(--surface2, rgba(255,255,255,0.03))',
-                                            border: isMarkedToday ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border, rgba(255,255,255,0.06))',
+                                            p: 1.4,
+                                            px: 2,
+                                            borderRadius: '14px',
+                                            bgcolor: isMarkedToday
+                                                ? (isDark ? 'rgba(16, 185, 129, 0.12)' : 'rgba(16, 185, 129, 0.08)')
+                                                : colors.rowBg,
+                                            border: isMarkedToday
+                                                ? '1.5px solid rgba(16, 185, 129, 0.35)'
+                                                : `1px solid ${colors.border}`,
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'space-between',
                                             gap: 1.5,
                                             transition: 'all 0.15s ease',
                                             '&:hover': {
-                                                bgcolor: 'rgba(255,255,255,0.06)'
+                                                bgcolor: colors.rowHoverBg
                                             }
                                         }}
                                     >
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
-                                            <Avatar sx={{ width: 34, height: 34, fontSize: 13, fontWeight: 700, bgcolor: 'rgba(99,102,241,0.2)', color: 'var(--accent, #6366f1)' }}>
+                                            <Avatar
+                                                sx={{
+                                                    width: 36,
+                                                    height: 36,
+                                                    fontSize: 14,
+                                                    fontWeight: 800,
+                                                    bgcolor: isDark ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.12)',
+                                                    color: 'primary.main'
+                                                }}
+                                            >
                                                 {student.name?.charAt(0) || 'S'}
                                             </Avatar>
                                             <Box sx={{ minWidth: 0 }}>
-                                                <Typography variant="body2" sx={{ fontWeight: 700, color: 'var(--text, #fff)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                <Typography
+                                                    variant="body2"
+                                                    sx={{
+                                                        fontWeight: 700,
+                                                        color: colors.textPrimary,
+                                                        whiteSpace: 'nowrap',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        fontSize: '0.9rem'
+                                                    }}
+                                                >
                                                     {student.name}
                                                 </Typography>
-                                                <Typography variant="caption" sx={{ color: 'var(--text3, #94a3b8)', display: 'block', fontSize: '0.72rem' }}>
+                                                <Typography variant="caption" sx={{ color: colors.textSecondary, display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>
                                                     Index: <strong>{student.indexNumber}</strong>
                                                 </Typography>
                                             </Box>
@@ -508,7 +590,7 @@ export default function QuickAttendanceDialog({
                                                 size="small"
                                                 color={student.isFreeCard ? 'secondary' : (student.feePaid ? 'success' : 'warning')}
                                                 variant={student.isFreeCard || student.feePaid ? 'filled' : 'outlined'}
-                                                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700 }}
+                                                sx={{ height: 24, fontSize: '0.72rem', fontWeight: 800, minWidth: 64 }}
                                             />
 
                                             <Button
@@ -518,16 +600,16 @@ export default function QuickAttendanceDialog({
                                                 disabled={markingIndex === student.indexNumber}
                                                 onClick={() => handleMarkAttendance(student.indexNumber, student)}
                                                 sx={{
-                                                    borderRadius: '8px',
+                                                    borderRadius: '10px',
                                                     textTransform: 'none',
-                                                    fontWeight: 700,
-                                                    fontSize: '0.75rem',
-                                                    py: 0.5,
-                                                    px: 1.5,
-                                                    minWidth: 105,
-                                                    bgcolor: isMarkedToday ? 'transparent' : 'var(--accent, #6366f1)',
+                                                    fontWeight: 800,
+                                                    fontSize: '0.78rem',
+                                                    py: 0.6,
+                                                    px: 1.8,
+                                                    minWidth: 110,
+                                                    boxShadow: isMarkedToday ? 'none' : '0 3px 10px rgba(99, 102, 241, 0.3)',
                                                     '&:hover': {
-                                                        bgcolor: isMarkedToday ? 'rgba(16, 185, 129, 0.15)' : '#4f46e5'
+                                                        bgcolor: isMarkedToday ? 'rgba(16, 185, 129, 0.15)' : 'primary.dark'
                                                     }
                                                 }}
                                             >
@@ -535,12 +617,12 @@ export default function QuickAttendanceDialog({
                                                     <CircularProgress size={14} sx={{ color: 'inherit' }} />
                                                 ) : isMarkedToday ? (
                                                     <>
-                                                        <CheckCircle sx={{ fontSize: 15, mr: 0.5 }} />
+                                                        <CheckCircle sx={{ fontSize: 16, mr: 0.5 }} />
                                                         Present
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <Bolt sx={{ fontSize: 15, mr: 0.3 }} />
+                                                        <Bolt sx={{ fontSize: 16, mr: 0.4 }} />
                                                         Mark Present
                                                     </>
                                                 )}
@@ -557,24 +639,29 @@ export default function QuickAttendanceDialog({
             <DialogActions
                 sx={{
                     p: 2,
-                    borderTop: '1px solid var(--border, rgba(255,255,255,0.08))',
+                    borderTop: `1px solid ${colors.border}`,
                     display: 'flex',
-                    justifyContent: 'space-between'
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
                 }}
             >
-                <Typography variant="caption" sx={{ color: 'var(--text3, #64748b)' }}>
-                    Tip: Press Enter in the index box for high-speed cardless marking.
+                <Typography variant="caption" sx={{ color: colors.textSecondary, fontWeight: 600 }}>
+                    💡 Tip: Type student index number &amp; press Enter for high-speed marking.
                 </Typography>
                 <Button
                     onClick={onClose}
-                    variant="outlined"
+                    variant="contained"
                     size="small"
                     sx={{
-                        color: 'var(--text2, #94a3b8)',
-                        borderColor: 'var(--border2, rgba(255,255,255,0.15))',
-                        fontWeight: 600,
+                        bgcolor: isDark ? 'rgba(255,255,255,0.1)' : '#0f172a',
+                        color: '#ffffff',
+                        fontWeight: 700,
+                        borderRadius: '10px',
                         textTransform: 'none',
-                        px: 2.5
+                        px: 3,
+                        '&:hover': {
+                            bgcolor: isDark ? 'rgba(255,255,255,0.2)' : '#1e293b'
+                        }
                     }}
                 >
                     Done

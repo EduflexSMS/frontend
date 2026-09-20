@@ -15,7 +15,8 @@ import {
   MenuItem,
   Chip,
   CircularProgress,
-  Tooltip
+  Tooltip,
+  useTheme
 } from '@mui/material';
 import axios from 'axios';
 import API_BASE_URL from '../config';
@@ -51,6 +52,8 @@ export default function EditSubjectDialog({
   onSaved,
   onDeleted
 }) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const isEditing = Boolean(subject && subject.name);
 
   const [formData, setFormData] = useState({
@@ -231,14 +234,14 @@ export default function EditSubjectDialog({
       maxWidth="sm"
       fullWidth
       PaperProps={{
-        style: {
-          borderRadius: 20,
-          background: 'var(--bg2, #1e293b)',
-          color: 'var(--text, #f8fafc)',
-          border: '1px solid var(--border2, rgba(255,255,255,0.12))',
+        sx: {
+          borderRadius: '20px',
+          bgcolor: isDark ? 'rgba(15, 23, 42, 0.96)' : '#ffffff',
+          color: isDark ? '#f8fafc' : '#0f172a',
+          border: isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(15,23,42,0.1)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+          boxShadow: isDark ? '0 25px 50px -12px rgba(0, 0, 0, 0.7)' : '0 25px 50px -12px rgba(15, 23, 42, 0.15)'
         }
       }}
     >
@@ -248,7 +251,7 @@ export default function EditSubjectDialog({
           alignItems: 'center',
           justifyContent: 'space-between',
           pb: 1,
-          borderBottom: '1px solid var(--border, rgba(255,255,255,0.08))'
+          borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(15,23,42,0.08)'
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -283,8 +286,13 @@ export default function EditSubjectDialog({
           disabled={saving || deleting}
           size="small"
           sx={{
-            color: 'var(--text2, #94a3b8)',
-            '&:hover': { color: 'var(--text, #fff)', bgcolor: 'rgba(255,255,255,0.08)' }
+            color: isDark ? '#94a3b8' : '#64748b',
+            borderRadius: '10px',
+            border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(15,23,42,0.08)',
+            '&:hover': {
+              color: isDark ? '#ffffff' : '#0f172a',
+              bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.06)'
+            }
           }}
         >
           ✕
