@@ -562,9 +562,24 @@ const fmtGrade = g => {
 function shouldShowSubject(sub, grade) {
   if (!grade) return true;
 
-  // If the subject has gradeSchedules configured, strictly match based on that
+  // 1. If the subject has gradeSchedules configured, match based on that
   if (sub.gradeSchedules && sub.gradeSchedules.length > 0) {
-    return sub.gradeSchedules.some(s => s.grade === grade);
+    // Direct match (e.g. "Grade 06 2027" === "Grade 06 2027")
+    if (sub.gradeSchedules.some(s => s.grade?.toLowerCase() === grade.toLowerCase())) {
+      return true;
+    }
+
+    // Base grade match (e.g. schedule has "Grade 06", and grade is "Grade 06 2027")
+    const gradeNumMatch = grade.match(/^Grade\s*0*(\d+)/i);
+    if (gradeNumMatch) {
+      const baseNum = parseInt(gradeNumMatch[1], 10);
+      const baseMatch = sub.gradeSchedules.some(s => {
+        const sMatch = s.grade?.match(/^Grade\s*0*(\d+)$/i);
+        return sMatch && parseInt(sMatch[1], 10) === baseNum;
+      });
+      if (baseMatch) return true;
+    }
+    return false;
   }
 
   // Fallback: If no gradeSchedules exist (e.g. legacy subjects or newly created),
@@ -572,7 +587,7 @@ function shouldShowSubject(sub, grade) {
   const name = sub.name || '';
   const isRR = name.toLowerCase().includes('rapid revision') || name.toLowerCase().includes('rr');
 
-  if (grade === 'Rapid Revision') {
+  if (grade.toLowerCase().includes('rapid revision') || grade.toLowerCase().includes('rr')) {
     return isRR;
   }
 
@@ -581,7 +596,8 @@ function shouldShowSubject(sub, grade) {
     return false;
   }
 
-  const n = parseInt(grade?.replace(/\D/g, '') || '0');
+  const nMatch = grade.match(/^Grade\s*0*(\d+)/i);
+  const n = nMatch ? parseInt(nMatch[1], 10) : 0;
 
   if (n >= 6 && n <= 9) {
     return ['Mathematics','Science','English','ICT','Sinhala'].some(k => name.includes(k));
@@ -590,7 +606,7 @@ function shouldShowSubject(sub, grade) {
     return ['Mathematics','Science','English','ICT','Business','Sinhala'].some(k => name.includes(k));
   }
   if (n >= 3 && n <= 5) {
-    return name.toLowerCase().includes('scholarship') && name.includes(grade?.replace(/\D/g, ''));
+    return name.toLowerCase().includes('scholarship') && name.includes(String(n));
   }
   return true;
 }
