@@ -68,6 +68,7 @@ export default function EditSubjectDialog({
 
   // Array of { grade: string, day: string }
   const [selectedGrades, setSelectedGrades] = useState([]);
+  const [gradesList, setGradesList] = useState(ALL_GRADES);
   const [teachers, setTeachers] = useState([]);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -78,6 +79,7 @@ export default function EditSubjectDialog({
     if (open) {
       setError(null);
       fetchTeachers();
+      fetchGradesList();
 
       if (subject) {
         setFormData({
@@ -135,6 +137,17 @@ export default function EditSubjectDialog({
       }
     } catch (err) {
       console.error('Error fetching teachers:', err);
+    }
+  };
+
+  const fetchGradesList = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/students/grades`);
+      if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+        setGradesList(res.data);
+      }
+    } catch (err) {
+      console.error('Error fetching grades in EditSubjectDialog:', err);
     }
   };
 
@@ -453,7 +466,7 @@ export default function EditSubjectDialog({
           </Typography>
 
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {ALL_GRADES.map(grade => {
+            {gradesList.map(grade => {
               const gradeItem = selectedGrades.find(g => g.grade === grade);
               const isSelected = Boolean(gradeItem);
 

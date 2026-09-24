@@ -12,6 +12,7 @@ export default function EditStudentDialog({ open, onClose, student, onUpdate }) 
         freeCardSubjects: []
     });
     const [availableSubjects, setAvailableSubjects] = useState([]);
+    const [availableGrades, setAvailableGrades] = useState([]);
 
     useEffect(() => {
         if (student) {
@@ -23,8 +24,20 @@ export default function EditStudentDialog({ open, onClose, student, onUpdate }) 
                 freeCardSubjects: student.enrollments.filter(e => e.isFreeCard).map(e => e.subject) // Load existing free card subjects
             });
             fetchSubjects();
+            fetchGrades();
         }
     }, [student]);
+
+    const fetchGrades = async () => {
+        try {
+            const res = await axios.get(`${API_BASE_URL}/api/students/grades`);
+            if (res.data && res.data.length > 0) {
+                setAvailableGrades(res.data);
+            }
+        } catch (e) {
+            console.error("Error fetching grades", e);
+        }
+    };
 
     const fetchSubjects = async () => {
         try {
@@ -80,11 +93,19 @@ export default function EditStudentDialog({ open, onClose, student, onUpdate }) 
                             label="Grade"
                             onChange={handleChange}
                         >
-                            {[...Array(13)].map((_, i) => {
-                                const gradeNum = (i + 1).toString().padStart(2, '0');
-                                return <MenuItem key={gradeNum} value={`Grade ${gradeNum}`}>Grade {gradeNum}</MenuItem>;
-                            })}
-                            <MenuItem value="Rapid Revision">Rapid Revision</MenuItem>
+                            {(() => {
+                                const defaultList = [
+                                    ...[...Array(13)].map((_, i) => `Grade ${(i + 1).toString().padStart(2, '0')}`),
+                                    'Rapid Revision'
+                                ];
+                                const list = availableGrades.length > 0 ? [...availableGrades] : defaultList;
+                                if (formData.grade && !list.includes(formData.grade)) {
+                                    list.push(formData.grade);
+                                }
+                                return list.map(g => (
+                                    <MenuItem key={g} value={g}>{g}</MenuItem>
+                                ));
+                            })()}
                         </Select>
                     </FormControl>
                     <TextField fullWidth label="Mobile" name="mobile" value={formData.mobile} onChange={handleChange} margin="dense" />

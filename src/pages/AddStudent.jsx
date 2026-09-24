@@ -38,6 +38,7 @@ export default function AddStudent() {
     });
 
     const [subjectsList, setSubjectsList] = useState([]);
+    const [gradesList, setGradesList] = useState([]);
 
     useEffect(() => {
         const fetchSubjects = async () => {
@@ -48,7 +49,20 @@ export default function AddStudent() {
                 console.error("Failed to fetch subjects", error);
             }
         };
+
+        const fetchGrades = async () => {
+            try {
+                const res = await axios.get(`${API_BASE_URL}/api/students/grades`);
+                if (res.data && res.data.length > 0) {
+                    setGradesList(res.data);
+                }
+            } catch (err) {
+                console.error("Failed to fetch grades", err);
+            }
+        };
+
         fetchSubjects();
+        fetchGrades();
     }, []);
 
     const handleChange = (e) => {
@@ -225,11 +239,16 @@ export default function AddStudent() {
                                         '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
                                     }}
                                 >
-                                    {[...Array(13)].map((_, i) => {
-                                        const gradeNum = (i + 1).toString().padStart(2, '0');
-                                        return <MenuItem key={gradeNum} value={`Grade ${gradeNum}`}>Grade {gradeNum}</MenuItem>;
-                                    })}
-                                    <MenuItem value="Rapid Revision">Rapid Revision</MenuItem>
+                                    {(() => {
+                                        const defaultList = [
+                                            ...[...Array(13)].map((_, i) => `Grade ${(i + 1).toString().padStart(2, '0')}`),
+                                            'Rapid Revision'
+                                        ];
+                                        const list = gradesList.length > 0 ? gradesList : defaultList;
+                                        return list.map(g => (
+                                            <MenuItem key={g} value={g}>{g}</MenuItem>
+                                        ));
+                                    })()}
                                 </Select>
                             </FormControl>
                         </motion.div>

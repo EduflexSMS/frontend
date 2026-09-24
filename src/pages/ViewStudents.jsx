@@ -3,6 +3,7 @@ import axios from 'axios';
 import API_BASE_URL from '../config';
 import EditStudentDialog from '../components/EditStudentDialog';
 import EditSubjectDialog from '../components/EditSubjectDialog';
+import EditGradeDialog from '../components/EditGradeDialog';
 import MultiSubjectFeeDialog, { isNotEnrolledInMonth } from '../components/MultiSubjectFeeDialog';
 import FeeRemindersDialog from '../components/FeeRemindersDialog';
 import { generateFeeReport } from '../utils/generateFeeReport';
@@ -512,6 +513,8 @@ const WHATSAPP_GROUP_LINKS = {
     'Rapid Revision': 'https://chat.whatsapp.com/DsOyVcdCWhO5SaKaWdRSLo',
 };
 
+let globalGradeConfigs = {};
+
 const sendWhatsAppGroupLink = (student) => {
     try {
         if (!student.mobile) {
@@ -523,7 +526,8 @@ const sendWhatsAppGroupLink = (student) => {
         else if (formattedNumber.startsWith('+94')) formattedNumber = formattedNumber.substring(1);
         else if (formattedNumber.length === 9 && !formattedNumber.startsWith('94')) formattedNumber = '94' + formattedNumber;
         
-        const groupLink = WHATSAPP_GROUP_LINKS[student.grade];
+        const configuredLink = globalGradeConfigs[student.grade]?.whatsappLink;
+        const groupLink = configuredLink || WHATSAPP_GROUP_LINKS[student.grade];
         if (!groupLink) {
             alert(`No WhatsApp group link configured for ${student.grade}`);
             return;
@@ -546,8 +550,13 @@ const getSubjMeta = name => {
 const attColor = pct => pct >= 75 ? '#4ade80' : pct >= 50 ? '#22d3ee' : '#fb923c';
 
 const fmtGrade = g => {
+  if (!g) return '';
   if (g === 'Rapid Revision') return 'RR';
-  return g?.replace(/\D/g, '').padStart(2, '0') || g;
+  const numMatch = g.match(/\d+/);
+  if (numMatch) return numMatch[0].padStart(2, '0');
+  const parts = g.trim().split(/\s+/);
+  if (parts.length > 1) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return g.slice(0, 3).toUpperCase();
 };
 
 function shouldShowSubject(sub, grade) {
@@ -1165,6 +1174,8 @@ export default function ViewStudents() {
   const [editingStudent, setEditingStudent] = useState(null);
   const [editingSubject, setEditingSubject] = useState(null);
   const [isAddingSubject, setIsAddingSubject] = useState(false);
+  const [editingGrade, setEditingGrade] = useState(null);
+  const [isAddingGrade, setIsAddingGrade] = useState(false);
   const [feeRemindersOpen, setFeeRemindersOpen] = useState(false);
   const [feeModalState, setFeeModalState] = useState({
     open: false,
@@ -1193,12 +1204,20 @@ export default function ViewStudents() {
     fetchStudents(true);
   };
 
-  // ── Fetch grades (same as original) ──
+  // ── Fetch grades ──
   const fetchGrades = async () => {
     setLoading(true);
     try {
-      const r = await axios.get(`${API_BASE_URL}/api/students/grades`);
-      setGrades(r.data);
+      const r = await axios.get(`${API_BASE_URL}/api/students/grades?detailed=true`);
+      const gradeList = r.data || [];
+      setGrades(gradeList);
+      const map = {};
+      gradeList.forEach(g => {
+        if (typeof g === 'object' && g.name) {
+          map[g.name] = g;
+        }
+      });
+      globalGradeConfigs = map;
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -1289,11 +1308,40 @@ export default function ViewStudents() {
         {/* ── Header ── */}
         {viewMode === 'grades' ? (
           <div className="ph fade-up">
-            <div className="ph-row">
-              <div className="ph-icon">👥</div>
-              <h1 className="ph-title">Students</h1>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <div className="ph-row">
+                  <div className="ph-icon">👥</div>
+                  <h1 className="ph-title">Students</h1>
+                </div>
+                <p className="ph-sub">Select a grade or search across all students</p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => { setEditingGrade(null); setIsAddingGrade(true); }}
+                style={{
+                  background: 'linear-gradient(135deg, var(--accent, #6366f1), #4f46e5)',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '9px 16px',
+                  borderRadius: 'var(--r-lg)',
+                  fontSize: '0.82rem',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '7px',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(99,102,241,0.35)',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Add Grade</span>
+              </button>
             </div>
-            <p className="ph-sub">Select a grade or search across all students</p>
 
             {/* Direct search from grades view */}
             <div className="search-wrap-container" style={{ marginTop: '20px', marginBottom: '8px' }}>
@@ -1364,15 +1412,64 @@ export default function ViewStudents() {
             </div>
 
             {/* Grade cards */}
-            {grades.map(g => (
-              <div key={g} className="sel-card" onClick={() => handleGradeClick(g)}>
-                <div className="grade-circle">{fmtGrade(g)}</div>
-                <div>
-                  <div className="card-name">{g}</div>
-                  <div className="card-hint">View students →</div>
+            {grades.map(g => {
+              const gName = typeof g === 'object' ? g.name : g;
+              const gCode = typeof g === 'object' && g.shortCode ? g.shortCode : fmtGrade(gName);
+              const count = typeof g === 'object' && g.studentCount !== undefined ? g.studentCount : null;
+
+              return (
+                <div key={gName} className="sel-card" onClick={() => handleGradeClick(gName)}>
+                  {/* Quick Edit Button */}
+                  <button
+                    type="button"
+                    className="card-edit-btn"
+                    title={`Edit ${gName}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingGrade(typeof g === 'object' ? g : { name: gName, shortCode: gCode });
+                      setIsAddingGrade(false);
+                    }}
+                  >
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+
+                  <div className="grade-circle">{gCode}</div>
+                  <div>
+                    <div className="card-name">{gName}</div>
+                    <div className="card-hint">
+                      {count !== null ? `${count} student${count === 1 ? '' : 's'} →` : 'View students →'}
+                    </div>
+                  </div>
                 </div>
+              );
+            })}
+
+            {/* Quick Add Grade Card */}
+            <div
+              className="sel-card add-subj-card"
+              onClick={() => {
+                setEditingGrade(null);
+                setIsAddingGrade(true);
+              }}
+              title="Add New Grade / Class"
+            >
+              <div
+                className="grade-circle"
+                style={{
+                  background: 'var(--accent-dim)',
+                  border: '1.5px dashed var(--accent)',
+                  color: 'var(--accent)'
+                }}
+              >
+                <span style={{ fontSize: '1.6rem', fontWeight: 300, lineHeight: 1 }}>+</span>
               </div>
-            ))}
+              <div>
+                <div className="card-name">Add Grade</div>
+                <div className="card-hint" style={{ color: 'var(--text3)' }}>Create new class</div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1595,6 +1692,30 @@ export default function ViewStudents() {
             if (selectedSubject === deletedName) {
               setSelectedSubject(null);
               setViewMode('subjects');
+            }
+          }}
+        />
+      )}
+
+      {(editingGrade || isAddingGrade) && (
+        <EditGradeDialog
+          open={Boolean(editingGrade || isAddingGrade)}
+          grade={editingGrade}
+          onClose={() => {
+            setEditingGrade(null);
+            setIsAddingGrade(false);
+          }}
+          onSaved={(savedGrade) => {
+            fetchGrades();
+            if (selectedGrade && editingGrade && selectedGrade === editingGrade.name) {
+              setSelectedGrade(savedGrade.name);
+            }
+          }}
+          onDeleted={(deletedGradeName) => {
+            fetchGrades();
+            if (selectedGrade === deletedGradeName) {
+              setSelectedGrade(null);
+              setViewMode('grades');
             }
           }}
         />
