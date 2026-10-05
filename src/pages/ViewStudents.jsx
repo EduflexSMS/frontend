@@ -498,6 +498,7 @@ const SUBJ_META = {
   ICT:         { color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', icon: '💻' },
   Business:    { color: '#fb923c', bg: 'rgba(251,146,60,0.12)',  icon: '📊' },
   Scholarship: { color: '#fbbf24', bg: 'rgba(251,191,36,0.12)',  icon: '🏆' },
+  Sinhala:     { color: '#ec4899', bg: 'rgba(236,72,153,0.12)',  icon: '✍️' },
 };
 
 const WHATSAPP_GROUP_LINKS = {
